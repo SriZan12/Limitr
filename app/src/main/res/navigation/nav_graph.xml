@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/fragmentSignup">
+
+    <fragment
+        android:id="@+id/fragmentSignup"
+        android:name="com.example.limitr.ui.auth.FragmentSignup"
+        tools:layout="@layout/signup_layout"
+        android:label="Signup" >
+        <action
+            android:id="@+id/action_fragmentSignup_to_fragmentHome"
+            app:destination="@id/fragmentHome" />
+    </fragment>
+    <fragment
+        android:id="@+id/fragmentHome"
+        android:name="com.example.limitr.ui.home.FragmentHome"
+        tools:layout="@layout/fragment_home"
+        android:label="FragmentHome" >
+        <action
+            android:id="@+id/action_fragmentHome_to_fragmentEditProfile"
+            app:destination="@id/fragmentEditProfile" />
+    </fragment>
+    <fragment
+        android:id="@+id/fragmentEditProfile"
+        android:name="com.example.limitr.ui.profile.FragmentEditProfile"
+        tools:layout="@layout/fragment_edit_profile"
+        android:label="EditProfile" />
+</navigation>

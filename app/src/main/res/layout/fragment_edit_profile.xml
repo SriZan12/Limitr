@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".ui.profile.FragmentEditProfile">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:progressBackgroundTint="@color/Ui_Color"
+            android:progressTint="@color/Ui_Color"
+            android:theme="@style/CustomProgressBarTheme"
+            android:visibility="gone" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profileImage"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center"
+            android:layout_margin="8dp"
+            android:padding="6dp"
+            android:src="@drawable/user" />
+
+        <EditText
+            android:id="@+id/profileName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="8dp"
+            android:autofillHints=""
+            android:background="@drawable/login_edittext_design"
+            android:hint="@string/name"
+            android:minHeight="48dp"
+            android:padding="6dp"
+            android:textColorHint="@color/black" />
+
+        <TextView
+            android:id="@+id/ButtonEditProfile"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="30dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/textview_design"
+            android:fontFamily="@font/gaglin"
+            android:gravity="center"
+            android:padding="6dp"
+            android:text="@string/done"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</layout>

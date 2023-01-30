@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Limitr</string>
+    <string name="limitize">Limitize</string>
+    <string name="Continue"> Continue with Google </string>
+    <string name="done">Done</string>
+    <string name="name">Name</string>
+    <string name="storage_rationale">This app needs access to your Storage to Upload Picture.</string>
+</resources>
