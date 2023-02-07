@@ -22,10 +22,29 @@
         <action
             android:id="@+id/action_fragmentHome_to_fragmentEditProfile"
             app:destination="@id/fragmentEditProfile" />
+        <action
+            android:id="@+id/action_fragmentHome_to_fragmentBlockApp"
+            app:destination="@id/fragmentBlockApp">
+
+        </action>
+
+        <action
+            android:id="@+id/action_fragmentHome_to_fragmentEditProfile2"
+            app:destination="@id/fragmentEditProfile"/>
     </fragment>
     <fragment
         android:id="@+id/fragmentEditProfile"
         android:name="com.example.limitr.ui.profile.FragmentEditProfile"
         tools:layout="@layout/fragment_edit_profile"
-        android:label="EditProfile" />
+        android:label="Edit Profile" />
+    <fragment
+        android:id="@+id/fragmentBlockApp"
+        android:name="com.example.limitr.ui.blocker.FragmentBlockApp"
+        tools:layout="@layout/fragment_app_block"
+        android:label="Block App" >
+
+        <argument
+            android:name="appInfo"
+            app:argType="com.example.limitr.ui.home.model.AppInfoModel" />
+    </fragment>
 </navigation>
