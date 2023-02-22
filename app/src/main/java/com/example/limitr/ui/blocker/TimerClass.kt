@@ -29,8 +29,7 @@ class TimerClass(private val timerText: TextView, duration: Long) : CountDownTim
 
     @SuppressLint("SetTextI18n")
     override fun onFinish() {
-        timerText.visibility = View.VISIBLE
-        timerText.text = "Time's Up"
+        timerText.visibility = View.GONE
     }
 
 }

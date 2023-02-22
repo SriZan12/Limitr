@@ -18,8 +18,8 @@ interface LimitrDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRemainingTime(limitrEntities: LimitrEntities)
 
-    @Delete
-    suspend fun deleteRemainingTime(limitrEntities: LimitrEntities)
+    @Query("DELETE FROM LimitrTable WHERE appName = :appName")
+    suspend fun deleteRemainingTime(appName: String)
 
     @Update
     suspend fun updateRemainingTime(limitrEntities: LimitrEntities)

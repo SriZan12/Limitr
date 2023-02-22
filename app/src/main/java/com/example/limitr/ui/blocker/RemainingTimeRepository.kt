@@ -18,8 +18,8 @@ class RemainingTimeRepository @Inject constructor() {
         limitrDao.insertRemainingTime(limitrEntities)
     }
 
-    suspend fun deleteRemainingTime(limitrEntities: LimitrEntities) {
-        limitrDao.deleteRemainingTime(limitrEntities)
+    suspend fun deleteRemainingTime(appName: String) {
+        limitrDao.deleteRemainingTime(appName)
     }
 
     suspend fun updateRemainingTime(limitrEntities: LimitrEntities) {

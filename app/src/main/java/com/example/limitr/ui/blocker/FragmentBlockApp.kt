@@ -1,6 +1,7 @@
 package com.example.limitr.ui.blocker
 
 import android.app.Dialog
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -11,6 +12,7 @@ import android.widget.NumberPicker
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -19,8 +21,11 @@ import com.example.limitr.R
 import com.example.limitr.data.room.model.LimitrEntities
 import com.example.limitr.databinding.FragmentAppBlockBinding
 import com.example.limitr.ui.home.model.AppInfoModel
+import com.example.limitr.utils.NotificationUtils.endNotification
+import com.example.limitr.utils.NotificationUtils.startNotification
 import com.example.limitr.utils.ViewUtils.startTimer
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.*
 
 @AndroidEntryPoint
 class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
@@ -30,6 +35,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     private lateinit var appInfoModel: AppInfoModel
     private val remainingTimeViewModel: RemainingTimeViewModel by viewModels()
     private val appBlock = "appBlocker"
+    private lateinit var appIcon: Bitmap
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,11 +53,13 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
 
         appInfoModel = fragmentBlockAppArgs.appInfo
 
+        appIcon = appInfoModel.appIcon.toBitmap()
+
         fragmentAppBlockBinding.appName.text = appInfoModel.appName
         fragmentAppBlockBinding.appIcon.setImageDrawable(appInfoModel.appIcon)
 
 
-        fragmentAppBlockBinding.startTimer.setOnClickListener {
+        fragmentAppBlockBinding.setTime.setOnClickListener {
             val dialog = Dialog(requireContext())
             dialog.window?.setContentView(R.layout.select_time_layout)
             dialog.window?.setLayout(
@@ -67,18 +75,29 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
 
         remainingTimeViewModel.getRemainingTime(appInfoModel.appName).observe(viewLifecycleOwner) {
 
+            Log.d(appBlock,"DataSize = ${it.appName}")
+
             if (it != null) {
                 Log.d(appBlock, "onViewCreated: ${it.appName}")
                 fragmentAppBlockBinding.timerText.visibility = View.VISIBLE
                 val elapsedTime = System.currentTimeMillis() - it.startTime!!
                 val currentRemainingTime = it.remainingTime?.minus(elapsedTime)
-                val hours = currentRemainingTime?.div(3600)
-                val minutes = (currentRemainingTime?.rem(3600))?.div(60)
-                val seconds = currentRemainingTime?.rem(60)
 
-                val time = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+//                val hours = currentRemainingTime?.div(3600)
+//                val minutes = (currentRemainingTime?.rem(3600))?.div(60)
+//                val seconds = currentRemainingTime?.rem(60)
+
                 if (currentRemainingTime != null && currentRemainingTime > 0) {
                     startTimer(fragmentAppBlockBinding.timerText, currentRemainingTime)
+                    fragmentAppBlockBinding.setTime.isEnabled = false
+                } else {
+                    fragmentAppBlockBinding.setTime.isEnabled = true
+                    fragmentAppBlockBinding.timerText.visibility = View.GONE
+                    remainingTimeViewModel.deleteRemainingTime(appInfoModel.appName!!)
+                        .observe(viewLifecycleOwner) {
+                            Toast.makeText(requireContext(),"Deleted",Toast.LENGTH_SHORT).show()
+                        }
+
                 }
             }
 
@@ -129,11 +148,26 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             val timeInMillis = (hour * 60 * 60 + minute * 60 + second) * 1000L
             Log.d(appBlock, "Time in milliseconds: $timeInMillis")
 
-//            val time = Time(timeInMillis)
+            val calendar = Calendar.getInstance()
+            calendar.set(Calendar.HOUR_OF_DAY, hour)
+            calendar.set(Calendar.MINUTE, minute)
+            calendar.set(Calendar.SECOND, second)
 
             startTimer(fragmentAppBlockBinding.timerText, timeInMillis)
 
             saveRemainingTime(timeInMillis, appName)
+            startNotification(
+                requireContext(),
+                appInfoModel.appName!!,
+                timeInMillis,
+                appIcon
+            )
+            endNotification(
+                requireContext(),
+                appInfoModel.appName!!,
+                System.currentTimeMillis() + timeInMillis,
+                appIcon
+            )
 
             dialog.dismiss()
 

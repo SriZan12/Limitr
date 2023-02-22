@@ -1,0 +1,56 @@
+package com.example.limitr.notification
+
+import android.annotation.SuppressLint
+import android.app.PendingIntent
+import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.os.Build
+import android.os.IBinder
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import com.example.limitr.MainActivity
+import com.example.limitr.R
+import com.example.limitr.utils.NotificationUtils.NOTIFICATIONCHANNEL
+import com.example.limitr.utils.NotificationUtils.NOTIFICATIONID
+
+class TimerStartNotification : BroadcastReceiver() {
+
+    @SuppressLint("MissingPermission")
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onReceive(context: Context, intent: Intent?) {
+        val tapIntent = Intent(context, MainActivity::class.java).apply {
+            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+
+        val notificationTitle = intent?.getStringExtra("title")
+        val blockedTime = intent?.getStringExtra("text")
+        val notificationId = intent?.getStringExtra("notificationId")?.toInt()
+        val appIcon = intent?.getParcelableExtra<Bitmap>("appIcon")
+
+        val pendingIntent: PendingIntent =
+            PendingIntent.getActivity(context, 101, tapIntent, PendingIntent.FLAG_IMMUTABLE)
+
+        val notificationBuilder = NotificationCompat.Builder(context, NOTIFICATIONCHANNEL)
+            .setSmallIcon(R.drawable.logo)
+            .setLargeIcon(appIcon)
+            .setContentTitle(notificationTitle)
+            .setContentText(blockedTime)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setVibrate(longArrayOf(0, 1000, 500, 1000))
+            .setLights(Color.RED, 1000, 1000).build()
+
+        val notificationManager = NotificationManagerCompat.from(context)
+        if (notificationId != null) {
+            notificationManager.notify(notificationId, notificationBuilder)
+        }
+    }
+
+}

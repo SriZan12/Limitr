@@ -64,7 +64,7 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
                 filteredAppList.add(app)
             }
 
-            appListAdapter.setAppLists(filteredAppList, requireContext(),onclickListener)
+            appListAdapter.setAppLists(filteredAppList, requireContext(), onclickListener)
         }
 
         val dividerItemDecoration = DividerItemDecoration(
@@ -84,9 +84,9 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
     }
 
     private val onclickListener: OnAppClickListener = object : OnAppClickListener {
-        override fun onClick(appName: String, appIcon: Drawable) {
+        override fun onClick(appName: String, appIcon: Drawable, appPackageName: String) {
 
-            appInfo = AppInfoModel(appName,appIcon)
+            appInfo = AppInfoModel(appName, appIcon, appPackageName)
 
             val action = FragmentHomeDirections.actionFragmentHomeToFragmentBlockApp(appInfo)
             findNavController().navigate(action)

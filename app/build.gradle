@@ -25,6 +25,7 @@ android {
         enabled = true
     }
 
+
     buildTypes {
         release {
             minifyEnabled false
@@ -67,7 +68,6 @@ dependencies {
 
 //    EasyPermission Dependency
     implementation 'pub.devrel:easypermissions:3.0.0'
-
 
 
     //Kotlin Coroutines

@@ -25,9 +25,9 @@ class RemainingTimeViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun deleteRemainingTime(limitrEntities: LimitrEntities) = liveData {
+    fun deleteRemainingTime(appName: String) = liveData {
         try {
-            emit(remainingTimeRepository.deleteRemainingTime(limitrEntities))
+            emit(remainingTimeRepository.deleteRemainingTime(appName))
         } catch (exception: Exception) {
             exception.printStackTrace()
         }

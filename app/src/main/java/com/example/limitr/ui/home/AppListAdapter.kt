@@ -58,9 +58,10 @@ class AppListAdapter @Inject constructor() :
 
                 val appName = applicationInfo.loadLabel(context.packageManager).toString()
                 val appIcon = applicationInfo.loadIcon(context.packageManager)
+                val appPackageName = applicationInfo.packageName
 
                 navigateNext.setOnClickListener {
-                   onclickListener.onClick(appName,appIcon)
+                   onclickListener.onClick(appName,appIcon,appPackageName)
                 }
             }
 
