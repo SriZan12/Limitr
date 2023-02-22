@@ -6,15 +6,19 @@ import android.os.Parcelable
 
 data class AppInfoModel(
     val appName: String?,
-    val appIcon: Drawable
+    val appIcon: Drawable,
+    val appPackage: String?
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString(),
-        TODO("appIcon")
-    )
+        TODO("appIcon"),
+        parcel.readString()
+    ) {
+    }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(appName)
+        parcel.writeString(appPackage)
     }
 
     override fun describeContents(): Int {
@@ -30,5 +34,4 @@ data class AppInfoModel(
             return arrayOfNulls(size)
         }
     }
-
 }
