@@ -5,6 +5,7 @@
     <string name="done">Done</string>
     <string name="name">Name</string>
     <string name="storage_rationale">This app needs access to your Storage to Upload Picture.</string>
+    <string name="drawOverOtherApps">"This app needs access to Draw over other apps to function properly.</string>
     <string name="usage">Usage:</string>
     <string name="set_timer">Set Time</string>
     <string name="app_size">App Size:</string>

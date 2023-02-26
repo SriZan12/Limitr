@@ -1,23 +1,19 @@
-package com.example.limitr.notification
+package com.example.limitr.services.notifications
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
-import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Build
-import android.os.IBinder
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.limitr.MainActivity
 import com.example.limitr.R
 import com.example.limitr.utils.NotificationUtils.NOTIFICATIONCHANNEL
-import com.example.limitr.utils.NotificationUtils.NOTIFICATIONID
 
 class TimerStartNotification : BroadcastReceiver() {
 

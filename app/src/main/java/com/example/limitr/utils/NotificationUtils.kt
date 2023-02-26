@@ -5,8 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
-import com.example.limitr.notification.TimerEndNotification
-import com.example.limitr.notification.TimerStartNotification
+import com.example.limitr.services.notifications.TimerEndNotification
+import com.example.limitr.services.notifications.TimerStartNotification
 import java.util.*
 
 object NotificationUtils {
