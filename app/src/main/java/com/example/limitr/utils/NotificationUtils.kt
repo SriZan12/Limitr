@@ -8,6 +8,7 @@ import android.os.Build
 import com.example.limitr.services.notifications.TimerEndNotification
 import com.example.limitr.services.notifications.TimerStartNotification
 import java.util.*
+import kotlin.math.min
 
 object NotificationUtils {
 
@@ -15,7 +16,7 @@ object NotificationUtils {
     val NOTIFICATIONID = System.currentTimeMillis()
     val calendar = Calendar.getInstance()
 
-    fun createNotificationChannel(context: Context) {
+    private fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "LimitrNotification"
             val descriptionText = "LimitrNotifies"
@@ -74,15 +75,28 @@ object NotificationUtils {
         val formattedTime = StringBuilder()
 
         if (hours > 0) {
-            formattedTime.append("$hours hour ")
+            if (hours == 1L) {
+                formattedTime.append("$hours hour ")
+            } else {
+                formattedTime.append("$hours hours ")
+            }
         }
 
         if (minutes > 0) {
-            formattedTime.append("$minutes minute ")
+            if (minutes == 1L) {
+                formattedTime.append("$minutes minute ")
+            } else {
+                formattedTime.append("$minutes minutes ")
+            }
         }
 
         if (seconds > 0) {
-            formattedTime.append("$seconds second")
+            if (seconds == 1L) {
+                formattedTime.append("$seconds second")
+            } else {
+                formattedTime.append("$seconds seconds")
+            }
+
         }
 
         return formattedTime.toString().trimEnd()

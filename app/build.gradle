@@ -69,6 +69,9 @@ dependencies {
 //    EasyPermission Dependency
     implementation 'pub.devrel:easypermissions:3.0.0'
 
+//    Timber Dependency
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+
 
     //Kotlin Coroutines
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4"

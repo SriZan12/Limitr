@@ -1,12 +1,10 @@
 package com.example.limitr.ui.profile
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -35,7 +33,6 @@ class FragmentEditProfile :
     private lateinit var firebaseStorage: FirebaseStorage
     private lateinit var firebaseAuth: FirebaseAuth
     private val editProfile = "EditTheProfile"
-    private val CAMERA_PERMISSION = 1
 
     override fun onCreateView(
         inflater: LayoutInflater,

@@ -1,5 +1,6 @@
 package com.example.limitr.ui.blocker
 
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.graphics.Bitmap
 import android.os.Build
@@ -75,17 +76,11 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
 
         remainingTimeViewModel.getRemainingTime(appInfoModel.appName).observe(viewLifecycleOwner) {
 
-            Log.d(appBlock,"DataSize = ${it.appName}")
-
             if (it != null) {
                 Log.d(appBlock, "onViewCreated: ${it.appName}")
                 fragmentAppBlockBinding.timerText.visibility = View.VISIBLE
                 val elapsedTime = System.currentTimeMillis() - it.startTime!!
                 val currentRemainingTime = it.remainingTime?.minus(elapsedTime)
-
-//                val hours = currentRemainingTime?.div(3600)
-//                val minutes = (currentRemainingTime?.rem(3600))?.div(60)
-//                val seconds = currentRemainingTime?.rem(60)
 
                 if (currentRemainingTime != null && currentRemainingTime > 0) {
                     startTimer(fragmentAppBlockBinding.timerText, currentRemainingTime)
@@ -95,7 +90,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
                     fragmentAppBlockBinding.timerText.visibility = View.GONE
                     remainingTimeViewModel.deleteRemainingTime(appInfoModel.appName!!)
                         .observe(viewLifecycleOwner) {
-                            Toast.makeText(requireContext(),"Deleted",Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "Deleted", Toast.LENGTH_SHORT).show()
                         }
 
                 }
@@ -180,9 +175,6 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     private fun saveRemainingTime(time: Long, appName: String?) {
 
         val limitrEntities = LimitrEntities(appName!!, System.currentTimeMillis(), time)
-//        limitrEntities.startTime = System.currentTimeMillis()
-//        limitrEntities.remainingTime = time
-//        limitrEntities.appName = appName
 
         remainingTimeViewModel.insertRemainingTime(limitrEntities).observe(viewLifecycleOwner) {
             Toast.makeText(requireContext(), "Inserted Successfully", Toast.LENGTH_SHORT).show()
