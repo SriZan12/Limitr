@@ -3,26 +3,22 @@ package com.example.limitr.ui.home
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.example.limitr.R
 import com.example.limitr.databinding.FragmentHomeBinding
-import com.example.limitr.ui.blocker.FragmentBlockAppArgs
 import com.example.limitr.ui.home.model.AppInfoModel
 import com.example.limitr.utils.ViewUtils.loadProfilePhoto
 import dagger.hilt.android.AndroidEntryPoint
@@ -79,6 +75,12 @@ class FragmentHome : Fragment(R.layout.fragment_home),
         for (app in installedApps) {
             if (app.flags and ApplicationInfo.FLAG_SYSTEM == 0) {
                 filteredAppList.add(app)
+            }
+
+            filteredAppList.apply {
+                sortedBy {
+                    it.name
+                }
             }
 
             appListAdapter.setAppLists(filteredAppList, requireContext(), onclickListener)
@@ -155,25 +157,16 @@ class FragmentHome : Fragment(R.layout.fragment_home),
 
     override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
         if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
-            val builder = AlertDialog.Builder(requireContext())
-
-            // Set the dialog title and message
-            builder.setTitle("Display Over Other Apps")
-            builder.setMessage(getString(R.string.drawOverOtherApps))
-
-// Set the positive button text and action
-            builder.setPositiveButton("Ok") { dialog, which ->
-                gotoSettings()
-            }
-
-// Set the negative button text and action
-            builder.setNegativeButton("Cancel") { dialog, which ->
-                checkDisplayOverOtherAppsPermission()
-            }
-
-// Create and show the dialog
-            val dialog = builder.create()
-            dialog.show()
+            AlertDialog.Builder(requireContext()).apply {
+                setTitle("Display Over Other Apps")
+                setMessage(getString(R.string.drawOverOtherApps))
+                setPositiveButton("Ok") { dialog, which ->
+                    gotoSettings()
+                }
+                setNegativeButton("Cancel") { dialog, which ->
+                    checkDisplayOverOtherAppsPermission()
+                }
+            }.create().show()
         }
     }
 

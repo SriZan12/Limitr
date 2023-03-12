@@ -2,7 +2,6 @@ package com.example.limitr.ui.home
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
-import android.graphics.drawable.BitmapDrawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
@@ -61,7 +60,7 @@ class AppListAdapter @Inject constructor() :
                 val appPackageName = applicationInfo.packageName
 
                 navigateNext.setOnClickListener {
-                   onclickListener.onClick(appName,appIcon,appPackageName)
+                    onclickListener.onClick(appName, appIcon, appPackageName)
                 }
             }
 
