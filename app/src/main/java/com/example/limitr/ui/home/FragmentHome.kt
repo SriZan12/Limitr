@@ -2,31 +2,31 @@ package com.example.limitr.ui.home
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
-import com.bumptech.glide.Glide
 import com.example.limitr.R
 import com.example.limitr.databinding.FragmentHomeBinding
+import com.example.limitr.ui.blocker.FragmentBlockAppArgs
 import com.example.limitr.ui.home.model.AppInfoModel
 import com.example.limitr.utils.ViewUtils.loadProfilePhoto
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import pub.devrel.easypermissions.AfterPermissionGranted
-import pub.devrel.easypermissions.AppSettingsDialog
 import pub.devrel.easypermissions.EasyPermissions
 import timber.log.Timber
 import javax.inject.Inject
@@ -129,32 +129,58 @@ class FragmentHome : Fragment(R.layout.fragment_home),
                 Timber.d("Inside second if")
                 EasyPermissions.requestPermissions(
                     this,
-                    "This app needs the 'Display over other apps' permission to function properly.",
+                    getString(R.string.drawOverOtherApps),
                     RC_DISPLAY_OVERLAY_PERMISSION,
                     Manifest.permission.SYSTEM_ALERT_WINDOW
                 )
             }
         }
 
+    }
 
+    @Deprecated("Deprecated in Java")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
 
     override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
-//        gotoSettings()
+        gotoSettings()
         Toast.makeText(requireContext(), "Granted", Toast.LENGTH_SHORT).show()
     }
 
 
     override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
         if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
-            AppSettingsDialog.Builder(this).build().show()
+            val builder = AlertDialog.Builder(requireContext())
+
+            // Set the dialog title and message
+            builder.setTitle("Display Over Other Apps")
+            builder.setMessage(getString(R.string.drawOverOtherApps))
+
+// Set the positive button text and action
+            builder.setPositiveButton("Ok") { dialog, which ->
+                gotoSettings()
+            }
+
+// Set the negative button text and action
+            builder.setNegativeButton("Cancel") { dialog, which ->
+                checkDisplayOverOtherAppsPermission()
+            }
+
+// Create and show the dialog
+            val dialog = builder.create()
+            dialog.show()
         }
     }
 
     private fun gotoSettings() {
-        val packageName = requireContext().packageName
         val intent =
-            Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
-        startActivityForResult(intent, RC_DISPLAY_OVERLAY_PERMISSION)
+            Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+        startActivity(intent)
     }
+
 }
