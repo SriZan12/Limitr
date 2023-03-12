@@ -15,9 +15,9 @@ import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.limitr.R
 import com.example.limitr.databinding.FragmentEditProfileBinding
-import com.example.limitr.utils.FirebaseUtils.getUserName
 import com.example.limitr.utils.FirebaseUtils.updateNameToFirebase
 import com.example.limitr.utils.FirebaseUtils.uploadToFirebase
+import com.example.limitr.utils.ViewUtils.loadProfilePhoto
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import pub.devrel.easypermissions.AppSettingsDialog
@@ -54,10 +54,7 @@ class FragmentEditProfile :
             FirebaseAuth.getInstance().currentUser?.displayName
         )
 
-        Glide.with(this)
-            .load(FirebaseAuth.getInstance().currentUser?.photoUrl)
-            .placeholder(R.drawable.user)
-            .into(fragmentEditProfileBinding.profileImage)
+        loadProfilePhoto(fragmentEditProfileBinding.profileImage,requireContext())
 
         fragmentEditProfileBinding.profileImage.setOnClickListener {
             checkStoragePermission()

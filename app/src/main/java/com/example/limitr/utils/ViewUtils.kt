@@ -2,9 +2,13 @@ package com.example.limitr.utils
 
 import android.app.TimePickerDialog
 import android.content.Context
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.TimePicker
+import com.bumptech.glide.Glide
+import com.example.limitr.R
 import com.example.limitr.ui.blocker.TimerClass
+import com.google.firebase.auth.FirebaseAuth
 import java.util.*
 
 object ViewUtils {
@@ -30,6 +34,13 @@ object ViewUtils {
 
     fun startTimer(timerText: TextView, givenTime: Long) {
         TimerClass(timerText, givenTime).start()
+    }
+
+    fun loadProfilePhoto(imageView: ImageView, context: Context) {
+        Glide.with(context)
+            .load(FirebaseAuth.getInstance().currentUser?.photoUrl)
+            .placeholder(R.drawable.user)
+            .into(imageView)
     }
 
 
