@@ -50,16 +50,9 @@ class FragmentEditProfile :
         firebaseStorage = FirebaseStorage.getInstance()
         firebaseAuth = FirebaseAuth.getInstance()
 
-        val username = FirebaseAuth.getInstance().currentUser?.displayName
-        Log.d(editProfile, "onViewCreated: $username")
-
-        if (username.isNullOrEmpty()) {
-            getUserName {
-                fragmentEditProfileBinding.profileName.setText(it)
-            }
-        } else {
-            fragmentEditProfileBinding.profileName.setText(FirebaseAuth.getInstance().currentUser?.displayName)
-        }
+        fragmentEditProfileBinding.profileName.setText(
+            FirebaseAuth.getInstance().currentUser?.displayName
+        )
 
         Glide.with(this)
             .load(FirebaseAuth.getInstance().currentUser?.photoUrl)
@@ -73,7 +66,7 @@ class FragmentEditProfile :
         fragmentEditProfileBinding.ButtonEditProfile.setOnClickListener {
             fragmentEditProfileBinding.progressBar.visibility = View.VISIBLE
             val name = fragmentEditProfileBinding.profileName.text.toString()
-            updateNameToFirebase(name, fragmentEditProfileBinding.progressBar)
+            updateNameToFirebase(name, fragmentEditProfileBinding.progressBar, requireContext())
         }
     }
 
@@ -95,7 +88,6 @@ class FragmentEditProfile :
                 }
             }
         }
-
 
 
     private fun hasStoragePermission(): Boolean {

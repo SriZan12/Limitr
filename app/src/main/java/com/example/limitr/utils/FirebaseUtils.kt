@@ -6,35 +6,17 @@ import android.net.Uri
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.Toast
-import com.example.tasker.ui.profile.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 
 object FirebaseUtils {
     private val firebaseAuth = FirebaseAuth.getInstance()
     private val firebaseStorage = FirebaseStorage.getInstance()
-    private val userUid = FirebaseAuth.getInstance().currentUser?.uid
     private lateinit var progressDialog: ProgressDialog
     private val tag = "TAG"
 
-    fun getUserName(onCallBack: (username: String) -> Unit) {
-        if (userUid != null) {
-            FirebaseDatabase.getInstance().reference.child("Users")
-                .child(userUid).addValueEventListener(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        onCallBack((snapshot.child("name").value.toString()))
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {}
-                })
-        }
-    }
 
     fun uploadToFirebase(imageUri: Uri, context: Context) {
         progressDialog = ProgressDialog(context)
@@ -63,11 +45,11 @@ object FirebaseUtils {
         context: Context
     ) { // This method will help updating the image of user
         val user = FirebaseAuth.getInstance().currentUser
-        val request = UserProfileChangeRequest.Builder()
+        val updateProfilePhoto = UserProfileChangeRequest.Builder()
             .setPhotoUri(uri)
             .build()
         assert(user != null)
-        user!!.updateProfile(request).addOnSuccessListener {
+        user!!.updateProfile(updateProfilePhoto).addOnSuccessListener {
             Toast.makeText(context, "Profile Updated", Toast.LENGTH_SHORT).show()
             progressDialog.dismiss()
         }
@@ -75,16 +57,17 @@ object FirebaseUtils {
 
     fun updateNameToFirebase(
         fullName: String,
-        progressBar: ProgressBar
-    ) { // Updating the Name of the user
-        val user = User(fullName)
-        val userUid = firebaseAuth.currentUser?.uid
+        progressBar: ProgressBar,
+        context: Context
+    ) {
+        // Updating the Name of the user
+        val updateUsername = UserProfileChangeRequest.Builder()
+            .setDisplayName(fullName)
+            .build()
 
-        if (userUid != null) {
-            FirebaseDatabase.getInstance().reference.child("Users").child(userUid)
-                .setValue(user).addOnSuccessListener {
-                    progressBar.visibility = View.GONE
-                }
+        firebaseAuth.currentUser?.updateProfile(updateUsername)?.addOnSuccessListener {
+            progressBar.visibility = View.GONE
+            Toast.makeText(context, "UserName Updated!", Toast.LENGTH_SHORT).show()
         }
     }
 }
