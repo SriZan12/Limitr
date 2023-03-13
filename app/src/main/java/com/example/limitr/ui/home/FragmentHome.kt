@@ -2,17 +2,20 @@ package com.example.limitr.ui.home
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -39,6 +42,7 @@ class FragmentHome : Fragment(R.layout.fragment_home),
 
     companion object {
         private const val RC_DISPLAY_OVERLAY_PERMISSION = 101
+        private const val ACCESSIBILITY_SERVICE_PERMISSION = 102
     }
 
 
@@ -58,7 +62,9 @@ class FragmentHome : Fragment(R.layout.fragment_home),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         checkDisplayOverOtherAppsPermission()
+
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -131,7 +137,7 @@ class FragmentHome : Fragment(R.layout.fragment_home),
                 Timber.d("Inside second if")
                 EasyPermissions.requestPermissions(
                     this,
-                    getString(R.string.drawOverOtherApps),
+                    getString(R.string.DrawOverOtherApps),
                     RC_DISPLAY_OVERLAY_PERMISSION,
                     Manifest.permission.SYSTEM_ALERT_WINDOW
                 )
@@ -150,30 +156,87 @@ class FragmentHome : Fragment(R.layout.fragment_home),
     }
 
     override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
-        gotoSettings()
-        Toast.makeText(requireContext(), "Granted", Toast.LENGTH_SHORT).show()
+        when (requestCode) {
+            RC_DISPLAY_OVERLAY_PERMISSION -> {
+                goToDisplayOverOtherAppsSettings()
+            }
+            ACCESSIBILITY_SERVICE_PERMISSION -> {
+                goToAccessibilitySettings()
+            }
+
+        }
     }
 
 
     override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
-        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
-            AlertDialog.Builder(requireContext()).apply {
-                setTitle("Display Over Other Apps")
-                setMessage(getString(R.string.drawOverOtherApps))
-                setPositiveButton("Ok") { dialog, which ->
-                    gotoSettings()
+
+        val message = when (requestCode) {
+            RC_DISPLAY_OVERLAY_PERMISSION -> getString(R.string.DrawOverOtherApps)
+            ACCESSIBILITY_SERVICE_PERMISSION -> getString(R.string.AccessibilityService)
+
+            else -> ""
+        }
+
+        AlertDialog.Builder(requireContext()).apply {
+            setTitle("Permission Required!")
+            setMessage(message)
+            setPositiveButton("Ok") { dialog, which ->
+                when (requestCode) {
+                    RC_DISPLAY_OVERLAY_PERMISSION -> goToDisplayOverOtherAppsSettings()
+                    ACCESSIBILITY_SERVICE_PERMISSION -> goToAccessibilitySettings()
                 }
-                setNegativeButton("Cancel") { dialog, which ->
-                    checkDisplayOverOtherAppsPermission()
+            }
+            setNegativeButton("Cancel") { dialog, which ->
+                when (requestCode) {
+                    RC_DISPLAY_OVERLAY_PERMISSION -> checkDisplayOverOtherAppsPermission()
+                    ACCESSIBILITY_SERVICE_PERMISSION -> checkAccessibilityService()
                 }
-            }.create().show()
+            }
+        }.setCancelable(false)
+            .create().show()
+    }
+
+    private fun goToDisplayOverOtherAppsSettings() {
+        val packageName = requireContext().packageName
+        val intent =
+            Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+        launcher.launch(intent)
+    }
+
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            checkAccessibilityService()
+        }
+
+    private fun isAccessibilityServiceEnabled(): Boolean {
+        return EasyPermissions.hasPermissions(
+            requireContext(),
+            Manifest.permission.BIND_ACCESSIBILITY_SERVICE
+        )
+    }
+
+    private fun checkAccessibilityService() {
+        if (!isAccessibilityServiceEnabled()) {
+            EasyPermissions.requestPermissions(
+                this,
+                "This apps need Accessibility Service enabled to function properly.",
+                ACCESSIBILITY_SERVICE_PERMISSION,
+                Manifest.permission.BIND_ACCESSIBILITY_SERVICE
+            )
         }
     }
 
-    private fun gotoSettings() {
-        val intent =
-            Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
-        startActivity(intent)
+    private fun goToAccessibilitySettings() {
+        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        startActivityForResult(intent, ACCESSIBILITY_SERVICE_PERMISSION)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == ACCESSIBILITY_SERVICE_PERMISSION && resultCode == Activity.RESULT_OK) {
+            Toast.makeText(requireContext(), "Granted", Toast.LENGTH_SHORT).show()
+        }
     }
 
 }
