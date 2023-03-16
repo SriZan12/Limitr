@@ -1,4 +1,4 @@
-package com.example.limitr.ui.auth
+package com.example.limitr.resource
 
 sealed class AuthState {
     object Idle : AuthState()

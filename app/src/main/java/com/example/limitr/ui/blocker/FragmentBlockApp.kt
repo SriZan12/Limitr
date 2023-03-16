@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.NumberPicker
 import android.widget.TextView
 import android.widget.Toast
@@ -77,7 +78,6 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
         remainingTimeViewModel.getRemainingTime(appInfoModel.appName).observe(viewLifecycleOwner) {
 
             if (it != null) {
-                Log.d(appBlock, "onViewCreated: ${it.appName}")
                 fragmentAppBlockBinding.timerText.visibility = View.VISIBLE
                 val elapsedTime = System.currentTimeMillis() - it.startTime!!
                 val currentRemainingTime = it.remainingTime?.minus(elapsedTime)
@@ -174,10 +174,11 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun saveRemainingTime(time: Long, appName: String?) {
 
-        val limitrEntities = LimitrEntities(appName!!, System.currentTimeMillis(), time)
+        val limitrEntities = LimitrEntities(appName!!, System.currentTimeMillis(), time,appInfoModel.appPackage)
 
         remainingTimeViewModel.insertRemainingTime(limitrEntities).observe(viewLifecycleOwner) {
             Toast.makeText(requireContext(), "Inserted Successfully", Toast.LENGTH_SHORT).show()
         }
     }
+
 }

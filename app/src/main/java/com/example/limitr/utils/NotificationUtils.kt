@@ -16,7 +16,7 @@ object NotificationUtils {
     val NOTIFICATIONID = System.currentTimeMillis()
     val calendar = Calendar.getInstance()
 
-    private fun createNotificationChannel(context: Context) {
+     fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "LimitrNotification"
             val descriptionText = "LimitrNotifies"

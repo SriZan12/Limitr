@@ -7,13 +7,16 @@ import android.widget.TextView
 import android.widget.TimePicker
 import com.bumptech.glide.Glide
 import com.example.limitr.R
+import com.example.limitr.resource.PermissionState
 import com.example.limitr.ui.blocker.TimerClass
 import com.google.firebase.auth.FirebaseAuth
+import java.security.Permission
 import java.util.*
 
 object ViewUtils {
 
     private val calendar: Calendar = Calendar.getInstance()
+    var isAccessibilityServiceEnabled: Any = PermissionState.Denied
 
 
     fun showTimePickerDialog(requireContext: Context, onResponse: (time: Date) -> Unit) {
@@ -41,6 +44,10 @@ object ViewUtils {
             .load(FirebaseAuth.getInstance().currentUser?.photoUrl)
             .placeholder(R.drawable.user)
             .into(imageView)
+    }
+
+    fun accessibilityPermissionState(permissionState: Any): Any {
+        return permissionState
     }
 
 

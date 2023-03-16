@@ -14,5 +14,6 @@ data class LimitrEntities(
     @TypeConverters(TimeConverter::class)
     var startTime: Long? = null,
     @TypeConverters(TimeConverter::class)
-    var remainingTime: Long? = null
+    var remainingTime: Long? = null,
+    var appPackage: String? = null
 )

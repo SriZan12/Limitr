@@ -9,7 +9,7 @@ import com.example.limitr.data.room.model.TimeConverter
 
 @Database(
     entities = [LimitrEntities::class],
-    version = 3
+    version = 4
 )
 @TypeConverters(TimeConverter::class)
 abstract class LimitrDatabase: RoomDatabase() {

@@ -22,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import pub.devrel.easypermissions.AppSettingsDialog
 import pub.devrel.easypermissions.EasyPermissions
+import timber.log.Timber
 
 class FragmentEditProfile :
     Fragment(R.layout.fragment_edit_profile), EasyPermissions.PermissionCallbacks,
@@ -75,6 +76,7 @@ class FragmentEditProfile :
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            Timber.d("ResultCode = ${result.resultCode} + Activity = ${Activity.RESULT_OK}")
             if (result.resultCode == Activity.RESULT_OK) {
                 val res = result.data
                 if (res != null) {

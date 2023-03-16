@@ -5,9 +5,13 @@
     <string name="done">Done</string>
     <string name="name">Name</string>
     <string name="storage_rationale">This app needs access to your Storage to Upload Picture.</string>
-    <string name="drawOverOtherApps">"This app needs permission to display over other apps in order to perform its functions</string>
+    <string name="DrawOverOtherApps">This app needs permission to display over other apps in order to perform its functions</string>
+    <string name="AccessibilityService">This apps needs Accessibility Service enabled to function properly.</string>
     <string name="usage">Usage:</string>
     <string name="set_timer">Set Time</string>
     <string name="app_size">App Size:</string>
     <string name="start_timer">Start Timer</string>
+    <string name="accessibility_service_label">Accessibility Service</string>
+    <string name="accessibility_service_description">Accessibility Service for App Launch.</string>
+    <string name="permission_required">Permission Required</string>
 </resources>

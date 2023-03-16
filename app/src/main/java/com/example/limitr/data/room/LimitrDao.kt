@@ -15,6 +15,9 @@ interface LimitrDao {
     @Query("SELECT * FROM LimitrTable WHERE appName = :appName")
     fun getRemainingTime(appName: String): LiveData<LimitrEntities>
 
+    @Query("SELECT * FROM LimitrTable WHERE appName = :appName")
+    suspend fun getAppName(appName: String): LimitrEntities?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRemainingTime(limitrEntities: LimitrEntities)
 
