@@ -1,10 +1,12 @@
 package com.example.limitr.ui.home
 
 import android.Manifest
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.app.AlertDialog
+import android.app.Dialog
+import android.content.Context
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
@@ -14,7 +16,8 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import android.view.accessibility.AccessibilityManager
+import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -25,26 +28,18 @@ import com.example.limitr.databinding.FragmentHomeBinding
 import com.example.limitr.ui.home.model.AppInfoModel
 import com.example.limitr.utils.ViewUtils.loadProfilePhoto
 import dagger.hilt.android.AndroidEntryPoint
-import pub.devrel.easypermissions.AfterPermissionGranted
-import pub.devrel.easypermissions.EasyPermissions
 import timber.log.Timber
 import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class FragmentHome : Fragment(R.layout.fragment_home),
-    EasyPermissions.PermissionCallbacks {
+class FragmentHome : Fragment(R.layout.fragment_home) {
 
     private lateinit var fragmentHomeBinding: FragmentHomeBinding
     private val homeFragment = "home"
     private var filteredAppList: MutableList<ApplicationInfo> = mutableListOf()
     private lateinit var appInfo: AppInfoModel
-
-    companion object {
-        private const val RC_DISPLAY_OVERLAY_PERMISSION = 101
-        private const val ACCESSIBILITY_SERVICE_PERMISSION = 102
-    }
-
+    private lateinit var dialog: Dialog
 
     @Inject
     lateinit var appListAdapter: AppListAdapter
@@ -63,9 +58,25 @@ class FragmentHome : Fragment(R.layout.fragment_home),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        checkDisplayOverOtherAppsPermission()
+        dialog = Dialog(requireContext())
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+
+        if (!Settings.canDrawOverlays(requireContext()) ||
+            !checkAccessibilityPermission()
+        ) {
+            Timber.d("Inisde IF")
+            showPermissionDialog()
+        } else {
+            Timber.d("Inside Else")
+            dialog.dismiss()
+        }
 
     }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -119,124 +130,78 @@ class FragmentHome : Fragment(R.layout.fragment_home),
 
     }
 
-    private fun isDisplayOverOtherAppsEnabled(): Boolean {
-        return EasyPermissions.hasPermissions(
-            requireContext(),
-            Manifest.permission.SYSTEM_ALERT_WINDOW
-        )
-    }
-
-    @AfterPermissionGranted(RC_DISPLAY_OVERLAY_PERMISSION)
-    private fun checkDisplayOverOtherAppsPermission() {
-
-        Timber.d("Permission: ${!isDisplayOverOtherAppsEnabled()}")
-
-        if (!Settings.canDrawOverlays(requireContext())) {
-            Timber.d("Inside first if")
-            if (!isDisplayOverOtherAppsEnabled()) {
-                Timber.d("Inside second if")
-                EasyPermissions.requestPermissions(
-                    this,
-                    getString(R.string.DrawOverOtherApps),
-                    RC_DISPLAY_OVERLAY_PERMISSION,
-                    Manifest.permission.SYSTEM_ALERT_WINDOW
-                )
-            }
-        }
-
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
-    }
-
-    override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
-        when (requestCode) {
-            RC_DISPLAY_OVERLAY_PERMISSION -> {
-                goToDisplayOverOtherAppsSettings()
-            }
-            ACCESSIBILITY_SERVICE_PERMISSION -> {
-                goToAccessibilitySettings()
-            }
-
-        }
-    }
-
-
-    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
-
-        val message = when (requestCode) {
-            RC_DISPLAY_OVERLAY_PERMISSION -> getString(R.string.DrawOverOtherApps)
-            ACCESSIBILITY_SERVICE_PERMISSION -> getString(R.string.AccessibilityService)
-
-            else -> ""
-        }
-
-        AlertDialog.Builder(requireContext()).apply {
-            setTitle("Permission Required!")
-            setMessage(message)
-            setPositiveButton("Ok") { dialog, which ->
-                when (requestCode) {
-                    RC_DISPLAY_OVERLAY_PERMISSION -> goToDisplayOverOtherAppsSettings()
-                    ACCESSIBILITY_SERVICE_PERMISSION -> goToAccessibilitySettings()
-                }
-            }
-            setNegativeButton("Cancel") { dialog, which ->
-                when (requestCode) {
-                    RC_DISPLAY_OVERLAY_PERMISSION -> checkDisplayOverOtherAppsPermission()
-                    ACCESSIBILITY_SERVICE_PERMISSION -> checkAccessibilityService()
-                }
-            }
-        }.setCancelable(false)
-            .create().show()
-    }
 
     private fun goToDisplayOverOtherAppsSettings() {
         val packageName = requireContext().packageName
         val intent =
             Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
-        launcher.launch(intent)
-    }
-
-    private val launcher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            checkAccessibilityService()
-        }
-
-    private fun isAccessibilityServiceEnabled(): Boolean {
-        return EasyPermissions.hasPermissions(
-            requireContext(),
-            Manifest.permission.BIND_ACCESSIBILITY_SERVICE
-        )
-    }
-
-    private fun checkAccessibilityService() {
-        if (!isAccessibilityServiceEnabled()) {
-            EasyPermissions.requestPermissions(
-                this,
-                "This apps need Accessibility Service enabled to function properly.",
-                ACCESSIBILITY_SERVICE_PERMISSION,
-                Manifest.permission.BIND_ACCESSIBILITY_SERVICE
-            )
+        intent.apply {
+            FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
         }
     }
 
     private fun goToAccessibilitySettings() {
         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-        startActivityForResult(intent, ACCESSIBILITY_SERVICE_PERMISSION)
+        intent.apply {
+            FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+        }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+    private val launcher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
 
-        if (requestCode == ACCESSIBILITY_SERVICE_PERMISSION && resultCode == Activity.RESULT_OK) {
-            Toast.makeText(requireContext(), "Granted", Toast.LENGTH_SHORT).show()
+        showPermissionDialog()
+
+    }
+
+    private fun showPermissionDialog() {
+
+        dialog.apply {
+            window?.setContentView(R.layout.permission_layout)
+            window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            setCancelable(false)
         }
+
+        val grantAccessiblePermission: Button = dialog.findViewById(R.id.grantAccessiblePerm)
+        val grantDisplayOverPermission: Button = dialog.findViewById(R.id.grantDisplayOverPerm)
+
+        if (checkAccessibilityPermission()) {
+            grantAccessiblePermission.text = "Granted"
+            grantAccessiblePermission.isEnabled = false
+        }
+        if (Settings.canDrawOverlays(requireContext())) {
+            grantDisplayOverPermission.text = "Granted"
+            grantDisplayOverPermission.isEnabled = false
+        }
+
+        grantAccessiblePermission.setOnClickListener {
+            goToAccessibilitySettings()
+        }
+
+        grantDisplayOverPermission.setOnClickListener {
+            goToDisplayOverOtherAppsSettings()
+        }
+
+        dialog.show()
+    }
+
+    private fun checkAccessibilityPermission(): Boolean {
+        var isAccessibilityEnabled = false
+        (requireContext().getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager).apply {
+            installedAccessibilityServiceList.forEach { installedService ->
+                installedService.resolveInfo.serviceInfo.apply {
+                    if (getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK).any { it.resolveInfo.serviceInfo.packageName == packageName && it.resolveInfo.serviceInfo.name == name && permission == Manifest.permission.BIND_ACCESSIBILITY_SERVICE && it.resolveInfo.serviceInfo.packageName == requireActivity().packageName })
+                        isAccessibilityEnabled = true
+                }
+            }
+        }
+        return isAccessibilityEnabled
     }
 
 }

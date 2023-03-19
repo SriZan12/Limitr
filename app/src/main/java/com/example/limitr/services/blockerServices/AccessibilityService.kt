@@ -6,22 +6,15 @@ import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.pm.PackageManager
 import android.view.accessibility.AccessibilityEvent
-import android.view.accessibility.AccessibilityNodeInfo
 import androidx.lifecycle.*
 import com.example.limitr.data.room.LimitrDao
-import com.example.limitr.resource.PermissionState
 import com.example.limitr.ui.blocker.ActivityBlocked
-import com.example.limitr.ui.blocker.FragmentBlockApp
-import com.example.limitr.ui.blocker.RemainingTimeRepository
-import com.example.limitr.utils.ViewUtils.isAccessibilityServiceEnabled
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.security.Permission
 import javax.inject.Inject
-import kotlin.system.exitProcess
 
 
 @AndroidEntryPoint
@@ -64,9 +57,6 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
 
 
     override fun onServiceConnected() {
-
-        Timber.d("Service Connected!")
-        isAccessibilityServiceEnabled = PermissionState.Granted
 
         val info = AccessibilityServiceInfo()
         info.apply {
