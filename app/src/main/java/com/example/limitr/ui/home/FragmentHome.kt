@@ -149,14 +149,6 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
         }
     }
 
-    private val launcher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-
-        showPermissionDialog()
-
-    }
-
     private fun showPermissionDialog() {
 
         dialog.apply {
