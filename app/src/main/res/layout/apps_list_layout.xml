@@ -19,8 +19,8 @@
             android:layout_margin="8dp" />
 
         <TextView
-            android:id="@+id/appName"
-            android:layout_width="278dp"
+            android:id="@+id/app"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_margin="8dp"

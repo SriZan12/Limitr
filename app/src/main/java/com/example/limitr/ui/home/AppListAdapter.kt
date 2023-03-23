@@ -52,7 +52,7 @@ class AppListAdapter @Inject constructor() :
 
         fun bind(applicationInfo: ApplicationInfo) {
             with(binding) {
-                appName.text = applicationInfo.loadLabel(context.packageManager)
+                app.text = applicationInfo.loadLabel(context.packageManager)
                 appIcon.setImageDrawable(applicationInfo.loadIcon(context.packageManager))
 
                 val appName = applicationInfo.loadLabel(context.packageManager).toString()
@@ -60,6 +60,10 @@ class AppListAdapter @Inject constructor() :
                 val appPackageName = applicationInfo.packageName
 
                 navigateNext.setOnClickListener {
+                    onclickListener.onClick(appName, appIcon, appPackageName)
+                }
+
+                app.setOnClickListener {
                     onclickListener.onClick(appName, appIcon, appPackageName)
                 }
             }

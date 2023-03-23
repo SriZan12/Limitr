@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.os.CountDownTimer
 import android.view.View
 import android.widget.TextView
-import androidx.fragment.app.viewModels
-import kotlin.math.min
 
 class TimerClass(private val timerText: TextView, duration: Long) : CountDownTimer(
     duration,
@@ -29,7 +27,7 @@ class TimerClass(private val timerText: TextView, duration: Long) : CountDownTim
 
     @SuppressLint("SetTextI18n")
     override fun onFinish() {
-        timerText.visibility = View.GONE
+
     }
 
 }

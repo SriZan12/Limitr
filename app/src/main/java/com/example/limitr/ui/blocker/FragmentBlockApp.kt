@@ -103,9 +103,9 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setNumberPicker(dialog: Dialog, appName: String?) {
 
-        var hour: Int = 0
-        var minute: Int = 0
-        var second: Int = 0
+        var hour = 0
+        var minute = 0
+        var second = 0
 
         val hourPicker: NumberPicker = dialog.findViewById(R.id.hour_picker)
         val minutePicker: NumberPicker = dialog.findViewById(R.id.minute_picker)
@@ -141,7 +141,6 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             second = secondPicker.value
 
             val timeInMillis = (hour * 60 * 60 + minute * 60 + second) * 1000L
-            Log.d(appBlock, "Time in milliseconds: $timeInMillis")
 
             val calendar = Calendar.getInstance()
             calendar.set(Calendar.HOUR_OF_DAY, hour)
@@ -174,7 +173,8 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun saveRemainingTime(time: Long, appName: String?) {
 
-        val limitrEntities = LimitrEntities(appName!!, System.currentTimeMillis(), time,appInfoModel.appPackage)
+        val limitrEntities =
+            LimitrEntities(appName!!, System.currentTimeMillis(), time, appInfoModel.appPackage)
 
         remainingTimeViewModel.insertRemainingTime(limitrEntities).observe(viewLifecycleOwner) {
             Toast.makeText(requireContext(), "Inserted Successfully", Toast.LENGTH_SHORT).show()

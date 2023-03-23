@@ -14,4 +14,8 @@
     <string name="accessibility_service_label">Accessibility Service</string>
     <string name="accessibility_service_description">Accessibility Service for App Launch.</string>
     <string name="permission_required">Permission Required</string>
+    <string name="installed_apps">Installed Apps</string>
+    <string name="system_apps">System Apps</string>
+    <string name="remaining_time">Remaining Time:</string>
+    <string name="app_blocked">App Blocked</string>
 </resources>

@@ -2,14 +2,10 @@ package com.example.limitr.ui.home
 
 import android.Manifest
 import android.accessibilityservice.AccessibilityServiceInfo
-import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -18,17 +14,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
 import android.widget.Button
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.DividerItemDecoration
 import com.example.limitr.R
 import com.example.limitr.databinding.FragmentHomeBinding
-import com.example.limitr.ui.home.model.AppInfoModel
+import com.example.limitr.ui.home.appcategory.AppCategoryAdapter
 import com.example.limitr.utils.ViewUtils.loadProfilePhoto
+import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -37,12 +32,8 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
 
     private lateinit var fragmentHomeBinding: FragmentHomeBinding
     private val homeFragment = "home"
-    private var filteredAppList: MutableList<ApplicationInfo> = mutableListOf()
-    private lateinit var appInfo: AppInfoModel
     private lateinit var dialog: Dialog
-
-    @Inject
-    lateinit var appListAdapter: AppListAdapter
+    private lateinit var appCategoryAdapter: AppCategoryAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,14 +55,11 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
     override fun onResume() {
         super.onResume()
 
-
         if (!Settings.canDrawOverlays(requireContext()) ||
             !checkAccessibilityPermission()
         ) {
-            Timber.d("Inisde IF")
             showPermissionDialog()
         } else {
-            Timber.d("Inside Else")
             dialog.dismiss()
         }
 
@@ -81,55 +69,28 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        loadProfilePhoto(fragmentHomeBinding.profile, requireContext())
+
+        appCategoryAdapter = AppCategoryAdapter(requireActivity())
+        fragmentHomeBinding.viewPager.adapter = appCategoryAdapter
+
         fragmentHomeBinding.profile.setOnClickListener {
             val action = FragmentHomeDirections.actionFragmentHomeToFragmentEditProfile()
             findNavController().navigate(action)
         }
 
-        loadProfilePhoto(fragmentHomeBinding.profile, requireContext())
-
-        val installedApps = getInstalledApps()
-        for (app in installedApps) {
-            if (app.flags and ApplicationInfo.FLAG_SYSTEM == 0) {
-                filteredAppList.add(app)
+        TabLayoutMediator(
+            fragmentHomeBinding.tabLayout,
+            fragmentHomeBinding.viewPager
+        ) { tab, position ->
+            when (position) {
+                0 -> tab.text = "Installed Apps"
+                1 -> tab.text = "System Apps"
             }
 
-            filteredAppList.apply {
-                sortedBy {
-                    it.name
-                }
-            }
-
-            appListAdapter.setAppLists(filteredAppList, requireContext(), onclickListener)
-        }
-
-        val dividerItemDecoration = DividerItemDecoration(
-            context,
-            DividerItemDecoration.VERTICAL
-        )
-        fragmentHomeBinding.appListRecyclerView.addItemDecoration(dividerItemDecoration) // Adding separating line below everyList in RecyclerView
-
-        fragmentHomeBinding.appListRecyclerView.setHasFixedSize(true)
-        fragmentHomeBinding.appListRecyclerView.adapter = appListAdapter
-    }
-
-    @SuppressLint("QueryPermissionsNeeded")
-    private fun getInstalledApps(): MutableList<ApplicationInfo> {
-        val packageManager = requireContext().packageManager
-        return packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-    }
-
-    private val onclickListener: OnAppClickListener = object : OnAppClickListener {
-        override fun onClick(appName: String, appIcon: Drawable, appPackageName: String) {
-
-            appInfo = AppInfoModel(appName, appIcon, appPackageName)
-
-            val action = FragmentHomeDirections.actionFragmentHomeToFragmentBlockApp(appInfo)
-            findNavController().navigate(action)
-        }
+        }.attach()
 
     }
-
 
     private fun goToDisplayOverOtherAppsSettings() {
         val packageName = requireContext().packageName

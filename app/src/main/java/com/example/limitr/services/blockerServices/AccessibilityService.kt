@@ -21,7 +21,6 @@ import javax.inject.Inject
 class AccessibilityService : AccessibilityService(), LifecycleOwner {
     @Inject
     lateinit var limitrDao: LimitrDao
-    private lateinit var systemLauncherPackage: String
     private lateinit var lifecycleRegistry: LifecycleRegistry
 
     override fun onCreate() {
@@ -30,8 +29,6 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
         lifecycleRegistry = LifecycleRegistry(this)
         lifecycleRegistry.markState(Lifecycle.State.CREATED)
 
-        systemLauncherPackage = getDefaultLauncherPackage()
-        Timber.d("System = $systemLauncherPackage")
     }
 
     override fun onInterrupt() {
@@ -69,33 +66,19 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
         this.serviceInfo = info
     }
 
-    private fun launchBlockingActivity() {
+    private fun launchBlockingActivity(appName: String, appPackage: String?) {
         val blockedIntent = Intent(this, ActivityBlocked::class.java)
         blockedIntent.flags = FLAG_ACTIVITY_NEW_TASK
+        blockedIntent.putExtra("appName", appName)
+        blockedIntent.putExtra("appPackage", appPackage)
         startActivity(blockedIntent)
     }
 
     private fun checkApp(appName: String) {
-        Timber.d("AppName Inside Function = $appName")
-        lifecycleScope.launch(Dispatchers.IO) {
-            val exist = limitrDao.getAppName(appName)
-            withContext(Dispatchers.Main) {
-                Timber.d("returned appName = ${exist?.appName}")
-                if (appName == exist?.appName) {
-                    launchBlockingActivity()
-                    performGlobalAction(GLOBAL_ACTION_BACK)
-                }
-            }
+        val exist = limitrDao.getAppName(appName)
+        if (exist?.appName == appName) {
+            launchBlockingActivity(appName, exist.appPackage)
         }
-    }
-
-
-    private fun getDefaultLauncherPackage(): String {
-        val intent = Intent(Intent.ACTION_MAIN)
-        intent.addCategory(Intent.CATEGORY_HOME)
-        val resolveInfo = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
-
-        return resolveInfo!!.activityInfo.packageName
     }
 
     override fun onDestroy() {

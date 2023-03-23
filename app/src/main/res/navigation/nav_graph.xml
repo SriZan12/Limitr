@@ -47,4 +47,20 @@
             android:name="appInfo"
             app:argType="com.example.limitr.ui.home.model.AppInfoModel" />
     </fragment>
+    <activity
+        android:id="@+id/activityBlocked"
+        android:name="com.example.limitr.ui.blocker.ActivityBlocked"
+        tools:layout="@layout/activity_blocked"
+        android:label="ActivityBlocked" />
+    <fragment
+        android:id="@+id/hilt_InstalledAppFragment"
+        android:name="com.example.limitr.ui.home.appcategory.Hilt_InstalledAppFragment"
+        tools:layout="@layout/installed_apps"
+        android:label="Hilt_InstalledAppFragment" />
+    <fragment
+        android:id="@+id/hilt_SystemAppFragment"
+        android:name="com.example.limitr.ui.home.appcategory.Hilt_SystemAppFragment"
+        tools:layout="@layout/system_apps"
+        android:label="Hilt_SystemAppFragment" />
+
 </navigation>
