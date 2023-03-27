@@ -8,7 +8,6 @@ import android.os.Build
 import com.example.limitr.services.notifications.TimerEndNotification
 import com.example.limitr.services.notifications.TimerStartNotification
 import java.util.*
-import kotlin.math.min
 
 object NotificationUtils {
 
@@ -16,7 +15,7 @@ object NotificationUtils {
     val NOTIFICATIONID = System.currentTimeMillis()
     val calendar = Calendar.getInstance()
 
-     fun createNotificationChannel(context: Context) {
+    fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "LimitrNotification"
             val descriptionText = "LimitrNotifies"
@@ -37,7 +36,8 @@ object NotificationUtils {
         context: Context,
         notificationTitle: String,
         blockedTime: Long,
-        appIcon: Bitmap
+        appIcon: Bitmap,
+        timeInMillis: Long
     ) {
 
         createNotificationChannel(context)
@@ -46,7 +46,7 @@ object NotificationUtils {
 
         val startNotificationIntent = Intent(context, TimerStartNotification::class.java)
         startNotificationIntent.putExtra("title", notificationTitle)
-        startNotificationIntent.putExtra("text", " Blocked For ${formatTime(blockedTime)}")
+        startNotificationIntent.putExtra("text", " Blocked For ${formatTime(timeInMillis)}")
         startNotificationIntent.putExtra("notificationId", notificationId.toString())
         startNotificationIntent.putExtra("appIcon", appIcon)
 
@@ -61,7 +61,7 @@ object NotificationUtils {
         val startAlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         startAlarmManager.setExact(
             AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
+            blockedTime,
             pendingIntent
         )
     }

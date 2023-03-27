@@ -9,6 +9,7 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.lifecycle.*
 import com.example.limitr.data.room.LimitrDao
 import com.example.limitr.ui.blocker.ActivityBlocked
+import com.example.limitr.utils.ViewUtils.startTimer
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,6 +45,7 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
                 val applicationInfo =
                     packageManager.getApplicationInfo(event.packageName.toString(), 0)
                 val appName = packageManager.getApplicationLabel(applicationInfo) as String
+//                accessLiveData(appName)
                 checkApp(appName)
             } catch (e: PackageManager.NameNotFoundException) {
                 e.printStackTrace()
@@ -75,11 +77,25 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
     }
 
     private fun checkApp(appName: String) {
-        val exist = limitrDao.getAppName(appName)
-        if (exist?.appName == appName) {
-            launchBlockingActivity(appName, exist.appPackage)
+        lifecycleScope.launch {
+            with(this@AccessibilityService) {
+                val currentTime = System.currentTimeMillis()
+                var timer = 0L
+                limitrDao.getRemainingTime(appName).observeForever {
+                    if (it != null) {
+                        val getAppName = it.appName
+                        if (getAppName == appName &&
+                            currentTime >= it.starTime!! &&
+                            currentTime <= it.endTime!!
+                        ) {
+                            launchBlockingActivity(appName, it.appPackage)
+                        }
+                    }
+                }
+            }
         }
     }
+
 
     override fun onDestroy() {
         super.onDestroy()

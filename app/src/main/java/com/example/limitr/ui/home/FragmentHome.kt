@@ -14,7 +14,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
 import android.widget.Button
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -24,8 +23,6 @@ import com.example.limitr.ui.home.appcategory.AppCategoryAdapter
 import com.example.limitr.utils.ViewUtils.loadProfilePhoto
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
-
 
 @AndroidEntryPoint
 class FragmentHome : Fragment(R.layout.fragment_home) {

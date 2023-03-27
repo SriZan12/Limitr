@@ -9,6 +9,7 @@ import com.bumptech.glide.Glide
 import com.example.limitr.R
 import com.example.limitr.ui.blocker.TimerClass
 import com.google.firebase.auth.FirebaseAuth
+import java.text.SimpleDateFormat
 import java.util.*
 
 object ViewUtils {
@@ -40,6 +41,14 @@ object ViewUtils {
             .load(FirebaseAuth.getInstance().currentUser?.photoUrl)
             .placeholder(R.drawable.user)
             .into(imageView)
+    }
+
+    fun setInterval(startTime: Long,endTime:Long): String {
+        val timeFormat = SimpleDateFormat("hh:mm aa", Locale.getDefault())
+        val formattedEndTime = timeFormat.format(endTime)
+        val formattedStartTime = timeFormat.format(startTime)
+
+        return "Blocked For : $formattedStartTime-$formattedEndTime"
     }
 
 }

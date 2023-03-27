@@ -107,6 +107,7 @@
 
 
             <TextView
+                android:id="@+id/textInterval"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="6dp"
@@ -151,6 +152,20 @@
                     android:layout_margin="10dp"
                     android:textStyle="bold"/>
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/blockApp"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/textview_design2"
+                android:padding="6dp"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:text="Block App"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:layout_margin="10dp"
+                android:textStyle="bold"/>
 
             <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/Everyday"

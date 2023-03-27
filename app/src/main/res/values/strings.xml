@@ -8,7 +8,7 @@
     <string name="DrawOverOtherApps">This app needs permission to display over other apps in order to perform its functions</string>
     <string name="AccessibilityService">This apps needs Accessibility Service enabled to function properly.</string>
     <string name="usage">Usage:</string>
-    <string name="set_timer">Set Time</string>
+    <string name="set_timer">Set Timer</string>
     <string name="app_size">App Size:</string>
     <string name="start_timer">Start Timer</string>
     <string name="accessibility_service_label">Accessibility Service</string>
