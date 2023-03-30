@@ -9,11 +9,8 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.lifecycle.*
 import com.example.limitr.data.room.LimitrDao
 import com.example.limitr.ui.blocker.ActivityBlocked
-import com.example.limitr.utils.ViewUtils.startTimer
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -80,14 +77,17 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
         lifecycleScope.launch {
             with(this@AccessibilityService) {
                 val currentTime = System.currentTimeMillis()
-                var timer = 0L
                 limitrDao.getRemainingTime(appName).observeForever {
                     if (it != null) {
                         val getAppName = it.appName
-                        if (getAppName == appName &&
-                            currentTime >= it.starTime!! &&
-                            currentTime <= it.endTime!!
-                        ) {
+                        if (it.starTime != null && it.endTime != null) {
+                            if (getAppName == appName &&
+                                currentTime >= it.starTime!! &&
+                                currentTime <= it.endTime!!
+                            ) {
+                                launchBlockingActivity(appName, it.appPackage)
+                            }
+                        } else {
                             launchBlockingActivity(appName, it.appPackage)
                         }
                     }

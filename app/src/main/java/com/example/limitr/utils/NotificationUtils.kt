@@ -12,7 +12,6 @@ import java.util.*
 object NotificationUtils {
 
     const val NOTIFICATIONCHANNEL = "LimitrAndroid"
-    val NOTIFICATIONID = System.currentTimeMillis()
     val calendar = Calendar.getInstance()
 
     fun createNotificationChannel(context: Context) {
@@ -37,7 +36,6 @@ object NotificationUtils {
         notificationTitle: String,
         blockedTime: Long,
         appIcon: Bitmap,
-        timeInMillis: Long
     ) {
 
         createNotificationChannel(context)
@@ -46,7 +44,7 @@ object NotificationUtils {
 
         val startNotificationIntent = Intent(context, TimerStartNotification::class.java)
         startNotificationIntent.putExtra("title", notificationTitle)
-        startNotificationIntent.putExtra("text", " Blocked For ${formatTime(timeInMillis)}")
+        startNotificationIntent.putExtra("text", " Blocked For ${formatTime(blockedTime)}")
         startNotificationIntent.putExtra("notificationId", notificationId.toString())
         startNotificationIntent.putExtra("appIcon", appIcon)
 

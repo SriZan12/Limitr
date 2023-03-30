@@ -21,7 +21,8 @@ import com.example.limitr.databinding.FragmentAppBlockBinding
 import com.example.limitr.ui.home.model.AppInfoModel
 import com.example.limitr.utils.NotificationUtils.endNotification
 import com.example.limitr.utils.NotificationUtils.startNotification
-import com.example.limitr.utils.ViewUtils.setInterval
+import com.example.limitr.utils.ViewUtils.getRemainingTime
+import com.example.limitr.utils.ViewUtils.setIntervalText
 import com.example.limitr.utils.ViewUtils.showTimePickerDialog
 import com.example.limitr.utils.ViewUtils.startTimer
 import dagger.hilt.android.AndroidEntryPoint
@@ -39,6 +40,8 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     private lateinit var appIcon: Bitmap
     private var startTime: Date? = null
     private var endTime: Date? = null
+    private var remainingTime: Long = 0
+    private var diff: Long = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -77,88 +80,102 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
 
         remainingTimeViewModel.getRemainingTime(appInfoModel.appName).observe(viewLifecycleOwner) {
 
-            val currentTime = System.currentTimeMillis()
-
             if (it != null) {
-                val elapsedTime = System.currentTimeMillis() - it.Time!!
-                val currentRemainingTime = it.remainingTime?.minus(elapsedTime)
 
-                if (currentRemainingTime != null && currentRemainingTime > 0) {
-                    fragmentAppBlockBinding.setTime.isEnabled = false
-                    fragmentAppBlockBinding.startTime.isEnabled = false
-                    fragmentAppBlockBinding.endTime.isEnabled = false
-                    fragmentAppBlockBinding.blockApp.isEnabled = false
-
-                    if (it.starTime != null && it.endTime != null) {
-                        fragmentAppBlockBinding.textInterval.text =
-                            setInterval(it.starTime!!, it.endTime!!)
-                        if (currentTime >= it.starTime!! &&
-                            currentTime <= it.endTime!!
-                        ) {
-                            fragmentAppBlockBinding.timerText.visibility = View.VISIBLE
-                            val timer = it.endTime!! - it.starTime!!
-                            startTimer(fragmentAppBlockBinding.timerText, timer)
-                        }
-                    }
+                if (it.starTime != null && it.endTime != null) {
+                    getIntervalForBlocking(it.starTime, it.endTime, it.remainingTime)
                 } else {
-                    fragmentAppBlockBinding.setTime.isEnabled = true
-                    fragmentAppBlockBinding.timerText.visibility = View.GONE
-                    remainingTimeViewModel.deleteRemainingTime(appInfoModel.appName!!)
-                        .observe(viewLifecycleOwner) {
-                            Toast.makeText(requireContext(), "Deleted", Toast.LENGTH_SHORT).show()
-                        }
-
+                    getTimer(it.blockedTime!!, it.remainingTime)
                 }
-            }
 
+                fragmentAppBlockBinding.setTime.isEnabled = false
+                fragmentAppBlockBinding.startTime.isEnabled = false
+
+            }
         }
 
         fragmentAppBlockBinding.startTime.setOnClickListener {
-            showTimePickerDialog(requireContext()) {
-                startTime = it
+            showTimePickerDialog(requireContext()) { stTime ->
+                startTime = stTime
+                showTimePickerDialog(requireContext()) { edTime ->
+                    endTime = edTime
+                    setIntervalForBlocking(startTime, endTime)
+                }
             }
         }
+    }
 
-        fragmentAppBlockBinding.endTime.setOnClickListener {
-            showTimePickerDialog(requireContext()) {
-                endTime = it
+    private fun getIntervalForBlocking(startTime: Long?, endTime: Long?, remainingTime: Long?) {
+
+        val currentRemainingTime = getRemainingTime(startTime, remainingTime)
+        val currentTime = System.currentTimeMillis()
+
+        if (currentRemainingTime != null && currentRemainingTime > 0) {
+            fragmentAppBlockBinding.textInterval.text =
+                setIntervalText(startTime!!, endTime!!)
+            if (currentTime >= startTime &&
+                currentTime <= endTime
+            ) {
+                fragmentAppBlockBinding.timerText.visibility = View.VISIBLE
+                startTimer(fragmentAppBlockBinding.timerText, currentRemainingTime!!)
             }
+        } else {
+            unBlockApp(appInfoModel.appName!!)
         }
 
-        fragmentAppBlockBinding.blockApp.setOnClickListener {
-            if (endTime == null) {
-                Toast.makeText(requireContext(), "Please Set End Time", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            } else if (startTime == null) {
-                Toast.makeText(requireContext(), "Please Set Start Time", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            } else {
-                val timeInMillis = endTime!!.time - startTime!!.time
-                saveRemainingTime(
-                    timeInMillis,
-                    appInfoModel.appName,
-                    startTime,
-                    endTime
-                )
+    }
 
-                startNotification(
-                    requireContext(),
-                    appInfoModel.appName!!,
-                    startTime!!.time,
-                    appIcon,
-                    timeInMillis
-                )
-                endNotification(
-                    requireContext(),
-                    appInfoModel.appName!!,
-                    System.currentTimeMillis() + timeInMillis,
-                    appIcon
-
-                )
-
-            }
+    private fun getTimer(starTime: Long?, remainingTime: Long?) {
+        val currentRemainingTime = getRemainingTime(starTime, remainingTime)
+        if (currentRemainingTime != null && currentRemainingTime > 0) {
+            startTimer(fragmentAppBlockBinding.timerText, currentRemainingTime)
+        } else {
+            unBlockApp(appInfoModel.appName!!)
         }
+    }
 
+    private fun unBlockApp(appName: String) {
+        fragmentAppBlockBinding.startTime.isEnabled = true
+        fragmentAppBlockBinding.setTime.isEnabled = true
+        remainingTimeViewModel.deleteRemainingTime(appName)
+            .observe(viewLifecycleOwner) {
+                Toast.makeText(requireContext(), "$appName is free now!", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun setIntervalForBlocking(startTime: Date?, endTime: Date?) {
+        if (endTime == null) {
+            Toast.makeText(requireContext(), "Please Set End Time", Toast.LENGTH_SHORT).show()
+            return
+        } else if (startTime == null) {
+            Toast.makeText(requireContext(), "Please Set Start Time", Toast.LENGTH_SHORT).show()
+            return
+        } else {
+            val timeInMillis = endTime.time - startTime.time
+            saveRemainingTime(
+                timeInMillis,
+                appInfoModel.appName,
+                startTime,
+                endTime
+            )
+
+            startNotification(
+                requireContext(),
+                appInfoModel.appName!!,
+                timeInMillis,
+                appIcon
+            )
+            endNotification(
+                requireContext(),
+                appInfoModel.appName!!,
+                endTime.time,
+                appIcon
+
+            )
+
+        }
     }
 
 
@@ -217,8 +234,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
                 requireContext(),
                 appInfoModel.appName!!,
                 timeInMillis,
-                appIcon,
-                timeInMillis
+                appIcon
             )
             endNotification(
                 requireContext(),

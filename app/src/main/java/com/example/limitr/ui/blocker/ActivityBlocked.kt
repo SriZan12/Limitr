@@ -9,11 +9,12 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import com.example.limitr.R
 import com.example.limitr.databinding.ActivityBlockedBinding
 import com.example.limitr.utils.ViewUtils
-import com.example.limitr.utils.ViewUtils.setInterval
+import com.example.limitr.utils.ViewUtils.setIntervalText
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -41,19 +42,12 @@ class ActivityBlocked : AppCompatActivity() {
         remainingTimeViewModel.getRemainingTime(appName).observe(this) {
 
             if (it != null) {
-                val elapsedTime = System.currentTimeMillis() - it.Time!!
-                val currentRemainingTime = it.remainingTime?.minus(elapsedTime)
-
-                if (currentRemainingTime != null && currentRemainingTime > 0) {
-                    ViewUtils.startTimer(activityBlockedBinding.timerText, currentRemainingTime)
-                    if (it.endTime != null && it.starTime != null) {
-                        activityBlockedBinding.intervalText.text = setInterval(it.starTime!!, it.endTime!!)
-                    }
-                } else if (currentRemainingTime != null && currentRemainingTime <= 0) {
-                    remainingTimeViewModel.deleteRemainingTime(appName).observe(this) {
-                        finishAffinity()
-                        Toast.makeText(this, "$appName is Free now!", Toast.LENGTH_SHORT).show()
-                    }
+                if (it.starTime != null && it.endTime != null) {
+                    activityBlockedBinding.intervalText.isVisible = true
+                    getIntervalForBlocking(it.starTime, it.endTime, it.remainingTime, it.appName)
+                } else {
+                    activityBlockedBinding.intervalText.isVisible = false
+                    getTimer(it.blockedTime, it.remainingTime, appName)
                 }
                 appPackage = it.appPackage!!
 
@@ -61,6 +55,49 @@ class ActivityBlocked : AppCompatActivity() {
 
         }
     }
+
+    private fun getIntervalForBlocking(
+        startTime: Long?,
+        endTime: Long?,
+        remainingTime: Long?,
+        appName: String
+    ) {
+
+        val currentRemainingTime = ViewUtils.getRemainingTime(startTime, remainingTime)
+        val currentTime = System.currentTimeMillis()
+
+        if (currentRemainingTime != null && currentRemainingTime > 0) {
+            activityBlockedBinding.intervalText.text =
+                setIntervalText(startTime!!, endTime!!)
+            if (currentTime >= startTime &&
+                currentTime <= endTime
+            ) {
+                activityBlockedBinding.timerText.visibility = View.VISIBLE
+                ViewUtils.startTimer(activityBlockedBinding.timerText, currentRemainingTime)
+            }
+        } else {
+            unBlockApp(appName)
+            finish()
+        }
+
+    }
+
+    private fun getTimer(starTime: Long?, remainingTime: Long?, appName: String) {
+        val currentRemainingTime = ViewUtils.getRemainingTime(starTime, remainingTime)
+        if (currentRemainingTime != null && currentRemainingTime > 0) {
+            ViewUtils.startTimer(activityBlockedBinding.timerText, currentRemainingTime)
+        } else {
+            unBlockApp(appName)
+        }
+    }
+
+    private fun unBlockApp(appName: String) {
+        remainingTimeViewModel.deleteRemainingTime(appName)
+            .observe(this) {
+                Toast.makeText(this, "$appName is Free now!", Toast.LENGTH_SHORT).show()
+            }
+    }
+
 
     private fun getAppIconByPackageName(packageName: String): Drawable? {
         try {

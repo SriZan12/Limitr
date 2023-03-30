@@ -54,134 +54,59 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/view2">
 
-            <LinearLayout
-                android:id="@+id/linearLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:text="@string/usage"
-                    android:textColor="@color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/appUsage"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="8dp"
-                    android:textColor="@color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
             <TextView
                 android:id="@+id/setTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"
                 android:background="@drawable/textview_design2"
                 android:padding="6dp"
-                android:layout_gravity="center"
                 android:text="@string/set_timer"
                 android:textColor="@color/white"
                 android:textSize="20sp"
-                android:layout_margin="10dp"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/timerText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:padding="6dp"
-                android:visibility="gone"
                 android:layout_gravity="center"
+                android:layout_margin="10dp"
+                android:padding="6dp"
                 android:textColor="@color/white"
                 android:textSize="20sp"
-                android:layout_margin="10dp"
-                android:textStyle="bold"/>
+                android:textStyle="bold"
+                android:visibility="gone" />
 
 
             <TextView
                 android:id="@+id/textInterval"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:padding="6dp"
                 android:layout_gravity="center"
+                android:layout_margin="10dp"
+                android:padding="6dp"
                 android:text="or Set Interval"
                 android:textColor="@color/white"
-                android:textSize="20sp"
-                android:layout_margin="10dp"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/startTime"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/textview_design2"
-                    android:padding="6dp"
-                    android:gravity="center"
-                    android:layout_weight="1"
-                    android:layout_gravity="center"
-                    android:text="Start Time"
-                    android:textColor="@color/white"
-                    android:textSize="20sp"
-                    android:layout_margin="10dp"
-                    android:textStyle="bold"/>
-
-                <TextView
-                    android:id="@+id/endTime"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/textview_design2"
-                    android:padding="6dp"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:layout_gravity="center"
-                    android:text="End Time"
-                    android:textColor="@color/white"
-                    android:textSize="20sp"
-                    android:layout_margin="10dp"
-                    android:textStyle="bold"/>
-            </LinearLayout>
+                android:textSize="20sp" />
 
             <TextView
-                android:id="@+id/blockApp"
-                android:layout_width="200dp"
-                android:layout_height="wrap_content"
-                android:background="@drawable/textview_design2"
-                android:padding="6dp"
-                android:gravity="center"
+                android:id="@+id/startTime"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
                 android:layout_gravity="center"
-                android:text="Block App"
+                android:layout_marginStart="50dp"
+                android:layout_marginEnd="50dp"
+                android:layout_marginBottom="50dp"
+                android:layout_weight="1"
+                android:background="@drawable/textview_design2"
+                android:gravity="center"
+                android:padding="6dp"
+                android:text="Start Time"
                 android:textColor="@color/white"
                 android:textSize="20sp"
-                android:layout_margin="10dp"
-                android:textStyle="bold"/>
-
-            <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/Everyday"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_gravity="center"
-                android:layout_margin="8dp"
-                android:background="@drawable/textview_design2"
-                android:padding="8dp"
-                android:text="Everyday"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:switchPadding="10dp"
-                app:thumbTint="@color/Ui_Color" />
-
+                android:textStyle="bold" />
 
         </LinearLayout>
 

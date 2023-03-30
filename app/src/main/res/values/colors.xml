@@ -9,5 +9,8 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="Ui_Color">#1D1D30</color>
+    <color name="Normal">#4285f4</color>
+    <color name="Warning">#FFFF00</color>
+    <color name="Danger"> #FF0000</color>
 
 </resources>

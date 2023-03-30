@@ -9,7 +9,7 @@ data class LimitrEntities(
     @PrimaryKey
     var appName: String,
     @TypeConverters(TimeConverter::class)
-    var Time: Long? = null,
+    var blockedTime: Long? = null,
     @TypeConverters(TimeConverter::class)
     var remainingTime: Long? = null,
     var appPackage: String? = null,

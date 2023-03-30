@@ -1,25 +1,29 @@
 package com.example.limitr.ui.home
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.ApplicationInfo
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.limitr.R
-import com.example.limitr.databinding.AppsListLayoutBinding
+import com.example.limitr.databinding.ItemAppBinding
+import com.example.limitr.ui.home.model.App
+import java.util.ArrayList
 import javax.inject.Inject
 
 class AppListAdapter @Inject constructor() :
     RecyclerView.Adapter<AppListAdapter.AppListViewHolder>() {
 
-    private var appsList: MutableList<ApplicationInfo> = mutableListOf()
+    private var appsList: MutableList<App?> = mutableListOf()
     private lateinit var context: Context
     private lateinit var onclickListener: OnAppClickListener
     private val adapter = "Adapter"
 
     fun setAppLists(
-        filteredAppList: MutableList<ApplicationInfo>,
+        filteredAppList: ArrayList<App?>,
         requireContext: Context,
         onclickListener: OnAppClickListener
     ) {
@@ -29,10 +33,10 @@ class AppListAdapter @Inject constructor() :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppListViewHolder {
-        val binding: AppsListLayoutBinding =
+        val binding: ItemAppBinding =
             DataBindingUtil.inflate(
                 LayoutInflater.from(parent.context),
-                R.layout.apps_list_layout,
+                R.layout.item_app,
                 parent,
                 false
             )
@@ -47,24 +51,40 @@ class AppListAdapter @Inject constructor() :
         holder.bind(appsList[position])
     }
 
-    inner class AppListViewHolder(private val binding: AppsListLayoutBinding) :
+    inner class AppListViewHolder(private val binding: ItemAppBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(applicationInfo: ApplicationInfo) {
+        @SuppressLint("SetTextI18n")
+        fun bind(applicationInfo: App?) {
             with(binding) {
-                app.text = applicationInfo.loadLabel(context.packageManager)
-                appIcon.setImageDrawable(applicationInfo.loadIcon(context.packageManager))
+                appNameTv.text = applicationInfo?.appName
+                iconImg.setImageDrawable(applicationInfo?.appIcon)
+                usageDurationTv.text = applicationInfo?.usageDuration
+                usagePercTv.text = applicationInfo?.usagePercentage.toString() + "%"
+                progressBar.progress = applicationInfo?.usagePercentage!!
 
-                val appName = applicationInfo.loadLabel(context.packageManager).toString()
-                val appIcon = applicationInfo.loadIcon(context.packageManager)
-                val appPackageName = applicationInfo.packageName
+                if (applicationInfo.usagePercentage < 50) {
+                    progressBar.progressTintList =
+                        ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Normal))
+                } else if (applicationInfo.usagePercentage in 50..79) {
+                    progressBar.progressTintList =
+                        ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Warning))
+                } else if (applicationInfo.usagePercentage <= 80) {
+                    progressBar.progressTintList =
+                        ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Danger))
 
-                navigateNext.setOnClickListener {
-                    onclickListener.onClick(appName, appIcon, appPackageName)
                 }
 
-                app.setOnClickListener {
-                    onclickListener.onClick(appName, appIcon, appPackageName)
+                val appName = applicationInfo.appName
+                val appIcon = applicationInfo.appIcon
+                val appPackageName = applicationInfo.appPackageName
+
+                mainLinearLayout.setOnClickListener {
+                    onclickListener.onClick(
+                        appName!!,
+                        appIcon!!,
+                        appPackageName!!,
+                    )
                 }
             }
 
