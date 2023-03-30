@@ -164,6 +164,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             startNotification(
                 requireContext(),
                 appInfoModel.appName!!,
+                startTime.time,
                 timeInMillis,
                 appIcon
             )
@@ -233,6 +234,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             startNotification(
                 requireContext(),
                 appInfoModel.appName!!,
+                System.currentTimeMillis(),
                 timeInMillis,
                 appIcon
             )

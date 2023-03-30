@@ -306,4 +306,8 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
         }
     }
 
+    fun handleBackPressed(): Boolean {
+        return true
+    }
+
 }

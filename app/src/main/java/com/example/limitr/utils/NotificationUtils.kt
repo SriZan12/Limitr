@@ -34,6 +34,7 @@ object NotificationUtils {
     fun startNotification(
         context: Context,
         notificationTitle: String,
+        notificationStartTime: Long,
         blockedTime: Long,
         appIcon: Bitmap,
     ) {
@@ -59,7 +60,7 @@ object NotificationUtils {
         val startAlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         startAlarmManager.setExact(
             AlarmManager.RTC_WAKEUP,
-            blockedTime,
+            notificationStartTime,
             pendingIntent
         )
     }

@@ -1,9 +1,11 @@
 package com.example.limitr.utils
 
+import android.animation.ObjectAnimator
 import android.app.TimePickerDialog
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.TimePicker
 import com.bumptech.glide.Glide
@@ -59,29 +61,11 @@ object ViewUtils {
         return remainingTime?.minus(elapsedTime)
     }
 
-    fun loadAppStatistic(context: Context, appPackage: String) {
-        val usageStatsManager =
-            context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val interval =
-            UsageStatsManager.INTERVAL_DAILY // or INTERVAL_WEEKLY, INTERVAL_MONTHLY, etc.
-        val endTime = System.currentTimeMillis()
-        val startTime = endTime - 1000 * 60 * 60 * 24 // Show usage stats for the last 24 hours
-        val usageStats = usageStatsManager.queryUsageStats(interval, startTime, endTime)
-
-        if (usageStats.isNotEmpty()) {
-            for (stat in usageStats) {
-                if (stat.packageName == appPackage) { // Replace with your app's package name
-                    val usageTime = stat.totalTimeInForeground / 1000 // In seconds
-                    Timber.d("usageTime = $usageTime")
-                    // Show the usage time in your app's UI
-                }
-            }
-        } else {
-            Timber.d("usageTime = No usage Found")
-            // Show a message to the user that no usage stats are available
-        }
-
+    fun animateProgressBar(progressBar: ProgressBar, currentProgress: Int) {
+        progressBar.max = 100
+        ObjectAnimator.ofInt(progressBar, "Progress", currentProgress)
+            .setDuration(2000)
+            .start()
     }
-
 
 }

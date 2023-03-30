@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.limitr.R
 import com.example.limitr.databinding.ItemAppBinding
 import com.example.limitr.ui.home.model.App
+import com.example.limitr.utils.ViewUtils.animateProgressBar
 import java.util.ArrayList
 import javax.inject.Inject
 
@@ -61,23 +62,25 @@ class AppListAdapter @Inject constructor() :
                 iconImg.setImageDrawable(applicationInfo?.appIcon)
                 usageDurationTv.text = applicationInfo?.usageDuration
                 usagePercTv.text = applicationInfo?.usagePercentage.toString() + "%"
-                progressBar.progress = applicationInfo?.usagePercentage!!
 
-                if (applicationInfo.usagePercentage < 50) {
-                    progressBar.progressTintList =
-                        ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Normal))
-                } else if (applicationInfo.usagePercentage in 50..79) {
-                    progressBar.progressTintList =
-                        ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Warning))
-                } else if (applicationInfo.usagePercentage <= 80) {
-                    progressBar.progressTintList =
-                        ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Danger))
+                if (applicationInfo != null) {
+                    animateProgressBar(progressBar, applicationInfo.usagePercentage)
+                    if (applicationInfo.usagePercentage < 50) {
+                        progressBar.progressTintList =
+                            ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Normal))
+                    } else if (applicationInfo.usagePercentage in 50..79) {
+                        progressBar.progressTintList =
+                            ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Warning))
+                    } else if (applicationInfo.usagePercentage <= 80) {
+                        progressBar.progressTintList =
+                            ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Danger))
 
+                    }
                 }
 
-                val appName = applicationInfo.appName
-                val appIcon = applicationInfo.appIcon
-                val appPackageName = applicationInfo.appPackageName
+                val appName = applicationInfo?.appName
+                val appIcon = applicationInfo?.appIcon
+                val appPackageName = applicationInfo?.appPackageName
 
                 mainLinearLayout.setOnClickListener {
                     onclickListener.onClick(
