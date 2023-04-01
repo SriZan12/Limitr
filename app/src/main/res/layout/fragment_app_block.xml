@@ -7,17 +7,24 @@
 
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/Ui_Color"
+        android:gravity="center">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/Ui_Color"
         tools:context=".ui.blocker.FragmentBlockApp">
 
-        <de.hdodenhof.circleimageview.CircleImageView
+        <ImageView
             android:id="@+id/appIcon"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:layout_margin="8dp"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -30,6 +37,7 @@
             android:gravity="center"
             android:textColor="@color/white"
             android:textSize="16sp"
+            android:fontFamily="@font/acme"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -63,6 +71,7 @@
                 android:background="@drawable/textview_design2"
                 android:padding="6dp"
                 android:text="@string/set_timer"
+                android:fontFamily="@font/acme"
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -87,7 +96,8 @@
                 android:layout_gravity="center"
                 android:layout_margin="10dp"
                 android:padding="6dp"
-                android:text="or Set Interval"
+                android:fontFamily="@font/acme"
+                android:text="Or"
                 android:textColor="@color/white"
                 android:textSize="20sp" />
 
@@ -99,11 +109,12 @@
                 android:layout_marginStart="50dp"
                 android:layout_marginEnd="50dp"
                 android:layout_marginBottom="50dp"
+                android:fontFamily="@font/acme"
                 android:layout_weight="1"
                 android:background="@drawable/textview_design2"
                 android:gravity="center"
                 android:padding="6dp"
-                android:text="Start Time"
+                android:text="Set Interval"
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -112,4 +123,5 @@
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+    </RelativeLayout>
 </layout>

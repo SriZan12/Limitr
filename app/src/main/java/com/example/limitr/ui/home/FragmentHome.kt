@@ -73,7 +73,11 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
         ) {
             showPermissionDialog()
         } else {
-            dialog.dismiss()
+            if(dialog.isShowing){
+                dialog.dismiss()
+
+            }
+            loadStatistics()
         }
 
     }
@@ -83,7 +87,6 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
         super.onViewCreated(view, savedInstanceState)
 
         loadProfilePhoto(fragmentHomeBinding.profile, requireContext())
-        loadStatistics()
 
         fragmentHomeBinding.profile.setOnClickListener {
             val action = FragmentHomeDirections.actionFragmentHomeToFragmentEditProfile()
@@ -206,12 +209,13 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
         val appsList = ArrayList<App?>()
         val usageStatsList: List<UsageStats> = ArrayList(mySortedMap.values)
 
-        // sort the applications by time spent in foreground
+//         sort the applications by time spent in foreground
         Collections.sort(
             usageStatsList
         ) { z1: UsageStats, z2: UsageStats ->
             z1.totalTimeInForeground.compareTo(z2.totalTimeInForeground)
         }
+
 
         // get total time of apps usage to calculate the usagePercentage for each app
         var totalTime = 0L
@@ -266,7 +270,7 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
     }
 
     /**
-     * helper method to get string in format hh:mm:ss from miliseconds
+     * helper method to get string in format hh:mm:ss from milliseconds
      *
      * @param millis (application time in foreground)
      * @return string in format hh:mm:ss from milliseconds
@@ -305,9 +309,4 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
             showAppsUsage(mySortedMap)
         }
     }
-
-    fun handleBackPressed(): Boolean {
-        return true
-    }
-
 }

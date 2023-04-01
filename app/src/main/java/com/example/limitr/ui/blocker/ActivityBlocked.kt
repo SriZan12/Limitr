@@ -38,6 +38,7 @@ class ActivityBlocked : AppCompatActivity() {
         ViewUtils.loadProfilePhoto(activityBlockedBinding.profile, this)
 
         activityBlockedBinding.appIcon.setImageDrawable(getAppIconByPackageName(appPackage))
+        activityBlockedBinding.appName.text = appName
 
         remainingTimeViewModel.getRemainingTime(appName).observe(this) {
 
