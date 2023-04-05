@@ -22,7 +22,7 @@ class TimerClass(private val timerText: TextView, duration: Long) : CountDownTim
         val time = String.format("%02d:%02d:%02d", hours, minutes, seconds)
 
         timerText.visibility = View.VISIBLE
-        timerText.text = "Time remaining: $time"
+        timerText.text = "Duration: $time"
     }
 
     @SuppressLint("SetTextI18n")

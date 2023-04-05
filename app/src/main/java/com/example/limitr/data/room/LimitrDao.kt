@@ -15,6 +15,9 @@ interface LimitrDao {
     @Query("SELECT * FROM LimitrTable WHERE appName = :appName")
     fun getRemainingTime(appName: String): LiveData<LimitrEntities>
 
+    @Query("SELECT * FROM LimitrTable")
+    fun getBlockedApps(): LiveData<List<LimitrEntities>>
+
     @Query("SELECT * FROM LimitrTable WHERE appName = :appName")
     fun getAppName(appName: String): LimitrEntities?
 

@@ -21,8 +21,8 @@ import com.example.limitr.databinding.FragmentAppBlockBinding
 import com.example.limitr.ui.home.model.AppInfoModel
 import com.example.limitr.utils.NotificationUtils.endNotification
 import com.example.limitr.utils.NotificationUtils.startNotification
-import com.example.limitr.utils.ViewUtils.getRemainingTime
-import com.example.limitr.utils.ViewUtils.setIntervalText
+import com.example.limitr.utils.ViewUtils.getIntervalForBlocking
+import com.example.limitr.utils.ViewUtils.getTimer
 import com.example.limitr.utils.ViewUtils.showTimePickerDialog
 import com.example.limitr.utils.ViewUtils.startTimer
 import dagger.hilt.android.AndroidEntryPoint
@@ -40,8 +40,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     private lateinit var appIcon: Bitmap
     private var startTime: Date? = null
     private var endTime: Date? = null
-    private var remainingTime: Long = 0
-    private var diff: Long = 0
+    private var unBlockAppStatus: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,8 +52,8 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
         return fragmentAppBlockBinding.root
     }
 
-    @SuppressLint("SimpleDateFormat", "SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.O)
+    @SuppressLint("SimpleDateFormat", "SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -83,14 +82,30 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             if (it != null) {
 
                 if (it.starTime != null && it.endTime != null) {
-                    getIntervalForBlocking(it.starTime, it.endTime, it.remainingTime)
+                    unBlockAppStatus = getIntervalForBlocking(
+                        it.starTime,
+                        it.endTime,
+                        it.remainingTime,
+                        it.appName,
+                        fragmentAppBlockBinding.timerText,
+                        fragmentAppBlockBinding.textInterval
+                    )
                 } else {
-                    getTimer(it.blockedTime!!, it.remainingTime)
+                    unBlockAppStatus = getTimer(
+                        it.blockedTime!!,
+                        it.remainingTime,
+                        it.appName,
+                        timerText = fragmentAppBlockBinding.timerText
+                    )
                 }
 
                 fragmentAppBlockBinding.setTime.isEnabled = false
                 fragmentAppBlockBinding.startTime.isEnabled = false
 
+            }
+
+            if (unBlockAppStatus) {
+                unBlockApp(appInfoModel.appName!!)
             }
         }
 
@@ -99,38 +114,25 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
                 startTime = stTime
                 showTimePickerDialog(requireContext()) { edTime ->
                     endTime = edTime
-                    setIntervalForBlocking(startTime, endTime)
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime > startTime!!.time) {
+                        Timber.d("Inside If")
+                        val newStarTime =
+                            Date(startTime!!.time.plus(86400000L))// 1 day in milliseconds
+                        val newEndTime =
+                            Date(endTime!!.time.plus(86400000L)) // 1 day in milliseconds
+                        setIntervalForBlocking(newStarTime, newEndTime)
+                    } else if (currentTime > endTime!!.time) {
+                        Timber.d("Inside else If")
+                        val newEndTime =
+                            Date(endTime!!.time.plus(86400000L))
+                        setIntervalForBlocking(startTime,newEndTime)
+                    } else {
+                        Timber.d("Inside else")
+                        setIntervalForBlocking(startTime, endTime)
+                    }
                 }
             }
-        }
-    }
-
-    private fun getIntervalForBlocking(startTime: Long?, endTime: Long?, remainingTime: Long?) {
-
-        val currentRemainingTime = getRemainingTime(startTime, remainingTime)
-        val currentTime = System.currentTimeMillis()
-
-        if (currentRemainingTime != null && currentRemainingTime > 0) {
-            fragmentAppBlockBinding.textInterval.text =
-                setIntervalText(startTime!!, endTime!!)
-            if (currentTime >= startTime &&
-                currentTime <= endTime
-            ) {
-                fragmentAppBlockBinding.timerText.visibility = View.VISIBLE
-                startTimer(fragmentAppBlockBinding.timerText, currentRemainingTime!!)
-            }
-        } else {
-            unBlockApp(appInfoModel.appName!!)
-        }
-
-    }
-
-    private fun getTimer(starTime: Long?, remainingTime: Long?) {
-        val currentRemainingTime = getRemainingTime(starTime, remainingTime)
-        if (currentRemainingTime != null && currentRemainingTime > 0) {
-            startTimer(fragmentAppBlockBinding.timerText, currentRemainingTime)
-        } else {
-            unBlockApp(appInfoModel.appName!!)
         }
     }
 
@@ -144,39 +146,32 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun setIntervalForBlocking(startTime: Date?, endTime: Date?) {
-        if (endTime == null) {
-            Toast.makeText(requireContext(), "Please Set End Time", Toast.LENGTH_SHORT).show()
-            return
-        } else if (startTime == null) {
-            Toast.makeText(requireContext(), "Please Set Start Time", Toast.LENGTH_SHORT).show()
-            return
-        } else {
-            val timeInMillis = endTime.time - startTime.time
-            saveRemainingTime(
-                timeInMillis,
-                appInfoModel.appName,
-                startTime,
-                endTime
-            )
 
-            startNotification(
-                requireContext(),
-                appInfoModel.appName!!,
-                startTime.time,
-                timeInMillis,
-                appIcon
-            )
-            endNotification(
-                requireContext(),
-                appInfoModel.appName!!,
-                endTime.time,
-                appIcon
+        val interval = endTime?.time!! - startTime?.time!!
 
-            )
+        saveRemainingTime(
+            interval,
+            appInfoModel.appName,
+            startTime,
+            endTime
+        )
 
-        }
+        startNotification(
+            requireContext(),
+            appInfoModel.appName!!,
+            startTime.time,
+            interval,
+            appIcon
+        )
+        endNotification(
+            requireContext(),
+            appInfoModel.appName!!,
+            endTime.time,
+            appIcon
+
+        )
+
     }
 
 
@@ -220,28 +215,27 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             minute = minutePicker.value
             second = secondPicker.value
 
-            val timeInMillis = (hour * 60 * 60 + minute * 60 + second) * 1000L
-            Timber.d("timeInMillis = $timeInMillis")
+            val interval = (hour * 60 * 60 + minute * 60 + second) * 1000L
 
             val calendar = Calendar.getInstance()
             calendar.set(Calendar.HOUR_OF_DAY, hour)
             calendar.set(Calendar.MINUTE, minute)
             calendar.set(Calendar.SECOND, second)
 
-            startTimer(fragmentAppBlockBinding.timerText, timeInMillis)
+            startTimer(fragmentAppBlockBinding.timerText, interval)
 
-            saveRemainingTime(timeInMillis, appName, null, null)
+            saveRemainingTime(interval, appName, null, null)
             startNotification(
                 requireContext(),
                 appInfoModel.appName!!,
                 System.currentTimeMillis(),
-                timeInMillis,
+                interval,
                 appIcon
             )
             endNotification(
                 requireContext(),
                 appInfoModel.appName!!,
-                System.currentTimeMillis() + timeInMillis,
+                System.currentTimeMillis() + interval,
                 appIcon
             )
 
@@ -252,7 +246,6 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun saveRemainingTime(
         time: Long,
         appName: String?,

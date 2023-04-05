@@ -53,4 +53,16 @@
         tools:layout="@layout/activity_blocked"
         android:label="ActivityBlocked" />
 
+    <fragment
+        android:id="@+id/appList"
+        android:name="com.example.limitr.ui.home.apps.AppList"
+        tools:layout="@layout/applist_layout"
+        android:label="App List" />
+    <fragment
+        android:id="@+id/hilt_SystemAppFragment"
+        android:name="com.example.limitr.ui.home.blockedApps.BlockedApps"
+        tools:layout="@layout/blocked_app_list_layout"
+        android:label="Blocked Apps" />
+
+
 </navigation>

@@ -14,6 +14,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.limitr.databinding.ActivityMainBinding
 import com.example.limitr.databinding.FragmentHomeBinding
 import com.example.limitr.ui.home.FragmentHome
+import com.example.limitr.utils.ViewUtils
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -64,7 +65,7 @@ class MainActivity : AppCompatActivity() {
 
         Timber.d("Fragment = $currentDestination")
 
-        if (currentDestination?.id == R.id.fragmentHome) {
+        if (currentDestination?.id == R.id.fragmentHome && ViewUtils.onBackPressed) {
             finishAffinity()
         }
 

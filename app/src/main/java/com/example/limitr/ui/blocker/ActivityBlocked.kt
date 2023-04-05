@@ -2,19 +2,19 @@ package com.example.limitr.ui.blocker
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.lifecycleScope
 import com.example.limitr.R
 import com.example.limitr.databinding.ActivityBlockedBinding
 import com.example.limitr.utils.ViewUtils
-import com.example.limitr.utils.ViewUtils.setIntervalText
+import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
+import com.example.limitr.utils.ViewUtils.getIntervalForBlocking
+import com.example.limitr.utils.ViewUtils.getTimer
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -24,6 +24,7 @@ class ActivityBlocked : AppCompatActivity() {
     private lateinit var activityBlockedBinding: ActivityBlockedBinding
     private val appBlock = "appBlocker"
     private val remainingTimeViewModel: RemainingTimeViewModel by viewModels()
+    private var unBlockAppStatus: Boolean = false
 
 
     @SuppressLint("SetTextI18n")
@@ -37,7 +38,12 @@ class ActivityBlocked : AppCompatActivity() {
 
         ViewUtils.loadProfilePhoto(activityBlockedBinding.profile, this)
 
-        activityBlockedBinding.appIcon.setImageDrawable(getAppIconByPackageName(appPackage))
+        activityBlockedBinding.appIcon.setImageDrawable(
+            getAppIconByPackageName(
+                this,
+                appPackage
+            )
+        )
         activityBlockedBinding.appName.text = appName
 
         remainingTimeViewModel.getRemainingTime(appName).observe(this) {
@@ -45,70 +51,74 @@ class ActivityBlocked : AppCompatActivity() {
             if (it != null) {
                 if (it.starTime != null && it.endTime != null) {
                     activityBlockedBinding.intervalText.isVisible = true
-                    getIntervalForBlocking(it.starTime, it.endTime, it.remainingTime, it.appName)
+                    unBlockAppStatus = getIntervalForBlocking(
+                        it.starTime,
+                        it.endTime,
+                        it.remainingTime,
+                        it.appName,
+                        activityBlockedBinding.timerText,
+                        activityBlockedBinding.intervalText
+                    )
                 } else {
                     activityBlockedBinding.intervalText.isVisible = false
-                    getTimer(it.blockedTime, it.remainingTime, appName)
+                    unBlockAppStatus = getTimer(
+                        it.blockedTime,
+                        it.remainingTime,
+                        appName,
+                        activityBlockedBinding.timerText
+                    )
                 }
                 appPackage = it.appPackage!!
 
             }
 
         }
-    }
 
-    private fun getIntervalForBlocking(
-        startTime: Long?,
-        endTime: Long?,
-        remainingTime: Long?,
-        appName: String
-    ) {
-
-        val currentRemainingTime = ViewUtils.getRemainingTime(startTime, remainingTime)
-        val currentTime = System.currentTimeMillis()
-
-        if (currentRemainingTime != null && currentRemainingTime > 0) {
-            activityBlockedBinding.intervalText.text =
-                setIntervalText(startTime!!, endTime!!)
-            if (currentTime >= startTime &&
-                currentTime <= endTime
-            ) {
-                activityBlockedBinding.timerText.visibility = View.VISIBLE
-                ViewUtils.startTimer(activityBlockedBinding.timerText, currentRemainingTime)
-            }
-        } else {
-            unBlockApp(appName)
-            finish()
-        }
-
-    }
-
-    private fun getTimer(starTime: Long?, remainingTime: Long?, appName: String) {
-        val currentRemainingTime = ViewUtils.getRemainingTime(starTime, remainingTime)
-        if (currentRemainingTime != null && currentRemainingTime > 0) {
-            ViewUtils.startTimer(activityBlockedBinding.timerText, currentRemainingTime)
-        } else {
+        if (unBlockAppStatus) {
             unBlockApp(appName)
         }
     }
+
+//    private fun getIntervalForBlocking(
+//        startTime: Long?,
+//        endTime: Long?,
+//        remainingTime: Long?,
+//        appName: String
+//    ) {
+//
+//        val currentRemainingTime = ViewUtils.getRemainingTime(startTime, remainingTime)
+//        val currentTime = System.currentTimeMillis()
+//
+//        if (currentRemainingTime != null && currentRemainingTime > 0) {
+//            activityBlockedBinding.intervalText.text =
+//                setIntervalText(startTime!!, endTime!!)
+//            if (currentTime >= startTime &&
+//                currentTime <= endTime
+//            ) {
+//                activityBlockedBinding.timerText.visibility = View.VISIBLE
+//                ViewUtils.startTimer(activityBlockedBinding.timerText, currentRemainingTime)
+//            }
+//        } else {
+//            unBlockApp(appName)
+//            finish()
+//        }
+//
+//    }
+//
+//    private fun getTimer(starTime: Long?, remainingTime: Long?, appName: String) {
+//        val currentRemainingTime = ViewUtils.getRemainingTime(starTime, remainingTime)
+//        if (currentRemainingTime != null && currentRemainingTime > 0) {
+//            ViewUtils.startTimer(activityBlockedBinding.timerText, currentRemainingTime)
+//        } else {
+//            unBlockApp(appName)
+//        }
+//    }
 
     private fun unBlockApp(appName: String) {
         remainingTimeViewModel.deleteRemainingTime(appName)
             .observe(this) {
                 Toast.makeText(this, "$appName is Free now!", Toast.LENGTH_SHORT).show()
             }
-    }
-
-
-    private fun getAppIconByPackageName(packageName: String): Drawable? {
-        try {
-            val pm = this.packageManager
-            val appInfo = pm.getApplicationInfo(packageName, 0)
-            return appInfo.loadIcon(pm)
-        } catch (e: PackageManager.NameNotFoundException) {
-            e.printStackTrace()
-        }
-        return null
     }
 
 
