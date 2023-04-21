@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -28,7 +29,8 @@ class AppListAdapter @Inject constructor() :
         requireContext: Context,
         onclickListener: OnAppClickListener
     ) {
-        this.appsList = filteredAppList
+        this.appsList.clear()
+        this.appsList.addAll(filteredAppList)
         this.context = requireContext
         this.onclickListener = onclickListener
     }
@@ -68,18 +70,8 @@ class AppListAdapter @Inject constructor() :
                 usagePercTv.text = applicationInfo?.usagePercentage.toString() + "%"
 
                 if (applicationInfo != null) {
-                    animateProgressBar(progressBar,applicationInfo.usagePercentage)
-                    if (applicationInfo.usagePercentage < 50) {
-                        progressBar.progressTintList =
-                            ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Normal))
-                    } else if (applicationInfo.usagePercentage in 50..79) {
-                        progressBar.progressTintList =
-                            ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Warning))
-                    } else if (applicationInfo.usagePercentage <= 80) {
-                        progressBar.progressTintList =
-                            ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Danger))
-
-                    }
+                    animateProgressBar(progressBar, applicationInfo.usagePercentage)
+                    setUsageColor(applicationInfo.usagePercentage, progressBar)
                 }
 
                 val appName = applicationInfo?.appName
@@ -95,6 +87,20 @@ class AppListAdapter @Inject constructor() :
                 }
             }
 
+        }
+
+        private fun setUsageColor(usagePercentage: Int, progressBar: ProgressBar) {
+            if (usagePercentage < 50) {
+                progressBar.progressTintList =
+                    ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Normal))
+            } else if (usagePercentage in 50..79) {
+                progressBar.progressTintList =
+                    ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Warning))
+            } else if (usagePercentage <= 80) {
+                progressBar.progressTintList =
+                    ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Danger))
+
+            }
         }
     }
 }

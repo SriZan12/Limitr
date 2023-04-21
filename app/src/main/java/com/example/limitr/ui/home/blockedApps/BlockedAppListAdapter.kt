@@ -23,7 +23,8 @@ class BlockedAppListAdapter @Inject constructor() :
 
 
     fun setBlockedAppList(context: Context, blockedAppsList: MutableList<LimitrEntities>) {
-        this.blockedAppsList = blockedAppsList
+        this.blockedAppsList.clear()
+        this.blockedAppsList.addAll(blockedAppsList)
         this.context = context
     }
 

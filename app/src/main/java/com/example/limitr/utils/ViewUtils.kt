@@ -3,16 +3,26 @@ package com.example.limitr.utils
 import android.animation.ObjectAnimator
 import android.app.TimePickerDialog
 import android.content.Context
+import  android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.content.pm.PackageManager.ApplicationInfoFlags
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.view.View
-import android.widget.*
+import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.TimePicker
 import com.bumptech.glide.Glide
+import com.example.limitr.BuildConfig
 import com.example.limitr.R
 import com.example.limitr.ui.blocker.TimerClass
 import com.google.firebase.auth.FirebaseAuth
+import timber.log.Timber
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 object ViewUtils {
 
@@ -69,14 +79,41 @@ object ViewUtils {
     }
 
     fun getAppIconByPackageName(context: Context, packageName: String): Drawable? {
-        try {
-            val pm = context.packageManager
-            val appInfo = pm.getApplicationInfo(packageName, 0)
-            return appInfo.loadIcon(pm)
-        } catch (e: PackageManager.NameNotFoundException) {
-            e.printStackTrace()
+        val pm = context.packageManager
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val app: ApplicationInfo = pm.getApplicationInfo(
+                packageName,
+                ApplicationInfoFlags.of(0)
+            )
+            app.loadIcon(pm)
+        } else {
+            val app: ApplicationInfo = pm
+                .getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+
+            Timber.d("AppName = $pm.getApplicationLabel(app) as String")
+            app.loadIcon(pm)
         }
-        return null
+    }
+
+
+    fun getAppNameByPackageName(context: Context, packageName: String): String {
+        val pm = context.packageManager
+
+        val versionName: String = BuildConfig.VERSION_NAME
+        Timber.d("Version = ${Build.VERSION_CODES.TIRAMISU}")
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val app: ApplicationInfo = pm.getApplicationInfo(
+                packageName,
+                ApplicationInfoFlags.of(0)
+            )
+            pm.getApplicationLabel(app) as String
+        } else {
+            val app: ApplicationInfo = pm
+                .getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+            Timber.d("AppName = $pm.getApplicationLabel(app) as String")
+            pm.getApplicationLabel(app) as String
+        }
     }
 
     fun getIntervalForBlocking(
@@ -120,7 +157,6 @@ object ViewUtils {
         } else {
             return true
         }
-
         return false
     }
 

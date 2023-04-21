@@ -33,9 +33,9 @@ class RemainingTimeViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun updateRemainingTime(limitrEntities: LimitrEntities) = liveData {
+    fun updateNotificationStatus(appName: String, notificationStatus: Boolean) = liveData {
         try {
-            emit(remainingTimeRepository.updateRemainingTime(limitrEntities))
+            emit(remainingTimeRepository.updateNotificationStatus(appName, notificationStatus))
         } catch (exception: Exception) {
             exception.printStackTrace()
         }

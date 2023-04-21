@@ -16,5 +16,6 @@ data class LimitrEntities(
     @TypeConverters(TimeConverter::class)
     var starTime: Long? = null,
     @TypeConverters(TimeConverter::class)
-    var endTime: Long? = null
+    var endTime: Long? = null,
+    var notificationStatus: Boolean? = null
 )

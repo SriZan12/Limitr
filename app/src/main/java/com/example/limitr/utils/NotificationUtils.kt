@@ -12,7 +12,6 @@ import java.util.*
 object NotificationUtils {
 
     const val NOTIFICATIONCHANNEL = "LimitrAndroid"
-    val calendar = Calendar.getInstance()
 
     fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

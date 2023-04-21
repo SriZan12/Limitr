@@ -9,6 +9,7 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.lifecycle.*
 import com.example.limitr.data.room.LimitrDao
 import com.example.limitr.ui.blocker.ActivityBlocked
+import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -39,11 +40,7 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
             event?.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
         ) {
             try {
-                val applicationInfo =
-                    packageManager.getApplicationInfo(event.packageName.toString(), 0)
-                val appName = packageManager.getApplicationLabel(applicationInfo) as String
-//                accessLiveData(appName)
-                checkApp(appName)
+                checkApp(getAppNameByPackageName(this, event.packageName as String))
             } catch (e: PackageManager.NameNotFoundException) {
                 e.printStackTrace()
             }

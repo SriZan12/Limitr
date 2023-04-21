@@ -123,6 +123,19 @@
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/blockNotification"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="20dp"
+                android:text="Block Notification"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                app:switchPadding="14dp"
+                android:fontFamily="@font/acme"/>
+
         </LinearLayout>
 
 

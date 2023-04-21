@@ -6,16 +6,16 @@ import android.app.AppOpsManager
 import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
-import androidx.core.content.ContextCompat
+import androidx.annotation.RequiresApi
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -25,7 +25,7 @@ import com.example.limitr.ui.home.FragmentHomeDirections
 import com.example.limitr.ui.home.OnAppClickListener
 import com.example.limitr.ui.home.model.App
 import com.example.limitr.ui.home.model.AppInfoModel
-import com.example.limitr.utils.ViewUtils.onBackPressed
+import com.example.limitr.utils.ViewUtils
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.util.*
@@ -52,6 +52,7 @@ class AppList : Fragment(R.layout.applist_layout) {
         return binding.root
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onResume() {
         super.onResume()
 
@@ -101,6 +102,7 @@ class AppList : Fragment(R.layout.applist_layout) {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun showAppsUsage(mySortedMap: Map<String?, UsageStats>) {
         val appsList = ArrayList<App?>()
         val usageStatsList: List<UsageStats> = ArrayList(mySortedMap.values)
@@ -112,28 +114,24 @@ class AppList : Fragment(R.layout.applist_layout) {
             z1.totalTimeInForeground.compareTo(z2.totalTimeInForeground)
         }
 
-
         // get total time of apps usage to calculate the usagePercentage for each app
         var totalTime = 0L
         for (usageStats in usageStatsList) {
             totalTime += usageStats.totalTimeInForeground
         }
-        Timber.d("TotalTime = $totalTime")
         //fill the appsList
         for (usageStats in usageStatsList) {
             try {
                 val packageName = usageStats.packageName
-                var icon: Drawable? = ContextCompat.getDrawable(requireContext(), R.drawable.logo)
-                val packageNames = packageName.split("\\.".toRegex()).dropLastWhile { it.isEmpty() }
-                    .toTypedArray()
-                var appName = packageNames[packageNames.size - 1].trim { it <= ' ' }
-                if (isAppInfoAvailable(usageStats)) {
-                    val ai: ApplicationInfo = requireContext().packageManager
-                        .getApplicationInfo(packageName, 0)
-                    icon = requireContext().packageManager.getApplicationIcon(ai)
-                    appName = requireContext().packageManager.getApplicationLabel(ai)
-                        .toString()
-                }
+                Timber.d("packageName = $packageName")
+                val icon: Drawable? =
+                    ViewUtils.getAppIconByPackageName(requireContext(), packageName)
+                val appName: String =
+                    ViewUtils.getAppNameByPackageName(requireContext(), packageName)
+
+                Timber.d("appName = $appName")
+
+
                 val usageDuration: String = getDurationBreakdown(usageStats.totalTimeInForeground)
                 val usagePercentage = (usageStats.totalTimeInForeground * 100 / totalTime).toInt()
                 val usageStatDTO = App(icon, appName, packageName, usagePercentage, usageDuration)
@@ -151,24 +149,7 @@ class AppList : Fragment(R.layout.applist_layout) {
 
     }
 
-    /**
-     * check if the application info is still existing in the device / otherwise it's not possible to show app detail
-     * @return true if application info is available
-     */
-    private fun isAppInfoAvailable(usageStats: UsageStats): Boolean {
-        return try {
-            requireContext().packageManager
-                .getApplicationInfo(usageStats.packageName, 0)
-            true
-        } catch (e: PackageManager.NameNotFoundException) {
-            false
-        }
-    }
-
-    /**
-     * helper method to get string in format hh:mm:ss from milliseconds
-     *
-     * @param millis (application time in foreground)
+    /* @param millis (application time in foreground)
      * @return string in format hh:mm:ss from milliseconds
      */
     private fun getDurationBreakdown(millis: Long): String {
@@ -185,6 +166,7 @@ class AppList : Fragment(R.layout.applist_layout) {
     /**
      * load the usage stats for last 24h
      */
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun loadStatistics() {
         val usageStateManager =
             requireContext().getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager

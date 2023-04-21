@@ -2,14 +2,20 @@ package com.example.limitr.ui.blocker
 
 import android.annotation.SuppressLint
 import android.app.Dialog
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat.registerReceiver
 import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -18,6 +24,7 @@ import androidx.navigation.fragment.navArgs
 import com.example.limitr.R
 import com.example.limitr.data.room.model.LimitrEntities
 import com.example.limitr.databinding.FragmentAppBlockBinding
+import com.example.limitr.services.notifications.NotificationListener
 import com.example.limitr.ui.home.model.AppInfoModel
 import com.example.limitr.utils.NotificationUtils.endNotification
 import com.example.limitr.utils.NotificationUtils.startNotification
@@ -28,6 +35,9 @@ import com.example.limitr.utils.ViewUtils.startTimer
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.util.*
+import javax.inject.Inject
+import androidx.core.content.ContextCompat.RECEIVER_VISIBLE_TO_INSTANT_APPS
+
 
 @AndroidEntryPoint
 class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
@@ -41,6 +51,8 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     private var startTime: Date? = null
     private var endTime: Date? = null
     private var unBlockAppStatus: Boolean = false
+    private lateinit var dialog: Dialog
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,6 +62,22 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
         fragmentAppBlockBinding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_app_block, container, false)
         return fragmentAppBlockBinding.root
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        dialog = Dialog(requireContext())
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (isNotificationServiceEnable(requireContext())) {
+            if (dialog.isShowing) {
+                dialog.dismiss()
+            }
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -99,6 +127,10 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
                     )
                 }
 
+                if (it.notificationStatus == true) {
+                    fragmentAppBlockBinding.blockNotification.isChecked = true
+                }
+
                 fragmentAppBlockBinding.setTime.isEnabled = false
                 fragmentAppBlockBinding.startTime.isEnabled = false
 
@@ -126,11 +158,41 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
                         Timber.d("Inside else If")
                         val newEndTime =
                             Date(endTime!!.time.plus(86400000L))
-                        setIntervalForBlocking(startTime,newEndTime)
+                        setIntervalForBlocking(startTime, newEndTime)
                     } else {
                         Timber.d("Inside else")
                         setIntervalForBlocking(startTime, endTime)
                     }
+                }
+            }
+        }
+
+        fragmentAppBlockBinding.blockNotification.setOnClickListener {
+
+            Timber.d("Notification = ${isNotificationServiceEnable(requireContext())}")
+
+            if (!isNotificationServiceEnable(requireContext())) {
+                showNotificationDialog()
+            } else {
+
+                if (fragmentAppBlockBinding.blockNotification.isChecked) {
+                    remainingTimeViewModel.updateNotificationStatus(appInfoModel.appName!!, true)
+                        .observe(viewLifecycleOwner) {
+                            Toast.makeText(
+                                requireContext(),
+                                "${appInfoModel.appName}'s Notification Blocked",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                } else if (!fragmentAppBlockBinding.blockNotification.isChecked) {
+                    remainingTimeViewModel.updateNotificationStatus(appInfoModel.appName!!, false)
+                        .observe(viewLifecycleOwner) {
+                            Toast.makeText(
+                                requireContext(),
+                                "${appInfoModel.appName}'s Notification UnBlocked",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                 }
             }
         }
@@ -264,8 +326,62 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             )
 
         remainingTimeViewModel.insertRemainingTime(limitrEntities).observe(viewLifecycleOwner) {
-            Toast.makeText(requireContext(), "Inserted Successfully", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "$appName Blocked", Toast.LENGTH_SHORT).show()
         }
     }
+
+    private fun isNotificationServiceEnable(context: Context): Boolean {
+        val myNotificationListenerComponentName =
+            ComponentName(context, NotificationListener::class.java)
+        val enabledListeners =
+            Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
+
+        if (enabledListeners.isEmpty()) return false
+
+        return enabledListeners.split(":").map {
+            ComponentName.unflattenFromString(it)
+        }.any { componentName ->
+            myNotificationListenerComponentName == componentName
+        }
+    }
+
+    private fun gotoSettings() {
+        val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+        intent.apply {
+            Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+        }
+    }
+
+    private fun showNotificationDialog() {
+
+        dialog.apply {
+            window?.setContentView(R.layout.notification_dialog)
+            window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            setCancelable(false)
+        }
+
+        val grantPermission: TextView = dialog.findViewById(R.id.grantPermission)
+
+        grantPermission.setOnClickListener {
+            gotoSettings()
+        }
+
+        dialog.show()
+    }
+
+//    private fun registerNotificationReceiver() {
+//        val intentFilter = IntentFilter()
+//        intentFilter.addAction("Block Notifications as well!")
+//        registerReceiver(
+//            requireContext(),
+//            notificationBroadcastReceiver,
+//            intentFilter,
+//            RECEIVER_VISIBLE_TO_INSTANT_APPS
+//        )
+//    }
 
 }

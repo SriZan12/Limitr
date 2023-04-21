@@ -27,7 +27,7 @@ interface LimitrDao {
     @Query("DELETE FROM LimitrTable WHERE appName = :appName")
     suspend fun deleteRemainingTime(appName: String)
 
-    @Update
-    suspend fun updateRemainingTime(limitrEntities: LimitrEntities)
+    @Query("UPDATE LimitrTable SET notificationStatus = :notificationStatus  WHERE appName = :appName")
+    suspend fun updateNotificationStatus(appName: String, notificationStatus: Boolean)
 
 }

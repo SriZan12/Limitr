@@ -7,8 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.limitr.MainActivity
@@ -18,7 +16,6 @@ import com.example.limitr.utils.NotificationUtils.NOTIFICATIONCHANNEL
 class TimerStartNotification : BroadcastReceiver() {
 
     @SuppressLint("MissingPermission")
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onReceive(context: Context, intent: Intent?) {
         val tapIntent = Intent(context, MainActivity::class.java).apply {
             Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -30,7 +27,7 @@ class TimerStartNotification : BroadcastReceiver() {
         val appIcon = intent?.getParcelableExtra<Bitmap>("appIcon")
 
         val pendingIntent: PendingIntent =
-            PendingIntent.getActivity(context, 101, tapIntent, PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getActivity(context, 101, tapIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
         val notificationBuilder = NotificationCompat.Builder(context, NOTIFICATIONCHANNEL)
             .setSmallIcon(R.drawable.logo)
@@ -43,7 +40,7 @@ class TimerStartNotification : BroadcastReceiver() {
             .setVibrate(longArrayOf(0, 1000, 500, 1000))
             .setLights(Color.RED, 1000, 1000).build()
 
-        val notificationManager = NotificationManagerCompat.from(context)
+        val notificationManager: NotificationManagerCompat = NotificationManagerCompat.from(context)
         if (notificationId != null) {
             notificationManager.notify(notificationId, notificationBuilder)
         }

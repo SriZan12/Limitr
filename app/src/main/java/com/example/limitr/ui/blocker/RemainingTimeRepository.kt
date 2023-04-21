@@ -22,7 +22,7 @@ class RemainingTimeRepository @Inject constructor() {
         limitrDao.deleteRemainingTime(appName)
     }
 
-    suspend fun updateRemainingTime(limitrEntities: LimitrEntities) {
-        limitrDao.updateRemainingTime(limitrEntities)
+    suspend fun updateNotificationStatus(appName: String, notificationStatus: Boolean) {
+        limitrDao.updateNotificationStatus(appName, notificationStatus)
     }
 }

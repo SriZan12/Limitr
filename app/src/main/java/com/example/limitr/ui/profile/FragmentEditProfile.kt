@@ -25,8 +25,7 @@ import pub.devrel.easypermissions.EasyPermissions
 import timber.log.Timber
 
 class FragmentEditProfile :
-    Fragment(R.layout.fragment_edit_profile), EasyPermissions.PermissionCallbacks,
-    EasyPermissions.RationaleCallbacks {
+    Fragment(R.layout.fragment_edit_profile), EasyPermissions.PermissionCallbacks{
 
     private lateinit var fragmentEditProfileBinding: FragmentEditProfileBinding
     private lateinit var imageUri: Uri
@@ -130,11 +129,4 @@ class FragmentEditProfile :
         }
     }
 
-    override fun onRationaleAccepted(requestCode: Int) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onRationaleDenied(requestCode: Int) {
-        TODO("Not yet implemented")
-    }
 }

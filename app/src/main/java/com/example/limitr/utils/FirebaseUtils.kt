@@ -17,10 +17,10 @@ object FirebaseUtils {
     private lateinit var progressDialog: ProgressDialog
     private val tag = "TAG"
 
-
     fun uploadToFirebase(imageUri: Uri, context: Context) {
         progressDialog = ProgressDialog(context)
         progressDialog.setMessage("Updating")
+        progressDialog.setCancelable(false)
         progressDialog.show()
         val user = firebaseAuth.currentUser
         val storageReference = firebaseStorage.reference
