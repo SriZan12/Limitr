@@ -60,7 +60,6 @@ class BlockedAppListAdapter @Inject constructor() :
                         data.starTime,
                         data.endTime,
                         data.remainingTime,
-                        data.appName,
                         timerText,
                         interval
                     )

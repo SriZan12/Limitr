@@ -54,7 +54,6 @@ class ActivityBlocked : AppCompatActivity() {
                         it.starTime,
                         it.endTime,
                         it.remainingTime,
-                        it.appName,
                         activityBlockedBinding.timerText,
                         activityBlockedBinding.intervalText
                     )

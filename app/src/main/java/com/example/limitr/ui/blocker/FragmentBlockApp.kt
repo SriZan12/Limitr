@@ -113,7 +113,6 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
                         it.starTime,
                         it.endTime,
                         it.remainingTime,
-                        it.appName,
                         fragmentAppBlockBinding.timerText,
                         fragmentAppBlockBinding.textInterval
                     )

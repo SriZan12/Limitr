@@ -120,7 +120,6 @@ object ViewUtils {
         startTime: Long?,
         endTime: Long?,
         remainingTime: Long?,
-        appName: String,
         timerText: TextView,
         intervalTextView: TextView?,
     ): Boolean {
