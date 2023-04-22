@@ -53,7 +53,7 @@ object NotificationUtils {
                 context,
                 101,
                 startNotificationIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
             )
 
         val startAlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -122,7 +122,7 @@ object NotificationUtils {
                 context,
                 102,
                 endNotificationIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
             )
 
         val startAlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
