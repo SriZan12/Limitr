@@ -35,7 +35,7 @@ class TimerEndNotification : BroadcastReceiver() {
         appIcon = intent.getParcelableExtra<Bitmap>("appIcon")!!
 
         pendingIntent =
-            PendingIntent.getActivity(context, 102, tapIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getActivity(context, 102, tapIntent, PendingIntent.FLAG_MUTABLE)
         val notificationBuilder = NotificationCompat.Builder(
             context,
             NOTIFICATIONCHANNEL

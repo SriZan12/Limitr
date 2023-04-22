@@ -27,7 +27,7 @@ class TimerStartNotification : BroadcastReceiver() {
         val appIcon = intent?.getParcelableExtra<Bitmap>("appIcon")
 
         val pendingIntent: PendingIntent =
-            PendingIntent.getActivity(context, 101, tapIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+            PendingIntent.getActivity(context, 101, tapIntent, PendingIntent.FLAG_MUTABLE)
 
         val notificationBuilder = NotificationCompat.Builder(context, NOTIFICATIONCHANNEL)
             .setSmallIcon(R.drawable.logo)
