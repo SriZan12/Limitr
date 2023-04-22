@@ -70,7 +70,6 @@ class BlockedAppListAdapter @Inject constructor() :
                     getTimer(
                         data.blockedTime,
                         data.remainingTime,
-                        data.appName,
                         interval
                     )
                 }

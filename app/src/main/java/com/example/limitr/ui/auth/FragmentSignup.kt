@@ -16,6 +16,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
 import com.example.limitr.databinding.SignupLayoutBinding
 import com.example.limitr.resource.AuthState
+import com.example.limitr.utils.ViewUtils.showToast
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -69,16 +70,18 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
             when (authState) {
                 is AuthState.Idle -> {
                 }
+
                 is AuthState.Success -> {
-                    Toast.makeText(requireContext(), "Account Created!", Toast.LENGTH_SHORT).show()
+                    showToast(requireContext(), "Account Created")
                     fragmentSignupBinding.progressBar.visibility = View.GONE
                     updateUI()
                 }
+
                 is AuthState.AuthError -> {
-                    Toast.makeText(requireContext(), "Couldn't create account!", Toast.LENGTH_SHORT)
-                        .show()
+                    showToast(requireContext(), "Couldn't Create Account!")
                     fragmentSignupBinding.progressBar.visibility = View.GONE
                 }
+
                 else -> {}
             }
         })
@@ -117,11 +120,9 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
             if (account != null) {
                 authViewModel.loginWithGoogle(account)
                 observeAuthState()
-                Log.d(signUp, "signInGoogle: handleResults()")
             }
         } else {
-            Toast.makeText(requireContext(), task.exception.toString(), Toast.LENGTH_SHORT)
-                .show()
+            showToast(requireContext(), task.exception.toString())
         }
     }
 }

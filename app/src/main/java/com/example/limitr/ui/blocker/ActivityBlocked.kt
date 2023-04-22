@@ -4,19 +4,17 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.lifecycleScope
 import com.example.limitr.R
 import com.example.limitr.databinding.ActivityBlockedBinding
 import com.example.limitr.utils.ViewUtils
 import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
 import com.example.limitr.utils.ViewUtils.getIntervalForBlocking
 import com.example.limitr.utils.ViewUtils.getTimer
+import com.example.limitr.utils.ViewUtils.showToast
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
 class ActivityBlocked : AppCompatActivity() {
@@ -68,7 +66,6 @@ class ActivityBlocked : AppCompatActivity() {
                     unBlockAppStatus = getTimer(
                         it.blockedTime,
                         it.remainingTime,
-                        appName,
                         activityBlockedBinding.timerText
                     )
                     if (unBlockAppStatus) {
@@ -77,7 +74,6 @@ class ActivityBlocked : AppCompatActivity() {
 
                 }
                 appPackage = it.appPackage!!
-                Timber.d("Unblock App = $unBlockAppStatus")
             }
         }
 
@@ -86,7 +82,7 @@ class ActivityBlocked : AppCompatActivity() {
     private fun unBlockApp(appName: String) {
         remainingTimeViewModel.deleteRemainingTime(appName)
             .observe(this) {
-                Toast.makeText(this, "$appName is Free now!", Toast.LENGTH_SHORT).show()
+                showToast(this@ActivityBlocked,"$appName is free now!")
                 finishAffinity()
             }
     }

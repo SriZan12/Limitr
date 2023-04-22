@@ -13,13 +13,13 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.TimePicker
+import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.example.limitr.BuildConfig
 import com.example.limitr.R
 import com.example.limitr.ui.blocker.TimerClass
 import com.google.firebase.auth.FirebaseAuth
 import timber.log.Timber
-import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -148,7 +148,6 @@ object ViewUtils {
     fun getTimer(
         starTime: Long?,
         remainingTime: Long?,
-        appName: String,
         timerText: TextView
     ): Boolean {
         val currentRemainingTime = getRemainingTime(starTime, remainingTime)
@@ -158,6 +157,10 @@ object ViewUtils {
             return true
         }
         return false
+    }
+
+    fun showToast(context: Context, message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 
 }

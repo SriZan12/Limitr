@@ -35,8 +35,7 @@ import com.example.limitr.utils.ViewUtils.startTimer
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.util.*
-import javax.inject.Inject
-import androidx.core.content.ContextCompat.RECEIVER_VISIBLE_TO_INSTANT_APPS
+import com.example.limitr.utils.ViewUtils.showToast
 
 
 @AndroidEntryPoint
@@ -122,7 +121,6 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
                     unBlockAppStatus = getTimer(
                         it.blockedTime!!,
                         it.remainingTime,
-                        it.appName,
                         timerText = fragmentAppBlockBinding.timerText
                     )
                 }
@@ -178,20 +176,19 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
                 if (fragmentAppBlockBinding.blockNotification.isChecked) {
                     remainingTimeViewModel.updateNotificationStatus(appInfoModel.appName!!, true)
                         .observe(viewLifecycleOwner) {
-                            Toast.makeText(
+                            showToast(
                                 requireContext(),
-                                "${appInfoModel.appName}'s Notification Blocked",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                                "${appInfoModel.appName}'s Notification Blocked"
+                            )
                         }
                 } else if (!fragmentAppBlockBinding.blockNotification.isChecked) {
                     remainingTimeViewModel.updateNotificationStatus(appInfoModel.appName!!, false)
                         .observe(viewLifecycleOwner) {
-                            Toast.makeText(
+                            showToast(
                                 requireContext(),
-                                "${appInfoModel.appName}'s Notification UnBlocked",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                                "${appInfoModel.appName}'s Notification Unblocked"
+                            )
+
                         }
                 }
             }
@@ -203,7 +200,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
         fragmentAppBlockBinding.setTime.isEnabled = true
         remainingTimeViewModel.deleteRemainingTime(appName)
             .observe(viewLifecycleOwner) {
-                Toast.makeText(requireContext(), "$appName is free now!", Toast.LENGTH_SHORT).show()
+                showToast(requireContext(), "$appName is free now!")
             }
     }
 
@@ -326,7 +323,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             )
 
         remainingTimeViewModel.insertRemainingTime(limitrEntities).observe(viewLifecycleOwner) {
-            Toast.makeText(requireContext(), "$appName Blocked", Toast.LENGTH_SHORT).show()
+           showToast(requireContext(),"$appName is Blocked!")
         }
     }
 
