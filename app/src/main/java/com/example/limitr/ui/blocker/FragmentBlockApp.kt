@@ -5,8 +5,7 @@ import android.app.Dialog
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -15,7 +14,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
-import androidx.core.content.ContextCompat.registerReceiver
 import androidx.core.graphics.drawable.toBitmap
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -25,9 +23,10 @@ import com.example.limitr.R
 import com.example.limitr.data.room.model.LimitrEntities
 import com.example.limitr.databinding.FragmentAppBlockBinding
 import com.example.limitr.services.notifications.NotificationListener
-import com.example.limitr.ui.home.model.AppInfoModel
 import com.example.limitr.utils.NotificationUtils.endNotification
 import com.example.limitr.utils.NotificationUtils.startNotification
+import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
+import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
 import com.example.limitr.utils.ViewUtils.getIntervalForBlocking
 import com.example.limitr.utils.ViewUtils.getTimer
 import com.example.limitr.utils.ViewUtils.showTimePickerDialog
@@ -43,10 +42,11 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
 
     private lateinit var fragmentAppBlockBinding: FragmentAppBlockBinding
     private val fragmentBlockAppArgs: FragmentBlockAppArgs by navArgs()
-    private lateinit var appInfoModel: AppInfoModel
+    private lateinit var appPackage: String
     private val remainingTimeViewModel: RemainingTimeViewModel by viewModels()
     private val appBlock = "appBlocker"
-    private lateinit var appIcon: Bitmap
+    private lateinit var appName: String
+    private lateinit var appIcon: Drawable
     private var startTime: Date? = null
     private var endTime: Date? = null
     private var unBlockAppStatus: Boolean = false
@@ -84,12 +84,14 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        appInfoModel = fragmentBlockAppArgs.appInfo
+        appPackage = fragmentBlockAppArgs.appInfo.toString()
 
-        appIcon = appInfoModel.appIcon.toBitmap()
+        appIcon = getAppIconByPackageName(requireContext(), appPackage)!!
 
-        fragmentAppBlockBinding.appName.text = appInfoModel.appName
-        fragmentAppBlockBinding.appIcon.setImageDrawable(appInfoModel.appIcon)
+        appName = getAppNameByPackageName(requireContext(), appPackage)
+
+        fragmentAppBlockBinding.appName.text = getAppNameByPackageName(requireContext(), appPackage)
+        fragmentAppBlockBinding.appIcon.setImageDrawable(appIcon)
 
 
         fragmentAppBlockBinding.setTime.setOnClickListener {
@@ -101,15 +103,15 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             )
             dialog.show()
 
-            setNumberPicker(dialog, appInfoModel.appName)
+            setNumberPicker(dialog, appName)
         }
 
-        remainingTimeViewModel.getRemainingTime(appInfoModel.appName).observe(viewLifecycleOwner) {
+        remainingTimeViewModel.getRemainingTime(appName).observe(viewLifecycleOwner) {
 
             if (it != null) {
 
-                if (it.starTime != null && it.endTime != null) {
-                    unBlockAppStatus = getIntervalForBlocking(
+                unBlockAppStatus = if (it.starTime != null && it.endTime != null) {
+                    getIntervalForBlocking(
                         it.starTime,
                         it.endTime,
                         it.remainingTime,
@@ -117,7 +119,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
                         fragmentAppBlockBinding.textInterval
                     )
                 } else {
-                    unBlockAppStatus = getTimer(
+                    getTimer(
                         it.blockedTime!!,
                         it.remainingTime,
                         timerText = fragmentAppBlockBinding.timerText
@@ -134,7 +136,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             }
 
             if (unBlockAppStatus) {
-                unBlockApp(appInfoModel.appName!!)
+                unBlockApp(appName)
             }
         }
 
@@ -144,22 +146,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
                 showTimePickerDialog(requireContext()) { edTime ->
                     endTime = edTime
                     val currentTime = System.currentTimeMillis()
-                    if (currentTime > startTime!!.time) {
-                        Timber.d("Inside If")
-                        val newStarTime =
-                            Date(startTime!!.time.plus(86400000L))// 1 day in milliseconds
-                        val newEndTime =
-                            Date(endTime!!.time.plus(86400000L)) // 1 day in milliseconds
-                        setIntervalForBlocking(newStarTime, newEndTime)
-                    } else if (currentTime > endTime!!.time) {
-                        Timber.d("Inside else If")
-                        val newEndTime =
-                            Date(endTime!!.time.plus(86400000L))
-                        setIntervalForBlocking(startTime, newEndTime)
-                    } else {
-                        Timber.d("Inside else")
-                        setIntervalForBlocking(startTime, endTime)
-                    }
+                    checkConditionForTimeInterval(currentTime, startTime!!, endTime!!)
                 }
             }
         }
@@ -173,19 +160,19 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             } else {
 
                 if (fragmentAppBlockBinding.blockNotification.isChecked) {
-                    remainingTimeViewModel.updateNotificationStatus(appInfoModel.appName!!, true)
+                    remainingTimeViewModel.updateNotificationStatus(appName, true)
                         .observe(viewLifecycleOwner) {
                             showToast(
                                 requireContext(),
-                                "${appInfoModel.appName}'s Notification Blocked"
+                                "${appName}'s Notification Blocked"
                             )
                         }
                 } else if (!fragmentAppBlockBinding.blockNotification.isChecked) {
-                    remainingTimeViewModel.updateNotificationStatus(appInfoModel.appName!!, false)
+                    remainingTimeViewModel.updateNotificationStatus(appName, false)
                         .observe(viewLifecycleOwner) {
                             showToast(
                                 requireContext(),
-                                "${appInfoModel.appName}'s Notification Unblocked"
+                                "${appName}'s Notification Unblocked"
                             )
 
                         }
@@ -210,23 +197,23 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
 
         saveRemainingTime(
             interval,
-            appInfoModel.appName,
+            appName,
             startTime,
             endTime
         )
 
         startNotification(
             requireContext(),
-            appInfoModel.appName!!,
+            appName,
             startTime.time,
             interval,
-            appIcon
+            appIcon.toBitmap()
         )
         endNotification(
             requireContext(),
-            appInfoModel.appName!!,
+            appName,
             endTime.time,
-            appIcon
+            appIcon.toBitmap()
 
         )
 
@@ -285,16 +272,16 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             saveRemainingTime(interval, appName, null, null)
             startNotification(
                 requireContext(),
-                appInfoModel.appName!!,
+                appName!!,
                 System.currentTimeMillis(),
                 interval,
-                appIcon
+                appIcon.toBitmap()
             )
             endNotification(
                 requireContext(),
-                appInfoModel.appName!!,
+                appName,
                 System.currentTimeMillis() + interval,
-                appIcon
+                appIcon.toBitmap()
             )
 
             dialog.dismiss()
@@ -316,13 +303,32 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
                 appName!!,
                 System.currentTimeMillis(),
                 time,
-                appInfoModel.appPackage,
+                appPackage,
                 startTime?.time,
                 endTime?.time
             )
 
         remainingTimeViewModel.insertRemainingTime(limitrEntities).observe(viewLifecycleOwner) {
-           showToast(requireContext(),"$appName is Blocked!")
+            showToast(requireContext(), "$appName is Blocked!")
+        }
+    }
+
+    private fun checkConditionForTimeInterval(currentTime: Long, startTime: Date, endTime: Date) {
+        if (currentTime > startTime.time) {
+            Timber.d("Inside If")
+            val newStarTime =
+                Date(startTime.time.plus(86400000L))// 1 day in milliseconds
+            val newEndTime =
+                Date(endTime.time.plus(86400000L)) // 1 day in milliseconds
+            setIntervalForBlocking(newStarTime, newEndTime)
+        } else if (currentTime > endTime.time) {
+            Timber.d("Inside else If")
+            val newEndTime =
+                Date(endTime.time.plus(86400000L))
+            setIntervalForBlocking(startTime, newEndTime)
+        } else {
+            Timber.d("Inside else")
+            setIntervalForBlocking(startTime, endTime)
         }
     }
 
@@ -368,16 +374,5 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
 
         dialog.show()
     }
-
-//    private fun registerNotificationReceiver() {
-//        val intentFilter = IntentFilter()
-//        intentFilter.addAction("Block Notifications as well!")
-//        registerReceiver(
-//            requireContext(),
-//            notificationBroadcastReceiver,
-//            intentFilter,
-//            RECEIVER_VISIBLE_TO_INSTANT_APPS
-//        )
-//    }
 
 }

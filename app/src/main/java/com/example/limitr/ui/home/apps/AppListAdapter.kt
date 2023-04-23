@@ -11,7 +11,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.limitr.R
 import com.example.limitr.databinding.ItemAppBinding
-import com.example.limitr.ui.home.OnAppClickListener
+import com.example.limitr.common.OnAppClickListener
 import com.example.limitr.ui.home.model.App
 import com.example.limitr.utils.ViewUtils.animateProgressBar
 import javax.inject.Inject
@@ -62,26 +62,24 @@ class AppListAdapter @Inject constructor() :
         RecyclerView.ViewHolder(binding.root) {
 
         @SuppressLint("SetTextI18n")
-        fun bind(applicationInfo: App?) {
+        fun bind(appInfo: App?) {
             with(binding) {
-                appNameTv.text = applicationInfo?.appName
-                iconImg.setImageDrawable(applicationInfo?.appIcon)
-                usageDurationTv.text = applicationInfo?.usageDuration
-                usagePercTv.text = applicationInfo?.usagePercentage.toString() + "%"
+                appNameTv.text = appInfo?.appName
+                iconImg.setImageDrawable(appInfo?.appIcon)
+                usageDurationTv.text = appInfo?.usageDuration
+                usagePercTv.text = appInfo?.usagePercentage.toString() + "%"
 
-                if (applicationInfo != null) {
-                    animateProgressBar(progressBar, applicationInfo.usagePercentage)
-                    setUsageColor(applicationInfo.usagePercentage, progressBar)
+                if (appInfo != null) {
+                    animateProgressBar(progressBar, appInfo.usagePercentage)
+                    setUsageColor(appInfo.usagePercentage, progressBar)
                 }
 
-                val appName = applicationInfo?.appName
-                val appIcon = applicationInfo?.appIcon
-                val appPackageName = applicationInfo?.appPackageName
+                val appName = appInfo?.appName
+                val appIcon = appInfo?.appIcon
+                val appPackageName = appInfo?.appPackageName
 
                 mainLinearLayout.setOnClickListener {
                     onclickListener.onClick(
-                        appName!!,
-                        appIcon!!,
                         appPackageName!!,
                     )
                 }
@@ -96,7 +94,7 @@ class AppListAdapter @Inject constructor() :
             } else if (usagePercentage in 50..79) {
                 progressBar.progressTintList =
                     ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Warning))
-            } else if (usagePercentage <= 80) {
+            } else {
                 progressBar.progressTintList =
                     ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Danger))
 

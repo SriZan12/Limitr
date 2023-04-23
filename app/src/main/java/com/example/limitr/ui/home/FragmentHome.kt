@@ -26,7 +26,6 @@ import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 
-
 @AndroidEntryPoint
 class FragmentHome : Fragment(R.layout.fragment_home) {
 

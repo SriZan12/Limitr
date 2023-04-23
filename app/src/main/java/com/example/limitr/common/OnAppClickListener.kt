@@ -1,12 +1,10 @@
-package com.example.limitr.ui.home
+package com.example.limitr.common
 
 import android.graphics.drawable.Drawable
 
 interface OnAppClickListener {
 
     fun onClick(
-        appName: String,
-        appIcon: Drawable,
         appPackageName: String
     )
 }

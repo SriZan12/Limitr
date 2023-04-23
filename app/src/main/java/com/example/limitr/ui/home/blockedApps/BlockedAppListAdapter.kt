@@ -3,11 +3,13 @@ package com.example.limitr.ui.home.blockedApps
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View.OnClickListener
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.limitr.R
+import com.example.limitr.common.OnAppClickListener
 import com.example.limitr.data.room.model.LimitrEntities
 import com.example.limitr.databinding.ItemAppBlockedBinding
 import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
@@ -20,12 +22,18 @@ class BlockedAppListAdapter @Inject constructor() :
 
     private var blockedAppsList: MutableList<LimitrEntities> = mutableListOf()
     private lateinit var context: Context
+    private lateinit var onClickListener: OnAppClickListener
 
 
-    fun setBlockedAppList(context: Context, blockedAppsList: MutableList<LimitrEntities>) {
+    fun setBlockedAppList(
+        context: Context,
+        blockedAppsList: MutableList<LimitrEntities>,
+        onClickListener: OnAppClickListener
+    ) {
         this.blockedAppsList.clear()
         this.blockedAppsList.addAll(blockedAppsList)
         this.context = context
+        this.onClickListener = onClickListener
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BlockedAppViewHolder {
@@ -51,15 +59,15 @@ class BlockedAppListAdapter @Inject constructor() :
         RecyclerView.ViewHolder(binding.root) {
 
         @SuppressLint("SetTextI18n")
-        fun bind(data: LimitrEntities) {
+        fun bind(appInfo: LimitrEntities) {
             with(binding) {
-                appNameTv.text = data.appName
-                if (data.starTime != null && data.endTime != null) {
+                appNameTv.text = appInfo.appName
+                if (appInfo.starTime != null && appInfo.endTime != null) {
                     interval.isVisible = true
                     getIntervalForBlocking(
-                        data.starTime,
-                        data.endTime,
-                        data.remainingTime,
+                        appInfo.starTime,
+                        appInfo.endTime,
+                        appInfo.remainingTime,
                         timerText,
                         interval
                     )
@@ -67,12 +75,16 @@ class BlockedAppListAdapter @Inject constructor() :
                     timerText.isVisible = false
                     interval.isVisible = true
                     getTimer(
-                        data.blockedTime,
-                        data.remainingTime,
+                        appInfo.blockedTime,
+                        appInfo.remainingTime,
                         interval
                     )
                 }
-                iconImg.setImageDrawable(getAppIconByPackageName(context, data.appPackage!!))
+                iconImg.setImageDrawable(getAppIconByPackageName(context, appInfo.appPackage!!))
+
+                binding.mainLinearLayout.setOnClickListener {
+                    onClickListener.onClick(appInfo.appPackage!!)
+                }
             }
         }
     }

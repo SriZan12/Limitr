@@ -8,21 +8,19 @@ import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
-import androidx.annotation.RequiresApi
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
 import com.example.limitr.databinding.ApplistLayoutBinding
 import com.example.limitr.ui.home.FragmentHomeDirections
-import com.example.limitr.ui.home.OnAppClickListener
+import com.example.limitr.common.OnAppClickListener
 import com.example.limitr.ui.home.model.App
 import com.example.limitr.ui.home.model.AppInfoModel
 import com.example.limitr.utils.ViewUtils
@@ -52,7 +50,6 @@ class AppList : Fragment(R.layout.applist_layout) {
         return binding.root
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onResume() {
         super.onResume()
 
@@ -89,20 +86,16 @@ class AppList : Fragment(R.layout.applist_layout) {
 
     private val onclickListener: OnAppClickListener = object : OnAppClickListener {
         override fun onClick(
-            appName: String,
-            appIcon: Drawable,
             appPackageName: String
         ) {
 
-            appInfo = AppInfoModel(appName, appIcon, appPackageName)
-
-            val action = FragmentHomeDirections.actionFragmentHomeToFragmentBlockApp(appInfo)
+            val action = FragmentHomeDirections.actionFragmentHomeToFragmentBlockApp(appPackageName)
             findNavController().navigate(action)
         }
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+
     private fun showAppsUsage(mySortedMap: Map<String?, UsageStats>) {
         val appsList = ArrayList<App?>()
         val usageStatsList: List<UsageStats> = ArrayList(mySortedMap.values)
@@ -166,7 +159,6 @@ class AppList : Fragment(R.layout.applist_layout) {
     /**
      * load the usage stats for last 24h
      */
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun loadStatistics() {
         val usageStateManager =
             requireContext().getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager

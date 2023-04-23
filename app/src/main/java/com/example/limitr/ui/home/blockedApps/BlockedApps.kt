@@ -8,9 +8,12 @@ import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
+import com.example.limitr.common.OnAppClickListener
 import com.example.limitr.data.room.model.LimitrEntities
 import com.example.limitr.databinding.BlockedAppListLayoutBinding
+import com.example.limitr.ui.home.FragmentHomeDirections
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -44,12 +47,28 @@ class BlockedApps : Fragment(R.layout.blocked_app_list_layout) {
                 for (apps in it) {
                     blockedAppsList.add(apps)
                 }
-                blockedAppListAdapter.setBlockedAppList(requireContext(), blockedAppsList)
+                blockedAppListAdapter.setBlockedAppList(
+                    requireContext(),
+                    blockedAppsList,
+                    onclickListener
+                )
                 binding.blockedAppRecycler.adapter = blockedAppListAdapter
             } else {
                 binding.noApps.isVisible = true
             }
         }
+    }
+
+    private val onclickListener: OnAppClickListener = object : OnAppClickListener {
+        override fun onClick(
+            appPackageName: String
+        ) {
+
+            val action =
+                FragmentHomeDirections.actionFragmentHomeToFragmentBlockApp(appPackageName)
+            findNavController().navigate(action)
+        }
+
     }
 
 }

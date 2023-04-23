@@ -22,6 +22,7 @@
         <action
             android:id="@+id/action_fragmentHome_to_fragmentEditProfile"
             app:destination="@id/fragmentEditProfile" />
+
         <action
             android:id="@+id/action_fragmentHome_to_fragmentBlockApp"
             app:destination="@id/fragmentBlockApp">
@@ -45,7 +46,8 @@
 
         <argument
             android:name="appInfo"
-            app:argType="com.example.limitr.ui.home.model.AppInfoModel" />
+            app:argType= "string"
+            app:nullable="true" />
     </fragment>
     <activity
         android:id="@+id/activityBlocked"
@@ -63,6 +65,4 @@
         android:name="com.example.limitr.ui.home.blockedApps.BlockedApps"
         tools:layout="@layout/blocked_app_list_layout"
         android:label="Blocked Apps" />
-
-
 </navigation>
