@@ -19,7 +19,6 @@ object FirebaseUtils {
 
     fun uploadToFirebase(imageUri: Uri, context: Context) {
         progressDialog = ProgressDialog(context)
-        progressDialog.setMessage("Updating")
         progressDialog.setCancelable(false)
         progressDialog.show()
         val user = firebaseAuth.currentUser
@@ -29,6 +28,10 @@ object FirebaseUtils {
 
         storageReference.putFile(imageUri)
             .addOnSuccessListener { getDownloadImageUrl(storageReference, context) }
+            .addOnProgressListener { snapshot ->
+                val progress = 100 * snapshot.bytesTransferred / snapshot.totalByteCount
+                progressDialog.setMessage("Uploading: $progress %")
+            }
 
     }
 
