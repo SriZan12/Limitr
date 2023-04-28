@@ -1,21 +1,19 @@
-package com.example.limitr.ui.auth
+package com.example.limitr.ui.auth.fragment
 
 import android.app.Activity
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
 import com.example.limitr.databinding.SignupLayoutBinding
 import com.example.limitr.resource.AuthState
+import com.example.limitr.ui.auth.vm.AuthViewModel
 import com.example.limitr.utils.ViewUtils.showToast
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -24,13 +22,13 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class FragmentSignup : Fragment(R.layout.signup_layout) {
 
     private lateinit var fragmentSignupBinding: SignupLayoutBinding
     private val authViewModel: AuthViewModel by viewModels()
-    private val signUp: String = "AuthState"
     private lateinit var googleSignInClient: GoogleSignInClient
 
     override fun onStart() {
@@ -66,7 +64,7 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
     }
 
     private fun observeAuthState() {
-        authViewModel.authState.observe(viewLifecycleOwner, Observer { authState ->
+        authViewModel.authState.observe(viewLifecycleOwner) { authState ->
             when (authState) {
                 is AuthState.Idle -> {
                 }
@@ -78,36 +76,35 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
                 }
 
                 is AuthState.AuthError -> {
-                    showToast(requireContext(), "Couldn't Create Account!")
+                    authState.message?.let { showToast(requireContext(), it) }
                     fragmentSignupBinding.progressBar.visibility = View.GONE
                 }
 
                 else -> {}
             }
-        })
+        }
 
     }
 
     private fun updateUI() {
-        val action = FragmentSignupDirections.actionFragmentSignupToFragmentHome()
+        val action =
+            FragmentSignupDirections.actionFragmentSignupToFragmentHome()
         findNavController().navigate(action)
     }
 
     private fun signInGoogle() {
         val signInIntent = googleSignInClient.signInIntent
         launcher.launch(signInIntent)
-        Log.d(signUp, "signInGoogle: signInGoogle()")
     }
 
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
-                Log.d(signUp, "signInGoogle: Launcher()")
 
                 fragmentSignupBinding.progressBar.visibility = View.VISIBLE
                 fragmentSignupBinding.progressBar.progress
-
+//
                 val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
                 handleResults(task)
             }
@@ -117,6 +114,7 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
         if (task.isSuccessful) {
             val account: GoogleSignInAccount? =
                 task.result // Checking if the account is created or not
+            Timber.d("Email = ${account.toString()}")
             if (account != null) {
                 authViewModel.loginWithGoogle(account)
                 observeAuthState()
