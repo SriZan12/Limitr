@@ -1,9 +1,7 @@
-package com.example.limitr.ui.blocker
+package com.example.limitr.ui.blocker.fragment
 
 import android.annotation.SuppressLint
 import android.app.Dialog
-import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -20,15 +18,16 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.example.limitr.R
-import com.example.limitr.data.room.model.LimitrEntities
+import com.example.limitr.data.room.appdatabase.model.LimitrEntities
 import com.example.limitr.databinding.FragmentAppBlockBinding
-import com.example.limitr.services.notifications.NotificationListener
+import com.example.limitr.ui.blocker.vm.RemainingTimeViewModel
+import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
+import com.example.limitr.utils.DateAndTime.getTimer
 import com.example.limitr.utils.NotificationUtils.endNotification
 import com.example.limitr.utils.NotificationUtils.startNotification
+import com.example.limitr.utils.Permissions.isNotificationServiceEnable
 import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
 import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
-import com.example.limitr.utils.ViewUtils.getIntervalForBlocking
-import com.example.limitr.utils.ViewUtils.getTimer
 import com.example.limitr.utils.ViewUtils.showTimePickerDialog
 import com.example.limitr.utils.ViewUtils.startTimer
 import dagger.hilt.android.AndroidEntryPoint
@@ -44,7 +43,6 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     private val fragmentBlockAppArgs: FragmentBlockAppArgs by navArgs()
     private lateinit var appPackage: String
     private val remainingTimeViewModel: RemainingTimeViewModel by viewModels()
-    private val appBlock = "appBlocker"
     private lateinit var appName: String
     private lateinit var appIcon: Drawable
     private var startTime: Date? = null
@@ -332,20 +330,6 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
         }
     }
 
-    private fun isNotificationServiceEnable(context: Context): Boolean {
-        val myNotificationListenerComponentName =
-            ComponentName(context, NotificationListener::class.java)
-        val enabledListeners =
-            Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
-
-        if (enabledListeners.isEmpty()) return false
-
-        return enabledListeners.split(":").map {
-            ComponentName.unflattenFromString(it)
-        }.any { componentName ->
-            myNotificationListenerComponentName == componentName
-        }
-    }
 
     private fun gotoSettings() {
         val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)

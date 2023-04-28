@@ -1,4 +1,4 @@
-package com.example.limitr.data.room.model
+package com.example.limitr.data.room.appdatabase.model
 
 import android.os.Build
 import androidx.annotation.RequiresApi

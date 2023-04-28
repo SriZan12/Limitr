@@ -12,5 +12,22 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="android:timePickerDialogTheme">@style/MyTimePickerDialogTheme
+        </item>
+    </style>
+
+    <style name="CustomProgressBarTheme">
+        <item name="colorAccent">@color/Ui_Color</item>
+        <item name="android:progressBackgroundTint">@color/Ui_Color</item>
+    </style>
+
+    <style name="MyTimePickerStyle" parent="@android:style/Widget.Material.Light.TimePicker">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:headerBackground">@color/Ui_Color</item>
+    </style>
+
+    <style name="MyTimePickerDialogTheme" parent="Theme.AppCompat.Light.Dialog">
+        <item name="colorAccent">@color/Ui_Color</item>
+        <item name="android:datePickerStyle">@style/MyTimePickerStyle</item>
     </style>
 </resources>

@@ -1,9 +1,9 @@
-package com.example.limitr.ui.home.blockedApps
+package com.example.limitr.ui.home.blockedApps.vm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
-import com.example.limitr.data.room.model.LimitrEntities
+import com.example.limitr.data.room.appdatabase.model.LimitrEntities
+import com.example.limitr.repository.BlockedAppRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 

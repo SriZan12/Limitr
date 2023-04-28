@@ -1,4 +1,4 @@
-package com.example.limitr.ui.home.apps
+package com.example.limitr.ui.home.apps.adapter
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -22,7 +22,6 @@ class AppListAdapter @Inject constructor() :
     private var appsList: MutableList<App?> = mutableListOf()
     private lateinit var context: Context
     private lateinit var onclickListener: OnAppClickListener
-    private val adapter = "Adapter"
 
     fun setAppLists(
         filteredAppList: ArrayList<App?>,
@@ -74,8 +73,6 @@ class AppListAdapter @Inject constructor() :
                     setUsageColor(appInfo.usagePercentage, progressBar)
                 }
 
-                val appName = appInfo?.appName
-                val appIcon = appInfo?.appIcon
                 val appPackageName = appInfo?.appPackageName
 
                 mainLinearLayout.setOnClickListener {

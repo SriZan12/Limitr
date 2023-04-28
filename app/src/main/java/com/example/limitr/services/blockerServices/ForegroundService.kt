@@ -9,7 +9,7 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 
-import com.example.limitr.MainActivity
+import com.example.limitr.mainactivity.MainActivity
 import com.example.limitr.R
 import com.example.limitr.utils.NotificationUtils.NOTIFICATIONCHANNEL
 import com.example.limitr.utils.NotificationUtils.createNotificationChannel

@@ -7,8 +7,8 @@ import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.pm.PackageManager
 import android.view.accessibility.AccessibilityEvent
 import androidx.lifecycle.*
-import com.example.limitr.data.room.LimitrDao
-import com.example.limitr.ui.blocker.ActivityBlocked
+import com.example.limitr.data.room.appdatabase.LimitrDao
+import com.example.limitr.ui.blocker.activity.ActivityBlocked
 import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch

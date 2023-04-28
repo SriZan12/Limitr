@@ -1,13 +1,11 @@
-package com.example.limitr.data.room
+package com.example.limitr.data.room.appdatabase
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
-import com.example.limitr.data.room.model.LimitrEntities
+import com.example.limitr.data.room.appdatabase.model.LimitrEntities
 
 @Dao
 interface LimitrDao {

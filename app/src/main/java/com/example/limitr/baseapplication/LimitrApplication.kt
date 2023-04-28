@@ -1,4 +1,4 @@
-package com.example.limitr
+package com.example.limitr.baseapplication
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

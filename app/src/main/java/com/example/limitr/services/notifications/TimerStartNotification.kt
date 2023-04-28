@@ -9,7 +9,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.example.limitr.MainActivity
+import com.example.limitr.mainactivity.MainActivity
 import com.example.limitr.R
 import com.example.limitr.utils.NotificationUtils.NOTIFICATIONCHANNEL
 

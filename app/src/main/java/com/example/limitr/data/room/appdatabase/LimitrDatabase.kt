@@ -1,11 +1,10 @@
-package com.example.limitr.data.room
+package com.example.limitr.data.room.appdatabase
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-import com.example.limitr.data.room.model.LimitrEntities
-import com.example.limitr.data.room.model.TimeConverter
+import com.example.limitr.data.room.appdatabase.model.LimitrEntities
+import com.example.limitr.data.room.appdatabase.model.TimeConverter
 
 @Database(
     entities = [LimitrEntities::class],

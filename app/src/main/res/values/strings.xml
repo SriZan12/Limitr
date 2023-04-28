@@ -12,13 +12,19 @@
     <string name="usage">Usage:</string>
     <string name="set_timer">Set Timer</string>
     <string name="app_size">App Size:</string>
+    <string name="sharedPref_status_Insert">Insert</string>
+    <string name="sharedPref_status_Update">Update</string>
     <string name="start_timer">Start Timer</string>
     <string name="accessibility_service_label">Accessibility Service</string>
     <string name="accessibility_service_description">Accessibility Service for App Launch.</string>
     <string name="permission_required">Permission Required</string>
+    <string name="reward">Claim Crypto</string>
     <string name="installed_apps">Installed Apps</string>
     <string name="system_apps">System Apps</string>
     <string name="remaining_time">Remaining Time:</string>
     <string name="app_blocked">App Blocked</string>
     <string name="no_apps_are_blocked">No Apps are Blocked!</string>
+    <string name="mySharePrefs">My SharePref</string>
+    <string name="daily_Login_Reward">Daily Login Reward</string>
+    <string name="last_logged_date">Last Logged Date</string>
 </resources>

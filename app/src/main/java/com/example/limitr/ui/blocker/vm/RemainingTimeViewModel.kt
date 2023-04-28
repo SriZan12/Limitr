@@ -1,9 +1,10 @@
-package com.example.limitr.ui.blocker
+package com.example.limitr.ui.blocker.vm
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
-import com.example.limitr.data.room.model.LimitrEntities
+import com.example.limitr.data.room.appdatabase.model.LimitrEntities
+import com.example.limitr.repository.RemainingTimeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 

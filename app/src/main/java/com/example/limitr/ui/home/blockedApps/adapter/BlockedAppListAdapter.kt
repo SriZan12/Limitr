@@ -1,20 +1,19 @@
-package com.example.limitr.ui.home.blockedApps
+package com.example.limitr.ui.home.blockedApps.adapter
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View.OnClickListener
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.limitr.R
 import com.example.limitr.common.OnAppClickListener
-import com.example.limitr.data.room.model.LimitrEntities
+import com.example.limitr.data.room.appdatabase.model.LimitrEntities
 import com.example.limitr.databinding.ItemAppBlockedBinding
+import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
+import com.example.limitr.utils.DateAndTime.getTimer
 import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
-import com.example.limitr.utils.ViewUtils.getIntervalForBlocking
-import com.example.limitr.utils.ViewUtils.getTimer
 import javax.inject.Inject
 
 class BlockedAppListAdapter @Inject constructor() :

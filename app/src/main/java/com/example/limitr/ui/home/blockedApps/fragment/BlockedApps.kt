@@ -1,4 +1,4 @@
-package com.example.limitr.ui.home.blockedApps
+package com.example.limitr.ui.home.blockedApps.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,9 +11,11 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
 import com.example.limitr.common.OnAppClickListener
-import com.example.limitr.data.room.model.LimitrEntities
+import com.example.limitr.data.room.appdatabase.model.LimitrEntities
 import com.example.limitr.databinding.BlockedAppListLayoutBinding
-import com.example.limitr.ui.home.FragmentHomeDirections
+import com.example.limitr.ui.home.blockedApps.adapter.BlockedAppListAdapter
+import com.example.limitr.ui.home.blockedApps.vm.BlockedAppViewModels
+import com.example.limitr.ui.home.main_fragment.FragmentHomeDirections
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

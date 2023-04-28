@@ -1,10 +1,10 @@
-package com.example.limitr.ui.home
+package com.example.limitr.ui.home.main_fragment
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.example.limitr.ui.home.apps.AppList
-import com.example.limitr.ui.home.blockedApps.BlockedApps
+import com.example.limitr.ui.home.apps.fragment.AppList
+import com.example.limitr.ui.home.blockedApps.fragment.BlockedApps
 
 class AppListViewPagerAdapter  (activity: FragmentActivity) :
     FragmentStateAdapter(activity) {

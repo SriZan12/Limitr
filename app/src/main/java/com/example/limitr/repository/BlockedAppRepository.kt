@@ -1,9 +1,8 @@
-package com.example.limitr.ui.home.blockedApps
+package com.example.limitr.repository
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.liveData
-import com.example.limitr.data.room.LimitrDao
-import com.example.limitr.data.room.model.LimitrEntities
+import com.example.limitr.data.room.appdatabase.LimitrDao
+import com.example.limitr.data.room.appdatabase.model.LimitrEntities
 import javax.inject.Inject
 
 

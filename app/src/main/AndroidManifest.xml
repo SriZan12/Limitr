@@ -24,7 +24,7 @@
         tools:ignore="ProtectedPermissions" />
 
     <application
-        android:name=".LimitrApplication"
+        android:name=".baseapplication.LimitrApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -35,7 +35,7 @@
         tools:targetApi="31">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".mainactivity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,7 +45,7 @@
         </activity>
 
         <activity
-            android:name=".ui.blocker.ActivityBlocked"
+            android:name=".ui.blocker.activity.ActivityBlocked"
             android:exported="false" />
 
         <meta-data

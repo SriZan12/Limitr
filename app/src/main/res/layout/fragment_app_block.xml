@@ -17,7 +17,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/Ui_Color"
-        tools:context=".ui.blocker.FragmentBlockApp">
+        tools:context=".ui.blocker.fragment.FragmentBlockApp">
 
         <ImageView
             android:id="@+id/appIcon"

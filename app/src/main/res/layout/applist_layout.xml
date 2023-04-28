@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/Ui_Color"
-        tools:context=".ui.home.apps.AppList">
+        tools:context=".ui.home.apps.fragment.AppList">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/appListRecycler"

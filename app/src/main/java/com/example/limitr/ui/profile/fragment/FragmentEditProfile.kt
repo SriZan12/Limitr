@@ -1,23 +1,24 @@
-package com.example.limitr.ui.profile
+package com.example.limitr.ui.profile.fragment
 
 import android.Manifest
 import android.app.Activity
+import android.app.ProgressDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import com.bumptech.glide.Glide
+import androidx.fragment.app.viewModels
 import com.example.limitr.R
 import com.example.limitr.databinding.FragmentEditProfileBinding
-import com.example.limitr.utils.FirebaseUtils.updateNameToFirebase
-import com.example.limitr.utils.FirebaseUtils.uploadToFirebase
-import com.example.limitr.utils.ViewUtils.loadProfilePhoto
+import com.example.limitr.resource.EditProfileState
+import com.example.limitr.ui.profile.vm.EditProfileViewModel
+import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
+import com.example.limitr.utils.ViewUtils.showToast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import pub.devrel.easypermissions.AppSettingsDialog
@@ -25,14 +26,14 @@ import pub.devrel.easypermissions.EasyPermissions
 import timber.log.Timber
 
 class FragmentEditProfile :
-    Fragment(R.layout.fragment_edit_profile), EasyPermissions.PermissionCallbacks{
+    Fragment(R.layout.fragment_edit_profile), EasyPermissions.PermissionCallbacks {
 
     private lateinit var fragmentEditProfileBinding: FragmentEditProfileBinding
     private lateinit var imageUri: Uri
     private val STORAGEPERMISSIONCODE: Int = 1
     private lateinit var firebaseStorage: FirebaseStorage
     private lateinit var firebaseAuth: FirebaseAuth
-    private val editProfile = "EditTheProfile"
+    private val viewModel: EditProfileViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,7 +55,7 @@ class FragmentEditProfile :
             FirebaseAuth.getInstance().currentUser?.displayName
         )
 
-        loadProfilePhoto(fragmentEditProfileBinding.profileImage,requireContext())
+        loadProfilePhoto(fragmentEditProfileBinding.profileImage, requireContext())
 
         fragmentEditProfileBinding.profileImage.setOnClickListener {
             checkStoragePermission()
@@ -63,7 +64,7 @@ class FragmentEditProfile :
         fragmentEditProfileBinding.ButtonEditProfile.setOnClickListener {
             fragmentEditProfileBinding.progressBar.visibility = View.VISIBLE
             val name = fragmentEditProfileBinding.profileName.text.toString()
-            updateNameToFirebase(name, fragmentEditProfileBinding.progressBar, requireContext())
+            viewModel.updateNameToFirebase(name, fragmentEditProfileBinding.progressBar, requireContext())
         }
     }
 
@@ -82,10 +83,36 @@ class FragmentEditProfile :
                     imageUri = res.data!!
 
                     fragmentEditProfileBinding.profileImage.setImageURI(imageUri)
-                    uploadToFirebase(imageUri, requireContext())
+                    viewModel.uploadToFirebase(imageUri, requireContext())
+                    observeEditProfileState()
                 }
             }
         }
+
+    private fun observeEditProfileState() {
+        val progressDialog = ProgressDialog(requireContext())
+        viewModel._editProfileState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is EditProfileState.Loading -> {
+                    progressDialog.setCancelable(false)
+                    progressDialog.show()
+
+                    progressDialog.setMessage("Uploading: ${state.progress} %")
+                }
+
+                is EditProfileState.Success -> {
+                    showToast(requireContext(), "Profile Updated")
+                    progressDialog.dismiss()
+                }
+
+                is EditProfileState.Error -> {
+                    showToast(requireContext(), state.errorMessage.toString())
+                }
+
+                else -> {}
+            }
+        }
+    }
 
 
     private fun hasStoragePermission(): Boolean {

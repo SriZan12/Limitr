@@ -1,4 +1,4 @@
-package com.example.limitr.ui.blocker
+package com.example.limitr.ui.blocker.activity
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -9,10 +9,11 @@ import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import com.example.limitr.R
 import com.example.limitr.databinding.ActivityBlockedBinding
-import com.example.limitr.utils.ViewUtils
+import com.example.limitr.ui.blocker.vm.RemainingTimeViewModel
+import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
+import com.example.limitr.utils.DateAndTime.getTimer
+import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
 import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
-import com.example.limitr.utils.ViewUtils.getIntervalForBlocking
-import com.example.limitr.utils.ViewUtils.getTimer
 import com.example.limitr.utils.ViewUtils.showToast
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -35,7 +36,7 @@ class ActivityBlocked : AppCompatActivity() {
         appName = intent.getStringExtra("appName").toString()
         appPackage = intent.getStringExtra("appPackage").toString()
 
-        ViewUtils.loadProfilePhoto(activityBlockedBinding.profile, this)
+        loadProfilePhoto(activityBlockedBinding.profile, this)
 
         activityBlockedBinding.appIcon.setImageDrawable(
             getAppIconByPackageName(

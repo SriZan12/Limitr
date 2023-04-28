@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/fragmentSignup"
-        android:name="com.example.limitr.ui.auth.FragmentSignup"
+        android:name="com.example.limitr.ui.auth.fragment.FragmentSignup"
         tools:layout="@layout/signup_layout"
         android:label="Signup" >
         <action
@@ -16,7 +16,7 @@
     </fragment>
     <fragment
         android:id="@+id/fragmentHome"
-        android:name="com.example.limitr.ui.home.FragmentHome"
+        android:name="com.example.limitr.ui.home.main_fragment.FragmentHome"
         tools:layout="@layout/fragment_home"
         android:label="FragmentHome" >
         <action
@@ -35,12 +35,12 @@
     </fragment>
     <fragment
         android:id="@+id/fragmentEditProfile"
-        android:name="com.example.limitr.ui.profile.FragmentEditProfile"
+        android:name="com.example.limitr.ui.profile.fragment.FragmentEditProfile"
         tools:layout="@layout/fragment_edit_profile"
         android:label="Edit Profile" />
     <fragment
         android:id="@+id/fragmentBlockApp"
-        android:name="com.example.limitr.ui.blocker.FragmentBlockApp"
+        android:name="com.example.limitr.ui.blocker.fragment.FragmentBlockApp"
         tools:layout="@layout/fragment_app_block"
         android:label="Block App" >
 
@@ -51,18 +51,18 @@
     </fragment>
     <activity
         android:id="@+id/activityBlocked"
-        android:name="com.example.limitr.ui.blocker.ActivityBlocked"
+        android:name="com.example.limitr.ui.blocker.activity.ActivityBlocked"
         tools:layout="@layout/activity_blocked"
         android:label="ActivityBlocked" />
 
     <fragment
         android:id="@+id/appList"
-        android:name="com.example.limitr.ui.home.apps.AppList"
+        android:name="com.example.limitr.ui.home.apps.fragment.AppList"
         tools:layout="@layout/applist_layout"
         android:label="App List" />
     <fragment
         android:id="@+id/hilt_SystemAppFragment"
-        android:name="com.example.limitr.ui.home.blockedApps.BlockedApps"
+        android:name="com.example.limitr.ui.home.blockedApps.fragment.BlockedApps"
         tools:layout="@layout/blocked_app_list_layout"
         android:label="Blocked Apps" />
 </navigation>
