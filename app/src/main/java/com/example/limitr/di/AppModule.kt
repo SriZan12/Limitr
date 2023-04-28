@@ -2,8 +2,8 @@ package com.example.limitr.di
 
 import android.app.Application
 import androidx.room.Room
-import com.example.limitr.data.room.LimitrDao
-import com.example.limitr.data.room.LimitrDatabase
+import com.example.limitr.data.room.appdatabase.LimitrDao
+import com.example.limitr.data.room.appdatabase.LimitrDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,13 +12,13 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DatabaseModule {
+object AppModule {
 
     @Provides
     @Singleton
     fun getDatabase(application: Application): LimitrDatabase {
 
-        kotlin.synchronized(this) {
+        synchronized(this) {
             return Room.databaseBuilder(
                 application.applicationContext, LimitrDatabase::class.java, "LimitrTable"
             ).allowMainThreadQueries()
@@ -28,7 +28,7 @@ object DatabaseModule {
     }
 
     @Provides
-    fun providesDao(limitrDatabase: LimitrDatabase): LimitrDao {
+    fun providesLimitrDao(limitrDatabase: LimitrDatabase): LimitrDao {
         return limitrDatabase.getLimitrDao()
     }
 

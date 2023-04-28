@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.os.Build
 import com.example.limitr.services.notifications.TimerEndNotification
 import com.example.limitr.services.notifications.TimerStartNotification
+import com.example.limitr.utils.DateAndTime.formatTime
 import java.util.*
 
 object NotificationUtils {
@@ -62,42 +63,6 @@ object NotificationUtils {
             notificationStartTime,
             pendingIntent
         )
-    }
-
-    private fun formatTime(timeInMillis: Long): String {
-        val totalSeconds = timeInMillis / 1000
-        val hours = totalSeconds / 3600
-        val minutes = (totalSeconds % 3600) / 60
-        val seconds = totalSeconds % 60
-
-        val formattedTime = StringBuilder()
-
-        if (hours > 0) {
-            if (hours == 1L) {
-                formattedTime.append("$hours hour ")
-            } else {
-                formattedTime.append("$hours hours ")
-            }
-        }
-
-        if (minutes > 0) {
-            if (minutes == 1L) {
-                formattedTime.append("$minutes minute ")
-            } else {
-                formattedTime.append("$minutes minutes ")
-            }
-        }
-
-        if (seconds > 0) {
-            if (seconds == 1L) {
-                formattedTime.append("$seconds second")
-            } else {
-                formattedTime.append("$seconds seconds")
-            }
-
-        }
-
-        return formattedTime.toString().trimEnd()
     }
 
 

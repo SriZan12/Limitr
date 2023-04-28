@@ -1,4 +1,4 @@
-package com.example.limitr.ui.blocker
+package com.example.limitr.utils
 
 import android.annotation.SuppressLint
 import android.os.CountDownTimer
