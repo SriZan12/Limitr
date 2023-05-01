@@ -136,6 +136,19 @@
                 app:switchPadding="14dp"
                 android:fontFamily="@font/acme"/>
 
+            <Button
+                android:id="@+id/unBlockApp"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/acme"
+                android:visibility="gone"
+                android:padding="8dp"
+                android:gravity="center"
+                android:text="@string/unblock_app"
+                android:textColor="@color/black" />
+
         </LinearLayout>
 
 

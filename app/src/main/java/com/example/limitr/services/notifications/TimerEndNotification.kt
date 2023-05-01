@@ -31,14 +31,14 @@ class TimerEndNotification : BroadcastReceiver() {
         }
 
         notificationTitle = intent?.getStringExtra("title").toString()
-        notificationId = intent?.getStringExtra("notificationId")?.toInt()!!
+        notificationId = intent?.getIntExtra("notificationId", 0)!!
         appIcon = intent.getParcelableExtra<Bitmap>("appIcon")!!
 
         pendingIntent =
             PendingIntent.getActivity(context, 102, tapIntent, PendingIntent.FLAG_MUTABLE)
         val notificationBuilder = NotificationCompat.Builder(
             context,
-            NOTIFICATIONCHANNEL
+            notificationTitle
         )
             .setSmallIcon(R.drawable.logo)
             .setLargeIcon(appIcon)

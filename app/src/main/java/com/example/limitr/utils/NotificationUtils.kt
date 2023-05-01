@@ -2,6 +2,7 @@ package com.example.limitr.utils
 
 import android.app.*
 import android.content.Context
+import android.content.Context.NOTIFICATION_SERVICE
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
@@ -14,39 +15,39 @@ object NotificationUtils {
 
     const val NOTIFICATIONCHANNEL = "LimitrAndroid"
 
-    fun createNotificationChannel(context: Context) {
+    fun createNotificationChannel(context: Context, appName: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "LimitrNotification"
             val descriptionText = "LimitrNotifies"
             val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(NOTIFICATIONCHANNEL, name, importance).apply {
+            val channel = NotificationChannel(appName, name, importance).apply {
                 description = descriptionText
             }
             channel.enableLights(true)
             channel.enableVibration(true)
 
             val notificationManager: NotificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
     }
 
     fun startNotification(
         context: Context,
-        notificationTitle: String,
+        appName: String,
         notificationStartTime: Long,
         blockedTime: Long,
         appIcon: Bitmap,
     ) {
 
-        createNotificationChannel(context)
+        createNotificationChannel(context, appName)
 
-        val notificationId = System.currentTimeMillis().toInt()
+        val notificationId = System.currentTimeMillis()
 
         val startNotificationIntent = Intent(context, TimerStartNotification::class.java)
-        startNotificationIntent.putExtra("title", notificationTitle)
+        startNotificationIntent.putExtra("title", appName)
         startNotificationIntent.putExtra("text", " Blocked For ${formatTime(blockedTime)}")
-        startNotificationIntent.putExtra("notificationId", notificationId.toString())
+        startNotificationIntent.putExtra("notificationId", notificationId)
         startNotificationIntent.putExtra("appIcon", appIcon)
 
         val pendingIntent =
@@ -68,18 +69,18 @@ object NotificationUtils {
 
     fun endNotification(
         context: Context,
-        notificationTitle: String,
+        appName: String,
         duration: Long,
-        appIcon: Bitmap
+        appIcon: Bitmap,
     ) {
 
-        createNotificationChannel(context)
+        createNotificationChannel(context, appName)
 
-        val notificationId = System.currentTimeMillis().toInt() + 1
+        val notificationId = System.currentTimeMillis() + 1
 
         val endNotificationIntent = Intent(context, TimerEndNotification::class.java)
-        endNotificationIntent.putExtra("title", notificationTitle)
-        endNotificationIntent.putExtra("notificationId", notificationId.toString())
+        endNotificationIntent.putExtra("title", appName)
+        endNotificationIntent.putExtra("notificationId", notificationId)
         endNotificationIntent.putExtra("appIcon", appIcon)
 
         val pendingIntent =
@@ -99,4 +100,15 @@ object NotificationUtils {
 
     }
 
+    fun cancelNotification(context: Context, channelId: String) {
+        // Get an instance of the NotificationManager
+        val notificationManager =
+            context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+// Remove the notification channel
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            notificationManager.deleteNotificationChannel(channelId)
+        }
+
+    }
 }

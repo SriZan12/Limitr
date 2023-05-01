@@ -9,7 +9,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
         tools:context=".ui.auth.fragment.FragmentSignup">
 
@@ -104,7 +104,7 @@
                     android:layout_marginStart="15dp"
                     android:layout_marginEnd="15dp"
                     android:background="@drawable/textview_design"
-                    android:fontFamily="@font/gaglin"
+                    android:fontFamily="@font/acme"
                     android:gravity="bottom|center"
                     android:padding="8dp"
                     android:text="@string/Continue"

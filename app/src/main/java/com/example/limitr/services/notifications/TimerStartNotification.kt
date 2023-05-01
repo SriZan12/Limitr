@@ -23,13 +23,13 @@ class TimerStartNotification : BroadcastReceiver() {
 
         val notificationTitle = intent?.getStringExtra("title")
         val blockedTime = intent?.getStringExtra("text")
-        val notificationId = intent?.getStringExtra("notificationId")?.toInt()
+        val notificationId = intent?.getIntExtra("notificationId",0)
         val appIcon = intent?.getParcelableExtra<Bitmap>("appIcon")
 
         val pendingIntent: PendingIntent =
             PendingIntent.getActivity(context, 101, tapIntent, PendingIntent.FLAG_MUTABLE)
 
-        val notificationBuilder = NotificationCompat.Builder(context, NOTIFICATIONCHANNEL)
+        val notificationBuilder = NotificationCompat.Builder(context, notificationTitle!!)
             .setSmallIcon(R.drawable.logo)
             .setLargeIcon(appIcon)
             .setContentTitle(notificationTitle)
