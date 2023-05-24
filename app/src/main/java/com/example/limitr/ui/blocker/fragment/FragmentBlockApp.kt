@@ -3,6 +3,7 @@ package com.example.limitr.ui.blocker.fragment
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
@@ -13,31 +14,43 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import com.example.limitr.R
+import com.example.limitr.common.showDialog
 import com.example.limitr.data.room.appdatabase.model.LimitrEntities
 import com.example.limitr.databinding.FragmentAppBlockBinding
 import com.example.limitr.ui.blocker.vm.RemainingTimeViewModel
+import com.example.limitr.utils.DateAndTime.formatTimeInNumbers
 import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
 import com.example.limitr.utils.DateAndTime.getTimer
+import com.example.limitr.utils.NotificationUtils.cancelNotification
 import com.example.limitr.utils.NotificationUtils.endNotification
 import com.example.limitr.utils.NotificationUtils.startNotification
 import com.example.limitr.utils.Permissions.isNotificationServiceEnable
 import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
 import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
+import com.example.limitr.utils.ViewUtils.getCrypto
 import com.example.limitr.utils.ViewUtils.showTimePickerDialog
 import com.example.limitr.utils.ViewUtils.startTimer
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.util.*
 import com.example.limitr.utils.ViewUtils.showToast
+import java.text.SimpleDateFormat
+import javax.inject.Inject
 
+//enum class PickNumber { LIMIT, TIMER }
+
+const val isAppBlocked = "Blocked"
+const val isAppLimited = "Limited"
 
 @AndroidEntryPoint
-class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
+class FragmentBlockApp :
+    Fragment(R.layout.fragment_app_block) {
 
     private lateinit var fragmentAppBlockBinding: FragmentAppBlockBinding
     private val fragmentBlockAppArgs: FragmentBlockAppArgs by navArgs()
@@ -49,7 +62,13 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     private var endTime: Date? = null
     private var unBlockAppStatus: Boolean = false
     private lateinit var dialog: Dialog
+//    private var pickNumberStatus = PickNumber.LIMIT
 
+    @Inject
+    lateinit var sharedPref: SharedPreferences
+
+    @Inject
+    lateinit var editor: SharedPreferences.Editor
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,7 +83,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        dialog = Dialog(requireContext())
+        dialog = showDialog(requireContext(), R.layout.notification_dialog)
     }
 
     override fun onResume() {
@@ -76,6 +95,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             }
         }
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("SimpleDateFormat", "SetTextI18n")
@@ -93,15 +113,14 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
 
 
         fragmentAppBlockBinding.setTime.setOnClickListener {
-            val dialog = Dialog(requireContext())
-            dialog.window?.setContentView(R.layout.select_time_layout)
-            dialog.window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            dialog.show()
 
+            val dialog = showDialog(requireContext(), R.layout.select_time_layout)
+//            pickNumberStatus = PickNumber.TIMER
             setNumberPicker(dialog, appName)
+        }
+
+        fragmentAppBlockBinding.unBlockApp.setOnClickListener {
+            unBlockAppByCrypto()
         }
 
         remainingTimeViewModel.getRemainingTime(appName).observe(viewLifecycleOwner) {
@@ -149,31 +168,22 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             }
         }
 
-        fragmentAppBlockBinding.blockNotification.setOnClickListener {
 
-            Timber.d("Notification = ${isNotificationServiceEnable(requireContext())}")
+        fragmentAppBlockBinding.blockNotification.setOnClickListener {
 
             if (!isNotificationServiceEnable(requireContext())) {
                 showNotificationDialog()
             } else {
 
                 if (fragmentAppBlockBinding.blockNotification.isChecked) {
-                    remainingTimeViewModel.updateNotificationStatus(appName, true)
-                        .observe(viewLifecycleOwner) {
-                            showToast(
-                                requireContext(),
-                                "${appName}'s Notification Blocked"
-                            )
-                        }
-                } else if (!fragmentAppBlockBinding.blockNotification.isChecked) {
-                    remainingTimeViewModel.updateNotificationStatus(appName, false)
-                        .observe(viewLifecycleOwner) {
-                            showToast(
-                                requireContext(),
-                                "${appName}'s Notification Unblocked"
-                            )
 
-                        }
+                    editor.putBoolean(getString(R.string.notification_status), true)
+                    editor.apply()
+
+                } else if (!fragmentAppBlockBinding.blockNotification.isChecked) {
+
+                    editor.putBoolean(getString(R.string.notification_status), true)
+                    editor.apply()
                 }
             }
         }
@@ -196,8 +206,9 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
         saveRemainingTime(
             interval,
             appName,
-            startTime,
-            endTime
+            startTime.time,
+            endTime.time,
+            isAppBlocked
         )
 
         startNotification(
@@ -221,6 +232,8 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setNumberPicker(dialog: Dialog, appName: String?) {
 
+        dialog.show()
+
         var hour = 0
         var minute = 0
         var second = 0
@@ -229,6 +242,7 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
         val minutePicker: NumberPicker = dialog.findViewById(R.id.minute_picker)
         val secondPicker: NumberPicker = dialog.findViewById(R.id.second_picker)
         val buttonStartTime: TextView = dialog.findViewById(R.id.buttonStartTime)
+        val cancel: ImageView = dialog.findViewById(R.id.cancel)
 
         hourPicker.minValue = 0
         hourPicker.maxValue = 23
@@ -258,42 +272,62 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
             minute = minutePicker.value
             second = secondPicker.value
 
-            val interval = (hour * 60 * 60 + minute * 60 + second) * 1000L
-
-            val calendar = Calendar.getInstance()
-            calendar.set(Calendar.HOUR_OF_DAY, hour)
-            calendar.set(Calendar.MINUTE, minute)
-            calendar.set(Calendar.SECOND, second)
-
-            startTimer(fragmentAppBlockBinding.timerText, interval)
-
-            saveRemainingTime(interval, appName, null, null)
-            startNotification(
-                requireContext(),
-                appName!!,
-                System.currentTimeMillis(),
-                interval,
-                appIcon.toBitmap()
-            )
-            endNotification(
-                requireContext(),
-                appName,
-                System.currentTimeMillis() + interval,
-                appIcon.toBitmap()
-            )
-
+            setTimer(hour, minute, second)
             dialog.dismiss()
 
         }
 
+        cancel.setOnClickListener {
+            dialog.dismiss()
+        }
 
     }
+
+    private fun setLimit(hour: Int, minute: Int, second: Int) {
+
+        val limitedTime = (hour * 60 * 60 + minute * 60 + second) * 1000L
+
+        val startTime = System.currentTimeMillis()
+        val simpleDateFormat = SimpleDateFormat("dd/MM/yyyy hh:mm:ss", Locale.getDefault())
+        Timber.d("StartTime = ${simpleDateFormat.format(startTime)}")
+        Timber.d("EndTime = ${formatTimeInNumbers(limitedTime)}")
+
+        saveRemainingTime(limitedTime, appName, startTime, limitedTime, isAppLimited)
+    }
+
+    private fun setTimer(hour: Int, minute: Int, second: Int) {
+
+        val interval = (hour * 60 * 60 + minute * 60 + second) * 1000L
+
+        startTimer(fragmentAppBlockBinding.timerText, interval)
+
+        saveRemainingTime(interval, appName, null, null, isAppBlocked)
+
+        startNotification(
+            requireContext(),
+            appName,
+            System.currentTimeMillis(),
+            interval,
+            appIcon.toBitmap()
+        )
+        endNotification(
+            requireContext(),
+            appName,
+            System.currentTimeMillis() + interval,
+            appIcon.toBitmap()
+        )
+
+        dialog.dismiss()
+
+    }
+
 
     private fun saveRemainingTime(
         time: Long,
         appName: String?,
-        startTime: Date?,
-        endTime: Date?
+        startTime: Long?,
+        endTime: Long?,
+        status: String
     ) {
 
         val limitrEntities =
@@ -302,8 +336,10 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
                 System.currentTimeMillis(),
                 time,
                 appPackage,
-                startTime?.time,
-                endTime?.time
+                startTime,
+                endTime,
+                false,
+                status
             )
 
         remainingTimeViewModel.insertRemainingTime(limitrEntities).observe(viewLifecycleOwner) {
@@ -341,22 +377,43 @@ class FragmentBlockApp : Fragment(R.layout.fragment_app_block) {
 
     private fun showNotificationDialog() {
 
-        dialog.apply {
-            window?.setContentView(R.layout.notification_dialog)
-            window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            setCancelable(false)
-        }
-
         val grantPermission: TextView = dialog.findViewById(R.id.grantPermission)
+        val cancel: ImageView = dialog.findViewById(R.id.cancel)
 
         grantPermission.setOnClickListener {
             gotoSettings()
         }
 
+        cancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
         dialog.show()
     }
+
+    private fun unBlockAppByCrypto() {
+
+        val cryptoDialog = showDialog(requireContext(), R.layout.unblock_app_layout)
+
+        cryptoDialog.show()
+
+        val unBlockButton: Button = cryptoDialog.findViewById(R.id.unBlockApp)
+
+        unBlockButton.setOnClickListener {
+            val crypto = getCrypto(sharedPref, requireContext())
+            if (crypto >= 2) {
+                val deductCrypto = crypto - 2
+                editor.putInt(getString(R.string.daily_Login_Reward), deductCrypto)
+                editor.apply()
+                unBlockApp(appName)
+                cancelNotification(requireContext(), appName)
+                cryptoDialog.dismiss()
+            } else {
+                showToast(requireContext(), "Not enough Crypto")
+                cryptoDialog.dismiss()
+            }
+        }
+    }
+
 
 }

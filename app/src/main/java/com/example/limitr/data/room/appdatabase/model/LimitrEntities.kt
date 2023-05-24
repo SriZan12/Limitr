@@ -17,5 +17,6 @@ data class LimitrEntities(
     var starTime: Long? = null,
     @TypeConverters(TimeConverter::class)
     var endTime: Long? = null,
-    var notificationStatus: Boolean? = null
+    var notificationStatus: Boolean? = null,
+    var isAppBlockedOrLimited: String
 )

@@ -11,9 +11,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.example.limitr.mainactivity.MainActivity
+import com.example.limitr.ui.mainactivity.MainActivity
 import com.example.limitr.R
-import com.example.limitr.utils.NotificationUtils.NOTIFICATIONCHANNEL
 import java.util.*
 
 class TimerEndNotification : BroadcastReceiver() {

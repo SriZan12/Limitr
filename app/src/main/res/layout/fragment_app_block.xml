@@ -13,145 +13,162 @@
         android:background="@color/Ui_Color"
         android:gravity="center">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/Ui_Color"
-        tools:context=".ui.blocker.fragment.FragmentBlockApp">
-
-        <ImageView
-            android:id="@+id/appIcon"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:adjustViewBounds="true"
-            android:scaleType="centerCrop"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/appName"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="6dp"
-            android:gravity="center"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            android:fontFamily="@font/acme"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/appIcon"
-            tools:text="Limitr" />
+            android:background="@color/Ui_Color"
+            tools:context=".ui.blocker.fragment.FragmentBlockApp">
 
-        <View
-            android:id="@+id/view2"
-            android:layout_width="match_parent"
-            android:layout_height="3dp"
-            android:layout_margin="6dp"
-            android:background="#696988"
-            app:layout_constraintTop_toBottomOf="@+id/appName"
-            tools:layout_editor_absoluteX="6dp" />
-
-        <LinearLayout
-            android:id="@+id/linearLayout2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/view2">
+            <ImageView
+                android:id="@+id/appIcon"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/setTime"
+                android:id="@+id/appName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginStart="50dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="50dp"
-                android:background="@drawable/textview_design2"
+                android:layout_margin="6dp"
                 android:fontFamily="@font/acme"
                 android:gravity="center"
-                android:padding="6dp"
-                android:text="@string/set_timer"
                 android:textColor="@color/white"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/timerText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="10dp"
-                android:padding="6dp"
-                android:textColor="@color/white"
-                android:textSize="20sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:visibility="gone" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/appIcon"
+                tools:text="Limitr" />
 
-
-            <TextView
-                android:id="@+id/textInterval"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_margin="10dp"
-                android:fontFamily="@font/acme"
-                android:padding="6dp"
-                android:text="Or"
-                android:textColor="@color/white"
-                android:textSize="20sp" />
-
-            <TextView
-                android:id="@+id/startTime"
+            <View
+                android:id="@+id/view2"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_gravity="center"
-                android:layout_marginStart="50dp"
-                android:layout_marginEnd="50dp"
-                android:layout_marginBottom="20dp"
-                android:layout_weight="1"
-                android:background="@drawable/textview_design2"
-                android:fontFamily="@font/acme"
-                android:gravity="center"
-                android:padding="6dp"
-                android:text="Set Interval"
-                android:textColor="@color/white"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:layout_height="3dp"
+                android:layout_margin="6dp"
+                android:background="#696988"
+                app:layout_constraintTop_toBottomOf="@+id/appName"
+                tools:layout_editor_absoluteX="6dp" />
 
-            <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/blockNotification"
-                android:layout_width="wrap_content"
+            <ScrollView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginBottom="20dp"
-                android:text="Block Notification"
-                android:textColor="@color/white"
-                android:textStyle="bold"
-                android:textSize="20sp"
-                app:switchPadding="14dp"
-                android:fontFamily="@font/acme"/>
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/view2">
 
-            <Button
-                android:id="@+id/unBlockApp"
-                android:layout_width="250dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginBottom="8dp"
-                android:fontFamily="@font/acme"
-                android:visibility="gone"
-                android:padding="8dp"
-                android:gravity="center"
-                android:text="@string/unblock_app"
-                android:textColor="@color/black" />
+                <LinearLayout
+                    android:id="@+id/linearLayout2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:padding="8dp"
+                    android:orientation="vertical">
 
-        </LinearLayout>
+                    <TextView
+                        android:id="@+id/setTime"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginStart="50dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginEnd="50dp"
+                        android:background="@drawable/textview_design2"
+                        android:fontFamily="@font/acme"
+                        android:gravity="center"
+                        android:padding="6dp"
+                        android:text="@string/set_timer"
+                        android:textColor="@color/white"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/timerText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_margin="10dp"
+                        android:padding="6dp"
+                        android:textColor="@color/white"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
 
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                    <TextView
+                        android:id="@+id/textInterval"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_margin="10dp"
+                        android:fontFamily="@font/acme"
+                        android:padding="6dp"
+                        android:text="@string/or"
+                        android:textColor="@color/white"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/startTime"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_gravity="center"
+                        android:layout_marginStart="50dp"
+                        android:layout_marginEnd="50dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/textview_design2"
+                        android:fontFamily="@font/acme"
+                        android:gravity="center"
+                        android:padding="6dp"
+                        android:text="@string/set_interval"
+                        android:textColor="@color/white"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_margin="10dp"
+                        android:fontFamily="@font/acme"
+                        android:padding="6dp"
+                        android:text="@string/or"
+                        android:textColor="@color/white"
+                        android:textSize="20sp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/blockNotification"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="20dp"
+                        android:fontFamily="@font/acme"
+                        android:text="@string/block_notification"
+                        android:textColor="@color/white"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        app:switchPadding="14dp" />
+
+                    <Button
+                        android:id="@+id/unBlockApp"
+                        android:layout_width="250dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="8dp"
+                        android:fontFamily="@font/acme"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:text="@string/unblock_app"
+                        android:textColor="@color/black"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+            </ScrollView>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </RelativeLayout>
 </layout>

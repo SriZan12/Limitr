@@ -1,11 +1,13 @@
 package com.example.limitr.services.notifications
 
+import android.content.SharedPreferences
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.lifecycleScope
+import com.example.limitr.R
 import com.example.limitr.data.room.appdatabase.LimitrDao
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -17,6 +19,12 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class NotificationListener : NotificationListenerService(), LifecycleOwner {
+
+    @Inject
+    lateinit var sharedPref: SharedPreferences
+
+    @Inject
+    lateinit var editor: SharedPreferences.Editor
 
     @Inject
     lateinit var limitrDao: LimitrDao
@@ -51,7 +59,7 @@ class NotificationListener : NotificationListenerService(), LifecycleOwner {
             limitrDao.getBlockedApps().observeForever { blockedApps ->
                 val isAppBlocked = blockedApps.any { it.appPackage == packageName }
                 if (isAppBlocked) {
-                    val notificationStatus = blockedApps.any { it.notificationStatus == true }
+                    val notificationStatus = checkNotificationStatus()
                     if (notificationStatus) {
                         continuation.resume(notificationStatus)
                         limitrDao.getBlockedApps()
@@ -67,6 +75,12 @@ class NotificationListener : NotificationListenerService(), LifecycleOwner {
                 }
             }
         }
+
+    private fun checkNotificationStatus(): Boolean {
+
+        return sharedPref.getBoolean(getString(R.string.notification_status), false)
+
+    }
 
 
     override fun onDestroy() {

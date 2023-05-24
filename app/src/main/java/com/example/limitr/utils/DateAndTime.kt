@@ -1,5 +1,6 @@
 package com.example.limitr.utils
 
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import java.text.SimpleDateFormat
@@ -18,7 +19,7 @@ object DateAndTime {
         return dateFormat.format(today)
     }
 
-    fun formatTime(timeInMillis: Long): String {
+    fun formatTimeInWords(timeInMillis: Long): String {
         val totalSeconds = timeInMillis / 1000
         val hours = totalSeconds / 3600
         val minutes = (totalSeconds % 3600) / 60
@@ -54,7 +55,16 @@ object DateAndTime {
         return formattedTime.toString().trimEnd()
     }
 
-    fun setIntervalText(startTime: Long, endTime: Long): String {
+    fun formatTimeInNumbers(timeInMillis: Long): String {
+        val remainingTime = timeInMillis / 1000 // convert milliseconds to seconds
+        val hours = remainingTime / 3600
+        val minutes = (remainingTime % 3600) / 60
+        val seconds = remainingTime % 60
+
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds)
+    }
+
+    private fun setIntervalText(startTime: Long, endTime: Long): String {
         val timeFormat = SimpleDateFormat("hh:mm aa", Locale.getDefault())
         val formattedEndTime = timeFormat.format(endTime)
         val formattedStartTime = timeFormat.format(startTime)

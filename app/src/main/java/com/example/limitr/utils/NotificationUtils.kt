@@ -8,12 +8,9 @@ import android.graphics.Bitmap
 import android.os.Build
 import com.example.limitr.services.notifications.TimerEndNotification
 import com.example.limitr.services.notifications.TimerStartNotification
-import com.example.limitr.utils.DateAndTime.formatTime
-import java.util.*
+import com.example.limitr.utils.DateAndTime.formatTimeInWords
 
 object NotificationUtils {
-
-    const val NOTIFICATIONCHANNEL = "LimitrAndroid"
 
     fun createNotificationChannel(context: Context, appName: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -46,7 +43,7 @@ object NotificationUtils {
 
         val startNotificationIntent = Intent(context, TimerStartNotification::class.java)
         startNotificationIntent.putExtra("title", appName)
-        startNotificationIntent.putExtra("text", " Blocked For ${formatTime(blockedTime)}")
+        startNotificationIntent.putExtra("text", " Blocked For ${formatTimeInWords(blockedTime)}")
         startNotificationIntent.putExtra("notificationId", notificationId)
         startNotificationIntent.putExtra("appIcon", appIcon)
 

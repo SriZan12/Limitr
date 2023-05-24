@@ -17,6 +17,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
+import com.example.limitr.common.showDialog
 import com.example.limitr.databinding.FragmentHomeBinding
 import com.example.limitr.utils.DateAndTime.getTodayDate
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
@@ -60,7 +61,7 @@ class FragmentHome :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        dialog = Dialog(requireContext())
+        dialog = showDialog(requireContext(),R.layout.permission_layout)
 
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             if (System.currentTimeMillis() < onBackPressed + 2000) {
@@ -79,6 +80,7 @@ class FragmentHome :
             !checkAccessibilityPermission(
                 requireContext(),
                 requireActivity()
+
             ) || !isUsageStateManagerEnabled(requireContext())
         ) {
             showPermissionDialog()
@@ -152,14 +154,7 @@ class FragmentHome :
     @SuppressLint("SetTextI18n")
     private fun showPermissionDialog() {
 
-        dialog.apply {
-            window?.setContentView(R.layout.permission_layout)
-            window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            setCancelable(false)
-        }
+        dialog.show()
 
         val grantAccessiblePermission: Button = dialog.findViewById(R.id.grantAccessiblePerm)
         val grantDisplayOverPermission: Button = dialog.findViewById(R.id.grantDisplayOverPerm)

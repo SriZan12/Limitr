@@ -1,4 +1,4 @@
-package com.example.limitr.mainactivity
+package com.example.limitr.ui.mainactivity
 
 import android.os.Bundle
 import android.view.View

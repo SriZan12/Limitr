@@ -2,17 +2,24 @@ package com.example.limitr.services.blockerServices
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.app.usage.UsageStatsManager
+import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.pm.PackageManager
 import android.view.accessibility.AccessibilityEvent
 import androidx.lifecycle.*
+import com.example.limitr.R
 import com.example.limitr.data.room.appdatabase.LimitrDao
 import com.example.limitr.ui.blocker.activity.ActivityBlocked
+import com.example.limitr.utils.DateAndTime.formatTimeInNumbers
 import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 import javax.inject.Inject
 
 
@@ -77,13 +84,36 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
                 limitrDao.getRemainingTime(appName).observeForever {
                     if (it != null) {
                         val getAppName = it.appName
-                        if (it.starTime != null && it.endTime != null) {
+                        if (it.starTime != null && it.endTime != null && it.isAppBlockedOrLimited == getString(
+                                R.string.blocked
+                            )
+                        ) {
+                            Timber.d("Inside Interval")
                             if (getAppName == appName &&
                                 currentTime >= it.starTime!! &&
                                 currentTime <= it.endTime!!
                             ) {
                                 launchBlockingActivity(appName, it.appPackage)
                             }
+//                        } else if (
+//                            it.starTime != null
+//                            && it.endTime != null
+//                            && it.isAppBlockedOrLimited == getString(R.string.limited)
+//                        ) {
+//                            val limitedTime = it.endTime
+//                            Timber.d("Inside Limit")
+//                            Timber.d("LimitedTime = ${limitedTime!!}")
+//
+//                            if (
+//                                getAppUsageTime(
+//                                    this@AccessibilityService,
+//                                    it.appPackage!!,
+//                                    it.starTime!!
+//                                ) >= limitedTime
+//                            ) {
+//                                Timber.d("After the  Limit is checked")
+////                                launchBlockingActivity(appName, it.appPackage)
+//                            }
                         } else {
                             launchBlockingActivity(appName, it.appPackage)
                         }
@@ -92,7 +122,6 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
             }
         }
     }
-
 
     override fun onDestroy() {
         super.onDestroy()
@@ -105,5 +134,30 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
         return lifecycleRegistry
     }
 
+//    private fun getAppUsageTime(context: Context, packageName: String, starTime: Long): Long {
+//
+//        val endTime = System.currentTimeMillis()
+//
+//        val usageStatsManager =
+//            context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+//        val usageStats =
+//            usageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, starTime, endTime)
+//
+//        var totalTime = 0L
+//        for (usage in usageStats) {
+//            if (usage.packageName == packageName) {
+//                totalTime += usage.totalTimeInForeground
+//            }
+//        }
+//
+//         val simpleDateFormat =  SimpleDateFormat("dd/MM/yyyy hh:mm:ss", Locale.getDefault())
+//        Timber.d("StartTime = ${simpleDateFormat.format(starTime)}")
+//        Timber.d("EndTime = ${simpleDateFormat.format(endTime)}")
+//
+//        Timber.d("TotalUsage = $totalTime")
+//        Timber.d("Formatted Time = ${formatTimeInNumbers(totalTime)}")
+//
+//        return totalTime
+//    }
 
 }

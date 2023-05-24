@@ -1,6 +1,5 @@
 package com.example.limitr.ui.profile.vm
 
-import android.app.ProgressDialog
 import android.content.Context
 import android.net.Uri
 import android.view.View
@@ -26,7 +25,6 @@ class EditProfileViewModel @Inject constructor() : ViewModel() {
 
 
     val _editProfileState: LiveData<EditProfileState> = editProfileState
-    private lateinit var progressDialog: ProgressDialog
 
     fun uploadToFirebase(imageUri: Uri, context: Context) {
         val user = firebaseAuth.currentUser
@@ -64,7 +62,6 @@ class EditProfileViewModel @Inject constructor() : ViewModel() {
         user!!.updateProfile(updateProfilePhoto).addOnSuccessListener {
             Toast.makeText(context, "Profile Updated", Toast.LENGTH_SHORT).show()
             editProfileState.value = EditProfileState.Success
-            progressDialog.dismiss()
         }.addOnFailureListener { error ->
             EditProfileState.Error(error.message.toString())
         }

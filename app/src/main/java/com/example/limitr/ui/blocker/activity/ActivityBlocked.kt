@@ -4,17 +4,21 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.drawable.Drawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.activity.viewModels
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import com.example.limitr.R
+import com.example.limitr.data.room.appdatabase.model.LimitrEntities
 import com.example.limitr.databinding.ActivityBlockedBinding
 import com.example.limitr.ui.blocker.vm.RemainingTimeViewModel
 import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
+import com.example.limitr.utils.DateAndTime.getRemainingTime
 import com.example.limitr.utils.DateAndTime.getTimer
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
 import com.example.limitr.utils.NotificationUtils
@@ -26,6 +30,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
 
+const val twoHoursValue = 7200000
+
 @AndroidEntryPoint
 class ActivityBlocked : AppCompatActivity() {
     private lateinit var appName: String
@@ -33,6 +39,7 @@ class ActivityBlocked : AppCompatActivity() {
     private lateinit var activityBlockedBinding: ActivityBlockedBinding
     private val remainingTimeViewModel: RemainingTimeViewModel by viewModels()
     private var unBlockAppStatus: Boolean = false
+    private var appIcon: Drawable? = null
 
     @Inject
     lateinit var sharedPref: SharedPreferences
@@ -49,6 +56,8 @@ class ActivityBlocked : AppCompatActivity() {
 
         appName = intent.getStringExtra("appName").toString()
         appPackage = intent.getStringExtra("appPackage").toString()
+        appIcon = getAppIconByPackageName(this, appPackage)
+
 
         loadProfilePhoto(activityBlockedBinding.profile, this)
 
@@ -68,7 +77,10 @@ class ActivityBlocked : AppCompatActivity() {
         remainingTimeViewModel.getRemainingTime(appName).observe(this) {
 
             if (it != null) {
-                if (it.starTime != null && it.endTime != null) {
+                if (it.starTime != null && it.endTime != null && it.isAppBlockedOrLimited == getString(
+                        R.string.blocked
+                    )
+                ) {
                     activityBlockedBinding.intervalText.isVisible = true
                     unBlockAppStatus = getIntervalForBlocking(
                         it.starTime,
@@ -80,6 +92,20 @@ class ActivityBlocked : AppCompatActivity() {
                     Timber.d("UnblockStatus = $unBlockAppStatus")
                     if (unBlockAppStatus) {
                         unBlockApp(appName)
+                    }
+                } else if (it.starTime != null && it.endTime != null && it.isAppBlockedOrLimited == getString(
+                        R.string.limited
+                    )
+                ) {
+                    getTimer(
+                        it.blockedTime!!,
+                        it.remainingTime,
+                        timerText = activityBlockedBinding.timerText
+                    )
+                    val getRemainingTime = getRemainingTime(it.blockedTime, it.remainingTime)
+                    Timber.d("remainingTime = ${getRemainingTime}")
+                    if (getRemainingTime!! < 0L) {
+                        blockLimitedApp(it.appName, it.appPackage!!)
                     }
                 } else {
                     activityBlockedBinding.intervalText.isVisible = false
@@ -106,6 +132,37 @@ class ActivityBlocked : AppCompatActivity() {
                 showToast(this@ActivityBlocked, "$appName is free now!")
                 finishAffinity()
             }
+    }
+
+    private fun blockLimitedApp(appName: String, appPackage: String) {
+        val blockedStatus = getString(R.string.blocked)
+        val limitrEntities = LimitrEntities(
+            appName,
+            System.currentTimeMillis(),
+            twoHoursValue.toLong(),
+            appPackage,
+            null,
+            null,
+            false,
+            blockedStatus
+        )
+        remainingTimeViewModel.insertRemainingTime(limitrEntities).observe(this) {
+            NotificationUtils.startNotification(
+                this,
+                appName,
+                System.currentTimeMillis(),
+                twoHoursValue.toLong(),
+                appIcon!!.toBitmap()
+            )
+            NotificationUtils.endNotification(
+                this,
+                appName,
+                System.currentTimeMillis() + twoHoursValue.toLong(),
+                appIcon!!.toBitmap()
+            )
+
+            ViewUtils.startTimer(activityBlockedBinding.timerText, twoHoursValue.toLong())
+        }
     }
 
 

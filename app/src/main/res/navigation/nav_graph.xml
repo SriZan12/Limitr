@@ -12,7 +12,8 @@
         android:label="Signup" >
         <action
             android:id="@+id/action_fragmentSignup_to_fragmentHome"
-            app:destination="@id/fragmentHome" />
+            app:destination="@id/fragmentHome"
+            app:enterAnim="@anim/slide_in_right" />
     </fragment>
     <fragment
         android:id="@+id/fragmentHome"
@@ -25,13 +26,21 @@
 
         <action
             android:id="@+id/action_fragmentHome_to_fragmentBlockApp"
-            app:destination="@id/fragmentBlockApp">
+            app:destination="@id/fragmentBlockApp"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@android:anim/fade_out">
 
         </action>
 
         <action
             android:id="@+id/action_fragmentHome_to_fragmentEditProfile2"
-            app:destination="@id/fragmentEditProfile"/>
+            app:destination="@id/fragmentEditProfile"
+            app:enterAnim="@anim/slide_in_left"
+            app:exitAnim="@anim/slide_out_right"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_left" />
     </fragment>
     <fragment
         android:id="@+id/fragmentEditProfile"

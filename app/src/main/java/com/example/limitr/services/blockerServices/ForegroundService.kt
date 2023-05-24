@@ -3,17 +3,10 @@ package com.example.limitr.services.blockerServices
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
-import android.app.usage.UsageStatsManager
-import android.content.Context
+
 import android.content.Intent
 import android.os.IBinder
-import androidx.core.app.NotificationCompat
 
-import com.example.limitr.mainactivity.MainActivity
-import com.example.limitr.R
-import com.example.limitr.utils.NotificationUtils.NOTIFICATIONCHANNEL
-import com.example.limitr.utils.NotificationUtils.createNotificationChannel
-import timber.log.Timber
 
 class ForegroundService : Service() {
 

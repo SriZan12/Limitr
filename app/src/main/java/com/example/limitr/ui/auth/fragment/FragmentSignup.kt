@@ -104,7 +104,8 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
 
                 fragmentSignupBinding.progressBar.visibility = View.VISIBLE
                 fragmentSignupBinding.progressBar.progress
-//
+
+
                 val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
                 handleResults(task)
             }

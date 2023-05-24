@@ -19,6 +19,10 @@
     <string name="accessibility_service_description">Accessibility Service for App Launch.</string>
     <string name="permission_required">Permission Required</string>
     <string name="reward">Claim Crypto</string>
+    <string name="notification_status">Notification Status</string>
+    <string name="unblock_app">Unblock App</string>
+    <string name="blocked">Blocked</string>
+    <string name="limited">Limited</string>
     <string name="installed_apps">Installed Apps</string>
     <string name="system_apps">System Apps</string>
     <string name="remaining_time">Remaining Time:</string>
@@ -27,4 +31,8 @@
     <string name="mySharePrefs">My SharePref</string>
     <string name="daily_Login_Reward">Daily Login Reward</string>
     <string name="last_logged_date">Last Logged Date</string>
+    <string name="set_limit">Set Limit</string>
+    <string name="block_notification">Block Notification</string>
+    <string name="or">Or</string>
+    <string name="set_interval">Set Interval</string>
 </resources>

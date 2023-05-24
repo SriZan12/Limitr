@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.example.limitr.data.room.appdatabase.model.LimitrEntities
 
 @Dao
@@ -19,7 +20,7 @@ interface LimitrDao {
     @Query("SELECT * FROM LimitrTable WHERE appName = :appName")
     fun getAppName(appName: String): LimitrEntities?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun insertRemainingTime(limitrEntities: LimitrEntities)
 
     @Query("DELETE FROM LimitrTable WHERE appName = :appName")
