@@ -8,7 +8,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.lifecycleScope
 import com.example.limitr.R
-import com.example.limitr.data.room.appdatabase.LimitrDao
+import com.example.limitr.data.local.appdatabase.LimitrDao
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber

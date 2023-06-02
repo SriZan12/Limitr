@@ -1,9 +1,8 @@
-package com.example.limitr.data.room.appdatabase.model
+package com.example.limitr.data.local.appdatabase.model
 
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.room.TypeConverter
-import java.sql.Time
 import java.time.Instant
 
 class TimeConverter {

@@ -1,4 +1,4 @@
-package com.example.limitr.data.room.appdatabase.model
+package com.example.limitr.data.local.appdatabase.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -18,5 +18,4 @@ data class LimitrEntities(
     @TypeConverters(TimeConverter::class)
     var endTime: Long? = null,
     var notificationStatus: Boolean? = null,
-    var isAppBlockedOrLimited: String
 )

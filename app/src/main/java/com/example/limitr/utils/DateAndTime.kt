@@ -69,10 +69,10 @@ object DateAndTime {
         val formattedEndTime = timeFormat.format(endTime)
         val formattedStartTime = timeFormat.format(startTime)
 
-        return "Blocked For : $formattedStartTime-$formattedEndTime"
+        return "$formattedStartTime-$formattedEndTime"
     }
 
-    fun getRemainingTime(time: Long?, remainingTime: Long?): Long? {
+    private fun getRemainingTime(time: Long?, remainingTime: Long?): Long? {
         val currentTime = System.currentTimeMillis()
         val elapsedTime = currentTime - time!! // elapsed time means बितेको time
         return remainingTime?.minus(elapsedTime)

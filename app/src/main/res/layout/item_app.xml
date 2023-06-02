@@ -42,7 +42,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="0h"
+                    tools:text="0h"
+                    android:layout_marginEnd="10dp"
                     android:textColor="@color/white"
                     android:textAlignment="textEnd"
                     android:textStyle="italic" />
@@ -60,13 +61,16 @@
                     android:layout_height="10dp"
                     android:layout_gravity="bottom"
                     android:layout_weight="1"
+                    android:layout_marginEnd="10dp"
                     android:progressBackgroundTint="#b9b9ba"/>
 
                 <TextView
                     android:id="@+id/usage_perc_tv"
                     android:layout_width="30dp"
                     android:layout_height="wrap_content"
-                    android:text="30%"
+                    tools:text="30%"
+                    android:layout_weight="0.3"
+                    android:layout_marginEnd="10dp"
                     android:textColor="@color/white"
                     android:textAlignment="textEnd"
                     android:textStyle="italic" />

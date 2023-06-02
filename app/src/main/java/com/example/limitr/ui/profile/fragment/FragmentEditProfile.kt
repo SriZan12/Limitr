@@ -17,23 +17,30 @@ import com.example.limitr.R
 import com.example.limitr.databinding.FragmentEditProfileBinding
 import com.example.limitr.resource.EditProfileState
 import com.example.limitr.ui.profile.vm.EditProfileViewModel
+import com.example.limitr.utils.Constants.STORAGEPERMISSIONCODE
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
 import com.example.limitr.utils.ViewUtils.showToast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
+import dagger.hilt.android.AndroidEntryPoint
 import pub.devrel.easypermissions.AppSettingsDialog
 import pub.devrel.easypermissions.EasyPermissions
 import timber.log.Timber
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class FragmentEditProfile :
     Fragment(R.layout.fragment_edit_profile), EasyPermissions.PermissionCallbacks {
 
     private lateinit var fragmentEditProfileBinding: FragmentEditProfileBinding
     private lateinit var imageUri: Uri
-    private val STORAGEPERMISSIONCODE: Int = 1
-    private lateinit var firebaseStorage: FirebaseStorage
-    private lateinit var firebaseAuth: FirebaseAuth
     private val viewModel: EditProfileViewModel by viewModels()
+
+    @Inject
+    lateinit var firebaseAuth: FirebaseAuth
+
+    @Inject
+    lateinit var firebaseStorage: FirebaseStorage
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,11 +55,9 @@ class FragmentEditProfile :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        firebaseStorage = FirebaseStorage.getInstance()
-        firebaseAuth = FirebaseAuth.getInstance()
 
         fragmentEditProfileBinding.profileName.setText(
-            FirebaseAuth.getInstance().currentUser?.displayName
+            firebaseAuth.currentUser?.displayName
         )
 
         loadProfilePhoto(fragmentEditProfileBinding.profileImage, requireContext())

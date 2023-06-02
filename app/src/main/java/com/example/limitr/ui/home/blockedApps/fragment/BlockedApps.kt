@@ -11,7 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
 import com.example.limitr.common.OnAppClickListener
-import com.example.limitr.data.room.appdatabase.model.LimitrEntities
+import com.example.limitr.data.local.appdatabase.model.LimitrEntities
 import com.example.limitr.databinding.BlockedAppListLayoutBinding
 import com.example.limitr.ui.home.blockedApps.adapter.BlockedAppListAdapter
 import com.example.limitr.ui.home.blockedApps.vm.BlockedAppViewModels

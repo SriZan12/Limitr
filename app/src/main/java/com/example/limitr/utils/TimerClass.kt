@@ -19,7 +19,7 @@ class TimerClass(private val timerText: TextView, duration: Long) : CountDownTim
         val time = formatTimeInNumbers(millisUntilFinished)
 
         timerText.visibility = View.VISIBLE
-        timerText.text = "Duration: $time"
+        timerText.text = time
     }
 
     @SuppressLint("SetTextI18n")

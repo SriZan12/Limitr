@@ -1,12 +1,10 @@
-package com.example.limitr.data.room.appdatabase
+package com.example.limitr.data.local.appdatabase
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
-import com.example.limitr.data.room.appdatabase.model.LimitrEntities
+import com.example.limitr.data.local.appdatabase.model.LimitrEntities
 
 @Dao
 interface LimitrDao {

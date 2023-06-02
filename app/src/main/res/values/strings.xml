@@ -20,6 +20,8 @@
     <string name="permission_required">Permission Required</string>
     <string name="reward">Claim Crypto</string>
     <string name="notification_status">Notification Status</string>
+    <string name="duration">Duration</string>
+    <string name="blocked_for">Blocked For</string>
     <string name="unblock_app">Unblock App</string>
     <string name="blocked">Blocked</string>
     <string name="limited">Limited</string>
@@ -35,4 +37,10 @@
     <string name="block_notification">Block Notification</string>
     <string name="or">Or</string>
     <string name="set_interval">Set Interval</string>
+    <string name="not_enough_crypto">"Not enough Crypto"</string>
+    <string name="press_again_to_exit">Press again to exit</string>
+    <string name="all_apps">All Apps</string>
+    <string name="blocked_apps">Blocked Apps</string>
+    <string name="Granted">Granted</string>
+    <string name="my_sharedPref">My SharePref</string>
 </resources>

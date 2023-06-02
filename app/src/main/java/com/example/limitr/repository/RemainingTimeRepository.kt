@@ -1,8 +1,8 @@
 package com.example.limitr.repository
 
 import androidx.lifecycle.LiveData
-import com.example.limitr.data.room.appdatabase.LimitrDao
-import com.example.limitr.data.room.appdatabase.model.LimitrEntities
+import com.example.limitr.data.local.appdatabase.LimitrDao
+import com.example.limitr.data.local.appdatabase.model.LimitrEntities
 import javax.inject.Inject
 
 class RemainingTimeRepository @Inject constructor() {

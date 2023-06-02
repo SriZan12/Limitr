@@ -2,6 +2,7 @@ package com.example.limitr.di
 
 import com.example.limitr.repository.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,5 +25,10 @@ object AuthModule {
     @Provides
     fun providesAuthRepository(firebaseAuth: FirebaseAuth): AuthRepository {
         return AuthRepository(firebaseAuth)
+    }
+
+    @Provides
+    fun providesFirebaseStorage(): FirebaseStorage {
+        return FirebaseStorage.getInstance()
     }
 }

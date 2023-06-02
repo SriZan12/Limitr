@@ -17,8 +17,10 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
+import com.example.limitr.common.Status
 import com.example.limitr.common.showDialog
 import com.example.limitr.databinding.FragmentHomeBinding
+import com.example.limitr.utils.Constants.DAILYCRYPTOREWARD
 import com.example.limitr.utils.DateAndTime.getTodayDate
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
 import com.example.limitr.utils.Permissions.checkAccessibilityPermission
@@ -27,11 +29,9 @@ import com.example.limitr.utils.ViewUtils.getCrypto
 import com.example.limitr.utils.ViewUtils.showToast
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
 
-enum class CryptoStatus { INSERT, UPDATE }
 
 @AndroidEntryPoint
 class FragmentHome :
@@ -61,13 +61,13 @@ class FragmentHome :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        dialog = showDialog(requireContext(),R.layout.permission_layout)
+        dialog = showDialog(requireContext(), R.layout.permission_layout)
 
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             if (System.currentTimeMillis() < onBackPressed + 2000) {
                 requireActivity().finish()
             } else {
-                showToast(requireContext(), "Press again to exit")
+                showToast(requireContext(), getString(R.string.press_again_to_exit))
                 onBackPressed = System.currentTimeMillis()
             }
         }
@@ -99,6 +99,17 @@ class FragmentHome :
 
         val reward = getCrypto(sharedPref, requireContext()).toString()
 
+        setView(reward)
+
+        fragmentHomeBinding.profile.setOnClickListener {
+            val action =
+                FragmentHomeDirections.actionFragmentHomeToFragmentEditProfile()
+            findNavController().navigate(action)
+        }
+
+    }
+
+    private fun setView(reward: String) {
         loadProfilePhoto(fragmentHomeBinding.profile, requireContext())
         appListViewPagerAdapter = AppListViewPagerAdapter(requireActivity())
         fragmentHomeBinding.viewPager.adapter = appListViewPagerAdapter
@@ -111,18 +122,11 @@ class FragmentHome :
 
         ) { tab, position ->
             when (position) {
-                0 -> tab.text = "All Apps"
-                1 -> tab.text = "Blocked Apps"
+                0 -> tab.text = getString(R.string.all_apps)
+                1 -> tab.text = getString(R.string.blocked_apps)
             }
 
         }.attach()
-
-        fragmentHomeBinding.profile.setOnClickListener {
-            val action =
-                FragmentHomeDirections.actionFragmentHomeToFragmentEditProfile()
-            findNavController().navigate(action)
-        }
-
     }
 
     private fun goToDisplayOverOtherAppsSettings() {
@@ -161,16 +165,16 @@ class FragmentHome :
         val grantUsageState: Button = dialog.findViewById(R.id.grantUsageStateManager)
 
         if (checkAccessibilityPermission(requireContext(), requireActivity())) {
-            grantAccessiblePermission.text = "Granted"
+            grantAccessiblePermission.text = getText(R.string.Granted)
             grantAccessiblePermission.isEnabled = false
         }
         if (Settings.canDrawOverlays(requireContext())) {
-            grantDisplayOverPermission.text = "Granted"
+            grantDisplayOverPermission.text = getText(R.string.Granted)
             grantDisplayOverPermission.isEnabled = false
         }
 
         if (isUsageStateManagerEnabled(requireContext())) {
-            grantUsageState.text = "Granted"
+            grantUsageState.text = getText(R.string.Granted)
             grantUsageState.isEnabled = false
         }
 
@@ -191,7 +195,7 @@ class FragmentHome :
 
 
     private fun showEverydayReward(
-        status: CryptoStatus,
+        status: Status.CryptoStatus,
         todayDate: String,
     ) {
 
@@ -209,14 +213,14 @@ class FragmentHome :
 
         claimRewardButton.setOnClickListener {
 
-            if (status == CryptoStatus.INSERT) {
+            if (status == Status.CryptoStatus.INSERT) {
                 editor.putString(getString(R.string.last_logged_date), todayDate)
-                editor.putInt(getString(R.string.daily_Login_Reward), 1)
+                editor.putInt(getString(R.string.daily_Login_Reward), DAILYCRYPTOREWARD)
                 editor.apply()
                 rewardDialog.dismiss()
 
             } else {
-                val updateReward = getCrypto(sharedPref, requireContext()) + 1
+                val updateReward = getCrypto(sharedPref, requireContext()) + DAILYCRYPTOREWARD
                 editor.putString(getString(R.string.last_logged_date), todayDate)
                 editor.putInt(getString(R.string.daily_Login_Reward), updateReward)
                 editor.apply()
@@ -232,7 +236,7 @@ class FragmentHome :
 
     private fun checkLastLoggedInDate() {
 
-        var defaultCryptoStatus = CryptoStatus.INSERT
+        var defaultCryptoStatus = Status.CryptoStatus.INSERT
 
         val todayDate = getTodayDate()
         val lastLoggedDate = sharedPref.getString(getString(R.string.last_logged_date), "")
@@ -241,7 +245,7 @@ class FragmentHome :
             showEverydayReward(defaultCryptoStatus, todayDate)
         } else if (todayDate != lastLoggedDate) {
 
-            defaultCryptoStatus = CryptoStatus.UPDATE
+            defaultCryptoStatus = Status.CryptoStatus.UPDATE
             showEverydayReward(
                 defaultCryptoStatus,
                 todayDate

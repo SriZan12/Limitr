@@ -39,7 +39,7 @@ class TimerEndNotification : BroadcastReceiver() {
             context,
             notificationTitle
         )
-            .setSmallIcon(R.drawable.logo)
+            .setSmallIcon(R.drawable.logo_color)
             .setLargeIcon(appIcon)
             .setContentTitle("$notificationTitle is Free")
             .setContentText("Enroll now!")

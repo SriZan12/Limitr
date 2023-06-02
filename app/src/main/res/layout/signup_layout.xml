@@ -40,98 +40,41 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:id="@+id/textView"
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/logo"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="200dp"
                 android:layout_marginStart="32dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="32dp"
-                android:layout_marginBottom="16dp"
-                android:fontFamily="@font/gaglin"
-                android:text="@string/app_name"
-                android:textColor="@color/white"
-                android:textSize="24sp"
+                android:layout_marginBottom="20dp"
+                android:src="@drawable/logo_color"
                 app:layout_constraintBottom_toBottomOf="@+id/view"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/view"
                 app:layout_constraintVertical_bias="0.215" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="32dp"
-                android:layout_marginEnd="48dp"
-                android:fontFamily="@font/akaya_telivigala"
-                android:text="@string/limitize"
-                android:textColor="@color/white"
-                android:textSize="24sp"
-                app:layout_constraintEnd_toEndOf="@+id/textView"
-                app:layout_constraintHorizontal_bias="0.191"
-                app:layout_constraintStart_toStartOf="@+id/textView"
-                app:layout_constraintTop_toBottomOf="@+id/textView" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <ScrollView
+
+        <TextView
+            android:id="@+id/googleLogin"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|center_horizontal"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="12dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="8dp"
-                        android:orientation="vertical">
-
-                        <de.hdodenhof.circleimageview.CircleImageView
-                            android:id="@+id/app_icon"
-                            android:layout_width="80dp"
-                            android:layout_height="80dp"
-                            android:layout_gravity="center"
-                            android:layout_margin="10dp"
-                            android:src="@drawable/logo" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical|center_horizontal"
-                            android:layout_marginStart="15dp"
-                            android:layout_marginEnd="15dp"
-                            android:background="@drawable/textview_design"
-                            android:fontFamily="@font/acme"
-                            android:gravity="bottom|center"
-                            android:padding="8dp"
-                            android:text="@string/Continue"
-                            android:textColor="@color/white"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-
-                        <de.hdodenhof.circleimageview.CircleImageView
-                            android:id="@+id/googleLogin"
-                            android:layout_width="80dp"
-                            android:layout_height="80dp"
-                            android:layout_gravity="center"
-                            android:layout_margin="14dp"
-                            android:src="@drawable/google" />
-
-                    </LinearLayout>
-
-                </androidx.cardview.widget.CardView>
-
-            </androidx.appcompat.widget.LinearLayoutCompat>
-        </ScrollView>
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="30dp"
+            android:layout_marginTop="100dp"
+            android:background="@drawable/textview_design"
+            android:fontFamily="@font/acme"
+            android:gravity="bottom|center"
+            android:padding="8dp"
+            android:text="@string/Continue"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:drawableStartCompat="@drawable/google_drawable" />
 
     </LinearLayout>
 

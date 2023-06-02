@@ -35,7 +35,6 @@ import javax.inject.Inject
 class AppList : Fragment(R.layout.applist_layout) {
 
     private lateinit var binding: ApplistLayoutBinding
-    private val homeFragment = "home"
 
     @Inject
     lateinit var appListAdapter: AppListAdapter

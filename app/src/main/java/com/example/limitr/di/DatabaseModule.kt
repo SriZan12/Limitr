@@ -3,11 +3,10 @@ package com.example.limitr.di
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.core.content.res.TypedArrayUtils.getString
 import androidx.room.Room
 import com.example.limitr.R
-import com.example.limitr.data.room.appdatabase.LimitrDao
-import com.example.limitr.data.room.appdatabase.LimitrDatabase
+import com.example.limitr.data.local.appdatabase.LimitrDao
+import com.example.limitr.data.local.appdatabase.LimitrDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,7 +38,7 @@ object DatabaseModule {
 
     @Provides
     fun getSharedPrefDb(@ApplicationContext context: Context): SharedPreferences {
-        return context.getSharedPreferences("My SharePref", Context.MODE_PRIVATE)
+        return context.getSharedPreferences(context.getString(R.string.my_sharedPref), Context.MODE_PRIVATE)
     }
 
     @Provides

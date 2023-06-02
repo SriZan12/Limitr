@@ -29,7 +29,7 @@ class TimerStartNotification : BroadcastReceiver() {
             PendingIntent.getActivity(context, 101, tapIntent, PendingIntent.FLAG_MUTABLE)
 
         val notificationBuilder = NotificationCompat.Builder(context, notificationTitle!!)
-            .setSmallIcon(R.drawable.logo)
+            .setSmallIcon(R.drawable.logo_black)
             .setLargeIcon(appIcon)
             .setContentTitle(notificationTitle)
             .setContentText(blockedTime)
