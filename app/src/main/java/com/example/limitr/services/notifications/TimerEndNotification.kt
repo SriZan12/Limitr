@@ -1,19 +1,17 @@
 package com.example.limitr.services.notifications
 
-import android.annotation.SuppressLint
+import android.Manifest
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Color
-import android.os.Build
-import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.limitr.ui.mainactivity.MainActivity
 import com.example.limitr.R
-import java.util.*
 
 class TimerEndNotification : BroadcastReceiver() {
 
@@ -22,9 +20,7 @@ class TimerEndNotification : BroadcastReceiver() {
     private lateinit var appIcon: Bitmap
     private lateinit var pendingIntent: PendingIntent
 
-    @SuppressLint("MissingPermission")
-    @RequiresApi(Build.VERSION_CODES.O)
-    override fun onReceive(context: Context, intent: Intent?) {
+    override fun onReceive(context: Context?, intent: Intent?) {
         val tapIntent = Intent(context, MainActivity::class.java).apply {
             Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -36,7 +32,7 @@ class TimerEndNotification : BroadcastReceiver() {
         pendingIntent =
             PendingIntent.getActivity(context, 102, tapIntent, PendingIntent.FLAG_MUTABLE)
         val notificationBuilder = NotificationCompat.Builder(
-            context,
+            context!!,
             notificationTitle
         )
             .setSmallIcon(R.drawable.logo_color)
@@ -45,12 +41,20 @@ class TimerEndNotification : BroadcastReceiver() {
             .setContentText("Enroll now!")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .setVibrate(longArrayOf(0, 1000, 500, 1000))
-            .setLights(Color.RED, 1000, 1000).build()
+            .setAutoCancel(true).build()
 
-        val notificationManager = NotificationManagerCompat.from(context)
-        notificationManager.notify(notificationId, notificationBuilder)
+        with(NotificationManagerCompat.from(context)) {
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                notify(notificationId, notificationBuilder)
+            }
+
+        }
+
+
     }
 
 }

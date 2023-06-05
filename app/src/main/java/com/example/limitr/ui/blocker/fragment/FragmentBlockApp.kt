@@ -25,6 +25,7 @@ import com.example.limitr.data.local.appdatabase.model.LimitrEntities
 import com.example.limitr.databinding.BlockAppFragmentBinding
 
 import com.example.limitr.ui.blocker.vm.RemainingTimeViewModel
+import com.example.limitr.utils.Constants.RC_POST_NOTIFICATION_PERMISSION
 import com.example.limitr.utils.Constants.REQUIREDCRYPTOFORUNBLOCK
 import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
 import com.example.limitr.utils.DateAndTime.getTimer
@@ -41,12 +42,13 @@ import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.util.*
 import com.example.limitr.utils.ViewUtils.showToast
+import pub.devrel.easypermissions.EasyPermissions
 import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class FragmentBlockApp :
-    Fragment(R.layout.block_app_fragment) {
+    Fragment(R.layout.block_app_fragment), EasyPermissions.PermissionCallbacks {
 
     private lateinit var fragmentAppBlockBinding: BlockAppFragmentBinding
     private val fragmentBlockAppArgs: FragmentBlockAppArgs by navArgs()
@@ -85,18 +87,25 @@ class FragmentBlockApp :
         super.onResume()
 
         if (isNotificationServiceEnable(requireContext())) {
+            fragmentAppBlockBinding.linearLayout2.isVisible = true
+            val pgName = fragmentBlockAppArgs.appInfo.toString()
+            val app = getAppNameByPackageName(requireContext(), pgName)
             if (dialog.isShowing) {
+                editor.putBoolean(app, true)
+                editor.apply()
+                fragmentAppBlockBinding.blockNotification.isChecked = true
                 dialog.dismiss()
             }
         }
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @SuppressLint("SimpleDateFormat", "SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        requestPostNotificationPermissionForAlarm()
         setView()
 
         fragmentAppBlockBinding.setTime.setOnClickListener {
@@ -129,14 +138,10 @@ class FragmentBlockApp :
             } else {
 
                 if (fragmentAppBlockBinding.blockNotification.isChecked) {
-
-                    editor.putBoolean(appName, true)
-                    editor.apply()
+                    setNotificationStatus(true)
 
                 } else if (!fragmentAppBlockBinding.blockNotification.isChecked) {
-
-                    editor.putBoolean(appName, false)
-                    editor.apply()
+                    setNotificationStatus(false)
                 }
             }
         }
@@ -152,17 +157,16 @@ class FragmentBlockApp :
         fragmentAppBlockBinding.appName.text = getAppNameByPackageName(requireContext(), appPackage)
         fragmentAppBlockBinding.appIcon.setImageDrawable(appIcon)
 
-        if (sharedPref.getBoolean(appName, true)) {
-            fragmentAppBlockBinding.blockNotification.isChecked = true
-        }
 
         remainingTimeViewModel.getRemainingTime(appName).observe(viewLifecycleOwner) {
 
             if (it != null) {
-                fragmentAppBlockBinding.unBlockApp.isVisible = true
+                fragmentAppBlockBinding.unBlockApp.isEnabled = true
+
                 unBlockAppStatus = if (it.starTime != null && it.endTime != null) {
                     fragmentAppBlockBinding.setTimerText.text = getString(R.string.duration)
                     fragmentAppBlockBinding.setIntervalText.text = getString(R.string.blocked_for)
+                    fragmentAppBlockBinding.timerText.isVisible = true
                     fragmentAppBlockBinding.intervalText.isVisible = true
                     getIntervalForBlocking(
                         it.starTime,
@@ -181,6 +185,13 @@ class FragmentBlockApp :
                     )
                 }
 
+                val isNotificationOn = sharedPref.getBoolean(appName, false)
+
+                if (isNotificationOn) {
+                    fragmentAppBlockBinding.blockNotification.isChecked = true
+                }
+
+
                 if (unBlockAppStatus) {
                     unBlockApp(appName)
                 }
@@ -189,8 +200,7 @@ class FragmentBlockApp :
                 fragmentAppBlockBinding.setInterval.isEnabled = false
 
                 if (it.blockedTime!! <= 0) {
-                    editor.remove(appName)
-                    editor.apply()
+                    removeNotificationStatus()
                 }
 
             }
@@ -203,11 +213,25 @@ class FragmentBlockApp :
     private fun unBlockApp(appName: String) {
         fragmentAppBlockBinding.setInterval.isEnabled = true
         fragmentAppBlockBinding.setTime.isEnabled = true
-        fragmentAppBlockBinding.setTimerText.text = getString(R.string.set_timer)
+        fragmentAppBlockBinding.timerText.isVisible = false
+        fragmentAppBlockBinding.intervalText.isVisible = false
         remainingTimeViewModel.deleteRemainingTime(appName)
             .observe(viewLifecycleOwner) {
                 showToast(requireContext(), "$appName is free now!")
+                removeNotificationStatus()
             }
+    }
+
+    private fun removeNotificationStatus() {
+        fragmentAppBlockBinding.blockNotification.isChecked = false
+        editor.remove(appName)
+        editor.apply()
+    }
+
+    private fun setNotificationStatus(status: Boolean) {
+        editor.putBoolean(appName, status)
+        editor.apply()
+        fragmentAppBlockBinding.blockNotification.isChecked = status
     }
 
 
@@ -341,6 +365,11 @@ class FragmentBlockApp :
 
         remainingTimeViewModel.insertRemainingTime(limitrEntities).observe(viewLifecycleOwner) {
             showToast(requireContext(), "$appName is Blocked!")
+            if (!isNotificationServiceEnable(requireContext())) {
+                showNotificationDialog()
+            } else {
+                setNotificationStatus(true)
+            }
         }
     }
 
@@ -403,6 +432,7 @@ class FragmentBlockApp :
                 editor.putInt(getString(R.string.daily_Login_Reward), deductCrypto)
                 editor.apply()
                 unBlockApp(appName)
+//                activity?.recreate()
                 cancelNotification(requireContext(), appName)
                 cryptoDialog.dismiss()
             } else {
@@ -412,5 +442,31 @@ class FragmentBlockApp :
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun hasPostNotification(): Boolean {
+        return EasyPermissions.hasPermissions(
+            requireContext(),
+            android.Manifest.permission.POST_NOTIFICATIONS
+        )
+    }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun requestPostNotificationPermissionForAlarm() {
+        if (!hasPostNotification()) {
+            EasyPermissions.requestPermissions(
+                this,
+                "This app needs permission to post alarm notifications.",
+                RC_POST_NOTIFICATION_PERMISSION,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            )
+        }
+    }
+
+    override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
+        TODO("Not yet implemented")
+    }
 }

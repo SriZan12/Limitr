@@ -76,18 +76,17 @@ class ActivityBlocked : AppCompatActivity() {
 
         activityBlockedBinding.appName.text = appName
 
-
-
         remainingTimeViewModel.getRemainingTime(appName).observe(this) {
 
             if (it != null) {
 
-                activityBlockedBinding.unBlockApp.isVisible = true
+                activityBlockedBinding.unBlockApp.isEnabled = true
 
                 if (it.starTime != null && it.endTime != null) {
-                    activityBlockedBinding.intervalText.isVisible = true
-                    activityBlockedBinding.setIntervalText.isVisible = true
                     activityBlockedBinding.timerText.isVisible = true
+
+                    activityBlockedBinding.setTimerText.text = getString(R.string.duration)
+                    activityBlockedBinding.setIntervalText.text = getString(R.string.blocked_for)
 
                     unBlockAppStatus = getIntervalForBlocking(
                         it.starTime,
@@ -101,9 +100,8 @@ class ActivityBlocked : AppCompatActivity() {
                         unBlockApp(appName)
                     }
                 } else {
+                    activityBlockedBinding.setTimerText.text = getString(R.string.duration)
                     activityBlockedBinding.intervalText.isVisible = false
-                    activityBlockedBinding.setTimerText.isVisible = true
-                    activityBlockedBinding.timerText.isVisible = true
                     unBlockAppStatus = getTimer(
                         it.blockedTime,
                         it.remainingTime,
@@ -116,13 +114,14 @@ class ActivityBlocked : AppCompatActivity() {
                     unBlockApp(appName)
                 }
 
-                if (sharedPref.getBoolean(appName, false)) {
+                val isNotificationOn = sharedPref.getBoolean(appName, false)
+
+                if (isNotificationOn) {
                     activityBlockedBinding.blockNotification.isChecked = true
                 }
 
                 if (it.blockedTime!! <= 0) {
-                    editor.remove(appName)
-                    editor.apply()
+                    removeNotificationStatus()
                 }
             }
         }
@@ -132,8 +131,14 @@ class ActivityBlocked : AppCompatActivity() {
         remainingTimeViewModel.deleteRemainingTime(appName)
             .observe(this) {
                 showToast(this@ActivityBlocked, "$appName is free now!")
+                removeNotificationStatus()
                 finishAffinity()
             }
+    }
+
+    private fun removeNotificationStatus(){
+        editor.remove(appName)
+        editor.apply()
     }
 
     @Deprecated("Deprecated in Java")

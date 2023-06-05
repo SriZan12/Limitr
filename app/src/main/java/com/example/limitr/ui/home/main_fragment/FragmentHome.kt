@@ -5,6 +5,7 @@ import android.app.Dialog
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.SharedPreferences
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -29,13 +30,14 @@ import com.example.limitr.utils.ViewUtils.getCrypto
 import com.example.limitr.utils.ViewUtils.showToast
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class FragmentHome :
-    Fragment(R.layout.fragment_home) {
+    Fragment(R.layout.fragment_home), SharedPreferences.OnSharedPreferenceChangeListener {
 
     private lateinit var fragmentHomeBinding: FragmentHomeBinding
     private lateinit var dialog: Dialog
@@ -55,6 +57,7 @@ class FragmentHome :
     ): View {
         fragmentHomeBinding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_home, container, false)
+
         return fragmentHomeBinding.root
     }
 
@@ -75,6 +78,9 @@ class FragmentHome :
 
     override fun onResume() {
         super.onResume()
+
+        val reward = getCrypto(sharedPref, requireContext()).toString()
+        fragmentHomeBinding.totalCrypto.text = reward
 
         if (!Settings.canDrawOverlays(requireContext()) ||
             !checkAccessibilityPermission(
@@ -97,9 +103,9 @@ class FragmentHome :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val reward = getCrypto(sharedPref, requireContext()).toString()
+        Timber.d("INSIDE ONVIEWCREATED")
 
-        setView(reward)
+        setView()
 
         fragmentHomeBinding.profile.setOnClickListener {
             val action =
@@ -109,12 +115,11 @@ class FragmentHome :
 
     }
 
-    private fun setView(reward: String) {
+    private fun setView() {
         loadProfilePhoto(fragmentHomeBinding.profile, requireContext())
         appListViewPagerAdapter = AppListViewPagerAdapter(requireActivity())
         fragmentHomeBinding.viewPager.adapter = appListViewPagerAdapter
 
-        fragmentHomeBinding.totalCrypto.text = reward
 
         TabLayoutMediator(
             fragmentHomeBinding.tabLayout,
@@ -251,6 +256,10 @@ class FragmentHome :
                 todayDate
             )
         }
+
+    }
+
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
 
     }
 
