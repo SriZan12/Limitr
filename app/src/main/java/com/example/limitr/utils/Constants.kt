@@ -8,5 +8,5 @@ object Constants {
 
 //   Rewards
    const val REQUIREDCRYPTOFORUNBLOCK: Int = 2
-   const val DAILYCRYPTOREWARD : Int = 5
+   const val DAILYCRYPTOREWARD : Int = 1
 }
