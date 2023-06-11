@@ -9,10 +9,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class RemainingTimeViewModel @Inject constructor() : ViewModel() {
+class RemainingTimeViewModel @Inject constructor(private val remainingTimeRepository: RemainingTimeRepository) : ViewModel() {
 
-    @Inject
-    lateinit var remainingTimeRepository: RemainingTimeRepository
 
     fun getRemainingTime(appName: String?): LiveData<LimitrEntities> {
         return remainingTimeRepository.getRemainingTime(appName!!)
@@ -33,14 +31,6 @@ class RemainingTimeViewModel @Inject constructor() : ViewModel() {
             exception.printStackTrace()
         }
     }
-
-//    fun updateNotificationStatus(appName: String, notificationStatus: Boolean) = liveData {
-//        try {
-//            emit(remainingTimeRepository.updateNotificationStatus(appName, notificationStatus))
-//        } catch (exception: Exception) {
-//            exception.printStackTrace()
-//        }
-//    }
 
 
 }
