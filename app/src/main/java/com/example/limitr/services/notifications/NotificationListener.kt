@@ -9,6 +9,7 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.lifecycleScope
 import com.example.limitr.R
 import com.example.limitr.data.local.appdatabase.LimitrDao
+import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -57,9 +58,13 @@ class NotificationListener : NotificationListenerService(), LifecycleOwner {
     private suspend fun isAppBlocked(packageName: String?): Boolean =
         suspendCoroutine { continuation ->
             limitrDao.getBlockedApps().observeForever { blockedApps ->
-                val isAppBlocked = blockedApps.any { it.appPackage == packageName }
+                val isAppBlocked = blockedApps.any {
+                    it.appPackage == packageName
+
+                }
                 if (isAppBlocked) {
-                    val notificationStatus = checkNotificationStatus()
+                    val appName = getAppNameByPackageName(this@NotificationListener, packageName!!)
+                    val notificationStatus = checkNotificationStatus(appName)
                     if (notificationStatus) {
                         continuation.resume(notificationStatus)
                         limitrDao.getBlockedApps()
@@ -76,10 +81,8 @@ class NotificationListener : NotificationListenerService(), LifecycleOwner {
             }
         }
 
-    private fun checkNotificationStatus(): Boolean {
-
-        return sharedPref.getBoolean(getString(R.string.notification_status), false)
-
+    private fun checkNotificationStatus(appName: String): Boolean {
+        return sharedPref.getBoolean(appName, false)
     }
 
 

@@ -12,9 +12,12 @@ import android.widget.Button
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.lifecycleScope
 import com.example.limitr.R
 import com.example.limitr.databinding.ActivityBlockedBinding
 import com.example.limitr.ui.blocker.vm.RemainingTimeViewModel
+import com.example.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
+import com.example.limitr.ui.mainactivity.MainActivity
 import com.example.limitr.utils.Constants.REQUIREDCRYPTOFORUNBLOCK
 import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
 import com.example.limitr.utils.DateAndTime.getTimer
@@ -24,6 +27,9 @@ import com.example.limitr.utils.ViewUtils
 import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
 import com.example.limitr.utils.ViewUtils.showToast
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -36,6 +42,7 @@ class ActivityBlocked : AppCompatActivity() {
     private val remainingTimeViewModel: RemainingTimeViewModel by viewModels()
     private var unBlockAppStatus: Boolean = false
     private var appIcon: Drawable? = null
+    private val mainViewModel: MainFragmentViewModel by viewModels()
 
     @Inject
     lateinit var sharedPref: SharedPreferences
@@ -75,6 +82,10 @@ class ActivityBlocked : AppCompatActivity() {
         loadProfilePhoto(activityBlockedBinding.profile, this)
 
         activityBlockedBinding.appName.text = appName
+
+        lifecycleScope.launch(Dispatchers.Main) {
+            activityBlockedBinding.totalCrypto.text = mainViewModel.getCrypto().first().toString()
+        }
 
         remainingTimeViewModel.getRemainingTime(appName).observe(this) {
 
@@ -136,19 +147,22 @@ class ActivityBlocked : AppCompatActivity() {
             }
     }
 
-    private fun removeNotificationStatus(){
+    private fun removeNotificationStatus() {
         editor.remove(appName)
         editor.apply()
     }
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        super.onBackPressed()
         val intent = Intent(Intent.ACTION_MAIN)
         intent.addCategory(Intent.CATEGORY_HOME)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+//        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
         startActivity(intent)
+        finishAffinity()
         finish()
+
+        super.onBackPressed()
     }
 
     private fun unBlockAppByCrypto() {
@@ -165,18 +179,20 @@ class ActivityBlocked : AppCompatActivity() {
         val unBlockButton: Button = cryptoDialog.findViewById(R.id.unBlockApp)
 
         unBlockButton.setOnClickListener {
-            val crypto = ViewUtils.getCrypto(sharedPref, this@ActivityBlocked)
-            if (crypto >= REQUIREDCRYPTOFORUNBLOCK) {
-                val deductCrypto = crypto - REQUIREDCRYPTOFORUNBLOCK
-                editor.putInt(getString(R.string.daily_Login_Reward), deductCrypto)
-                editor.apply()
-                unBlockApp(appName)
-                cancelNotification(this@ActivityBlocked, appName)
-                cryptoDialog.dismiss()
-            } else {
-                showToast(this@ActivityBlocked, "Not enough Crypto")
-                cryptoDialog.dismiss()
+            lifecycleScope.launch(Dispatchers.Main) {
+                val crypto = mainViewModel.getCrypto().first()
+                if (crypto >= REQUIREDCRYPTOFORUNBLOCK) {
+                    val deductCrypto = crypto - REQUIREDCRYPTOFORUNBLOCK
+                    mainViewModel.upsertCrypto(deductCrypto)
+                    unBlockApp(appName)
+                    cancelNotification(this@ActivityBlocked, appName)
+                    cryptoDialog.dismiss()
+                } else {
+                    showToast(this@ActivityBlocked, getString(R.string.not_enough_crypto))
+                    cryptoDialog.dismiss()
+                }
             }
+
         }
     }
 }

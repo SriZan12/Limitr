@@ -15,7 +15,7 @@ import com.example.limitr.data.local.appdatabase.model.LimitrEntities
 import com.example.limitr.databinding.BlockedAppListLayoutBinding
 import com.example.limitr.ui.home.blockedApps.adapter.BlockedAppListAdapter
 import com.example.limitr.ui.home.blockedApps.vm.BlockedAppViewModels
-import com.example.limitr.ui.home.main_fragment.FragmentHomeDirections
+import com.example.limitr.ui.home.main_fragment.fragment.FragmentHomeDirections
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

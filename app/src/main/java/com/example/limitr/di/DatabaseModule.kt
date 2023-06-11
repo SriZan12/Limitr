@@ -3,6 +3,8 @@ package com.example.limitr.di
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
 import com.example.limitr.R
 import com.example.limitr.data.local.appdatabase.LimitrDao
@@ -14,9 +16,13 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+private val Context.dataStore: DataStore<androidx.datastore.preferences.core.Preferences> by
+preferencesDataStore(name = "Data_Store")
+
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
+
 
     @Provides
     @Singleton
@@ -38,11 +44,19 @@ object DatabaseModule {
 
     @Provides
     fun getSharedPrefDb(@ApplicationContext context: Context): SharedPreferences {
-        return context.getSharedPreferences(context.getString(R.string.my_sharedPref), Context.MODE_PRIVATE)
+        return context.getSharedPreferences(
+            context.getString(R.string.my_sharedPref),
+            Context.MODE_PRIVATE
+        )
     }
 
     @Provides
     fun getSharedPrefEditor(sharedPreferences: SharedPreferences): SharedPreferences.Editor {
         return sharedPreferences.edit()
+    }
+
+    @Provides
+    fun getDataStore(@ApplicationContext context: Context): DataStore<androidx.datastore.preferences.core.Preferences> {
+        return context.dataStore
     }
 }

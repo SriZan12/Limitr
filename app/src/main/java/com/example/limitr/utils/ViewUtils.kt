@@ -3,7 +3,6 @@ package com.example.limitr.utils
 import android.animation.ObjectAnimator
 import android.app.TimePickerDialog
 import android.content.Context
-import android.content.SharedPreferences
 import  android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.ApplicationInfoFlags
@@ -13,7 +12,9 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.TimePicker
 import android.widget.Toast
-import com.example.limitr.R
+import androidx.datastore.preferences.core.Preferences
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import java.util.*
 
@@ -88,8 +89,5 @@ object ViewUtils {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 
-    fun getCrypto(sharedPref: SharedPreferences, context: Context): Int {
-        return sharedPref.getInt(context.getString(R.string.daily_Login_Reward), 0)
-    }
 
 }

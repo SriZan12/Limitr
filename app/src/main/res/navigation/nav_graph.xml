@@ -17,7 +17,7 @@
     </fragment>
     <fragment
         android:id="@+id/fragmentHome"
-        android:name="com.example.limitr.ui.home.main_fragment.FragmentHome"
+        android:name="com.example.limitr.ui.home.main_fragment.fragment.FragmentHome"
         tools:layout="@layout/fragment_home"
         android:label="FragmentHome" >
         <action
@@ -50,7 +50,7 @@
     <fragment
         android:id="@+id/fragmentBlockApp"
         android:name="com.example.limitr.ui.blocker.fragment.FragmentBlockApp"
-        tools:layout="@layout/fragment_app_block"
+        tools:layout="@layout/block_app_fragment"
         android:label="Block App" >
 
         <argument
@@ -58,11 +58,11 @@
             app:argType= "string"
             app:nullable="true" />
     </fragment>
-    <activity
-        android:id="@+id/activityBlocked"
-        android:name="com.example.limitr.ui.blocker.activity.ActivityBlocked"
-        tools:layout="@layout/activity_blocked"
-        android:label="ActivityBlocked" />
+<!--    <activity-->
+<!--        android:id="@+id/activityBlocked"-->
+<!--        android:name="com.example.limitr.ui.blocker.activity.ActivityBlocked"-->
+<!--        tools:layout="@layout/activity_blocked"-->
+<!--        android:label="ActivityBlocked" />-->
 
     <fragment
         android:id="@+id/appList"

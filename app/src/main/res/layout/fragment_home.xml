@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/Ui_Color"
-        tools:context=".ui.home.main_fragment.FragmentHome">
+        tools:context=".ui.home.main_fragment.fragment.FragmentHome">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout"
@@ -90,7 +90,7 @@
             app:layout_constraintTop_toBottomOf="@+id/constraintLayout"
             app:tabGravity="fill"
             app:tabMode="fixed"
-            app:tabIndicatorColor="@color/black"
+            app:tabIndicatorColor="@color/white"
             app:tabTextColor="@color/white">
 
         </com.google.android.material.tabs.TabLayout>

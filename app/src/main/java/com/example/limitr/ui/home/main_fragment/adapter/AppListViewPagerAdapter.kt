@@ -1,4 +1,4 @@
-package com.example.limitr.ui.home.main_fragment
+package com.example.limitr.ui.home.main_fragment.adapter
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity

@@ -2,6 +2,7 @@ package com.example.limitr.ui.blocker.fragment
 
 import android.annotation.SuppressLint
 import android.app.Dialog
+import android.app.Notification
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
@@ -16,8 +17,12 @@ import androidx.annotation.RequiresApi
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.limitr.R
 import com.example.limitr.common.showDialog
@@ -25,6 +30,7 @@ import com.example.limitr.data.local.appdatabase.model.LimitrEntities
 import com.example.limitr.databinding.BlockAppFragmentBinding
 
 import com.example.limitr.ui.blocker.vm.RemainingTimeViewModel
+import com.example.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
 import com.example.limitr.utils.Constants.RC_POST_NOTIFICATION_PERMISSION
 import com.example.limitr.utils.Constants.REQUIREDCRYPTOFORUNBLOCK
 import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
@@ -35,13 +41,15 @@ import com.example.limitr.utils.NotificationUtils.startNotification
 import com.example.limitr.utils.Permissions.isNotificationServiceEnable
 import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
 import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
-import com.example.limitr.utils.ViewUtils.getCrypto
 import com.example.limitr.utils.ViewUtils.showTimePickerDialog
 import com.example.limitr.utils.ViewUtils.startTimer
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.util.*
 import com.example.limitr.utils.ViewUtils.showToast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import pub.devrel.easypermissions.EasyPermissions
 import javax.inject.Inject
 
@@ -60,12 +68,18 @@ class FragmentBlockApp :
     private var endTime: Date? = null
     private var unBlockAppStatus: Boolean = false
     private lateinit var dialog: Dialog
+    private val mainViewModel: MainFragmentViewModel by viewModels()
+
+
+    @Inject
+    lateinit var dataStore: DataStore<Preferences>
 
     @Inject
     lateinit var sharedPref: SharedPreferences
 
     @Inject
     lateinit var editor: SharedPreferences.Editor
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -145,6 +159,7 @@ class FragmentBlockApp :
                 }
             }
         }
+
     }
 
     private fun setView() {
@@ -191,11 +206,6 @@ class FragmentBlockApp :
                     fragmentAppBlockBinding.blockNotification.isChecked = true
                 }
 
-
-                if (unBlockAppStatus) {
-                    unBlockApp(appName)
-                }
-
                 fragmentAppBlockBinding.setTime.isEnabled = false
                 fragmentAppBlockBinding.setInterval.isEnabled = false
 
@@ -203,18 +213,18 @@ class FragmentBlockApp :
                     removeNotificationStatus()
                 }
 
+                if(unBlockAppStatus){
+                    unBlockApp(appName)
+                }
+
             }
 
         }
 
-
     }
 
     private fun unBlockApp(appName: String) {
-        fragmentAppBlockBinding.setInterval.isEnabled = true
-        fragmentAppBlockBinding.setTime.isEnabled = true
-        fragmentAppBlockBinding.timerText.isVisible = false
-        fragmentAppBlockBinding.intervalText.isVisible = false
+
         remainingTimeViewModel.deleteRemainingTime(appName)
             .observe(viewLifecycleOwner) {
                 showToast(requireContext(), "$appName is free now!")
@@ -424,22 +434,29 @@ class FragmentBlockApp :
         cryptoDialog.show()
 
         val unBlockButton: Button = cryptoDialog.findViewById(R.id.unBlockApp)
+        val cancel: ImageView = cryptoDialog.findViewById(R.id.cancel)
+
+        cancel.setOnClickListener {
+            cryptoDialog.dismiss()
+        }
 
         unBlockButton.setOnClickListener {
-            val crypto = getCrypto(sharedPref, requireContext())
-            if (crypto >= REQUIREDCRYPTOFORUNBLOCK) {
-                val deductCrypto = crypto - REQUIREDCRYPTOFORUNBLOCK
-                editor.putInt(getString(R.string.daily_Login_Reward), deductCrypto)
-                editor.apply()
-                unBlockApp(appName)
-//                activity?.recreate()
-                cancelNotification(requireContext(), appName)
-                cryptoDialog.dismiss()
-            } else {
-                showToast(requireContext(), getString(R.string.not_enough_crypto))
-                cryptoDialog.dismiss()
+            lifecycleScope.launch(Dispatchers.Main) {
+                val crypto = mainViewModel.getCrypto().first()
+                if (crypto >= REQUIREDCRYPTOFORUNBLOCK) {
+                    val deductCrypto = crypto - REQUIREDCRYPTOFORUNBLOCK
+                    mainViewModel.upsertCrypto(deductCrypto)
+                    unBlockApp(appName)
+                    cancelNotification(requireContext(), appName)
+                    cryptoDialog.dismiss()
+                    findNavController().popBackStack()
+                } else {
+                    showToast(requireContext(), getString(R.string.not_enough_crypto))
+                    cryptoDialog.dismiss()
+                }
             }
         }
+
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)

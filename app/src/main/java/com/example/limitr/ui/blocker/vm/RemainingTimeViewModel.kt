@@ -34,13 +34,13 @@ class RemainingTimeViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun updateNotificationStatus(appName: String, notificationStatus: Boolean) = liveData {
-        try {
-            emit(remainingTimeRepository.updateNotificationStatus(appName, notificationStatus))
-        } catch (exception: Exception) {
-            exception.printStackTrace()
-        }
-    }
+//    fun updateNotificationStatus(appName: String, notificationStatus: Boolean) = liveData {
+//        try {
+//            emit(remainingTimeRepository.updateNotificationStatus(appName, notificationStatus))
+//        } catch (exception: Exception) {
+//            exception.printStackTrace()
+//        }
+//    }
 
 
 }

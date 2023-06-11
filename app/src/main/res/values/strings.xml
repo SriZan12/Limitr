@@ -47,4 +47,5 @@
     <string name="ask_notification_block">Do You want to Block the notification as well ?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="dataStore">Data_Store</string>
 </resources>

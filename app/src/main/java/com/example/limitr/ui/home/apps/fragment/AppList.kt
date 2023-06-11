@@ -21,7 +21,7 @@ import com.example.limitr.R
 import com.example.limitr.databinding.ApplistLayoutBinding
 import com.example.limitr.common.OnAppClickListener
 import com.example.limitr.ui.home.apps.adapter.AppListAdapter
-import com.example.limitr.ui.home.main_fragment.FragmentHomeDirections
+import com.example.limitr.ui.home.main_fragment.fragment.FragmentHomeDirections
 import com.example.limitr.ui.home.model.App
 import com.example.limitr.ui.home.model.AppInfoModel
 import com.example.limitr.utils.ViewUtils

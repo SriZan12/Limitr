@@ -45,15 +45,11 @@
 
         <activity
             android:name=".ui.mainactivity.MainActivity">
-            <!--            <intent-filter>-->
-            <!--                <action android:name="android.intent.action.MAIN" />-->
-
-            <!--                <category android:name="android.intent.category.LAUNCHER" />-->
-            <!--            </intent-filter>-->
         </activity>
 
         <activity
             android:name=".ui.blocker.activity.ActivityBlocked"
+            android:noHistory="true"
             android:exported="false" />
 
         <meta-data
@@ -69,8 +65,8 @@
 
         <service
             android:name=".services.blockerServices.AccessibilityService"
-            android:exported="true"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>

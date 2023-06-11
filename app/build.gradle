@@ -65,7 +65,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth:22.0.0'
     implementation 'com.google.android.gms:play-services-auth:20.5.0'
     implementation 'com.google.firebase:firebase-storage:20.2.0'
-    implementation 'com.google.firebase:firebase-database:20.2.1'
+    implementation 'com.google.firebase:firebase-database:20.2.2'
 
 //    EasyPermission Dependency
     implementation 'pub.devrel:easypermissions:3.0.0'
@@ -115,5 +115,7 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.14.2'
     kapt 'com.github.bumptech.glide:compiler:4.9.0'
 
+//    DataStore Dependency
+    implementation "androidx.datastore:datastore-preferences:1.0.0"
 
 }

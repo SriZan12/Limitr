@@ -1,11 +1,9 @@
-package com.example.limitr.ui.home.main_fragment
+package com.example.limitr.ui.home.main_fragment.fragment
 
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
-import android.content.SharedPreferences
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -15,21 +13,31 @@ import android.view.ViewGroup
 import android.widget.Button
 import androidx.activity.addCallback
 import androidx.databinding.DataBindingUtil
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
 import com.example.limitr.common.Status
 import com.example.limitr.common.showDialog
 import com.example.limitr.databinding.FragmentHomeBinding
+import com.example.limitr.ui.home.main_fragment.adapter.AppListViewPagerAdapter
+import com.example.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
+import com.example.limitr.utils.Constants.CRYPTO
 import com.example.limitr.utils.Constants.DAILYCRYPTOREWARD
+import com.example.limitr.utils.Constants.LASTLOGGEDDATE
 import com.example.limitr.utils.DateAndTime.getTodayDate
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
 import com.example.limitr.utils.Permissions.checkAccessibilityPermission
 import com.example.limitr.utils.Permissions.isUsageStateManagerEnabled
-import com.example.limitr.utils.ViewUtils.getCrypto
 import com.example.limitr.utils.ViewUtils.showToast
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
@@ -37,18 +45,16 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class FragmentHome :
-    Fragment(R.layout.fragment_home), SharedPreferences.OnSharedPreferenceChangeListener {
+    Fragment(R.layout.fragment_home) {
 
     private lateinit var fragmentHomeBinding: FragmentHomeBinding
     private lateinit var dialog: Dialog
     private var onBackPressed = 0L
     private lateinit var appListViewPagerAdapter: AppListViewPagerAdapter
+    private val mainViewModel: MainFragmentViewModel by viewModels()
 
     @Inject
-    lateinit var sharedPref: SharedPreferences
-
-    @Inject
-    lateinit var editor: SharedPreferences.Editor
+    lateinit var dataStore: DataStore<Preferences>
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,9 +85,6 @@ class FragmentHome :
     override fun onResume() {
         super.onResume()
 
-        val reward = getCrypto(sharedPref, requireContext()).toString()
-        fragmentHomeBinding.totalCrypto.text = reward
-
         if (!Settings.canDrawOverlays(requireContext()) ||
             !checkAccessibilityPermission(
                 requireContext(),
@@ -103,8 +106,6 @@ class FragmentHome :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        Timber.d("INSIDE ONVIEWCREATED")
-
         setView()
 
         fragmentHomeBinding.profile.setOnClickListener {
@@ -116,10 +117,16 @@ class FragmentHome :
     }
 
     private fun setView() {
+
         loadProfilePhoto(fragmentHomeBinding.profile, requireContext())
         appListViewPagerAdapter = AppListViewPagerAdapter(requireActivity())
         fragmentHomeBinding.viewPager.adapter = appListViewPagerAdapter
 
+        lifecycleScope.launch(Dispatchers.Main) {
+            mainViewModel.getCrypto().collect { crypto ->
+                fragmentHomeBinding.totalCrypto.text = crypto.toString()
+            }
+        }
 
         TabLayoutMediator(
             fragmentHomeBinding.tabLayout,
@@ -195,13 +202,29 @@ class FragmentHome :
             goToUsageStateManagerSettings()
         }
 
-        dialog.show()
     }
 
 
+    private fun checkLastLoggedInDate() {
+        var defaultCryptoStatus = Status.CryptoStatus.INSERT
+
+        lifecycleScope.launch(Dispatchers.Main) {
+            val lastLoggedDate = mainViewModel.getLastLoggedDate().first()
+            if (lastLoggedDate == null || lastLoggedDate.isEmpty()) {
+                Timber.d("INSIDE CHECKLOGGED IF")
+                showEverydayReward(defaultCryptoStatus)
+            } else if (getTodayDate() != lastLoggedDate) {
+                Timber.d("INSIDE CHECKLOGGED ELSE")
+                defaultCryptoStatus = Status.CryptoStatus.UPDATE
+                showEverydayReward(defaultCryptoStatus)
+            }
+
+        }
+
+    }
+
     private fun showEverydayReward(
         status: Status.CryptoStatus,
-        todayDate: String,
     ) {
 
         val rewardDialog = Dialog(requireContext())
@@ -219,48 +242,26 @@ class FragmentHome :
         claimRewardButton.setOnClickListener {
 
             if (status == Status.CryptoStatus.INSERT) {
-                editor.putString(getString(R.string.last_logged_date), todayDate)
-                editor.putInt(getString(R.string.daily_Login_Reward), DAILYCRYPTOREWARD)
-                editor.apply()
+                mainViewModel.upsertEverydayDate(getTodayDate())
+                mainViewModel.upsertCrypto(DAILYCRYPTOREWARD)
                 rewardDialog.dismiss()
 
             } else {
-                val updateReward = getCrypto(sharedPref, requireContext()) + DAILYCRYPTOREWARD
-                editor.putString(getString(R.string.last_logged_date), todayDate)
-                editor.putInt(getString(R.string.daily_Login_Reward), updateReward)
-                editor.apply()
-                rewardDialog.dismiss()
+
+                lifecycleScope.launch(Dispatchers.Main) {
+                    val currentCrypto = mainViewModel.getCrypto().first()
+                    if (currentCrypto != null) {
+                        mainViewModel.upsertEverydayDate(getTodayDate())
+                        mainViewModel.upsertCrypto(currentCrypto + DAILYCRYPTOREWARD)
+                        rewardDialog.dismiss()
+                    }
+                }
             }
 
-            fragmentHomeBinding.totalCrypto.text =
-                getCrypto(sharedPref, requireContext()).toString()
         }
+
         rewardDialog.show()
-
     }
 
-    private fun checkLastLoggedInDate() {
-
-        var defaultCryptoStatus = Status.CryptoStatus.INSERT
-
-        val todayDate = getTodayDate()
-        val lastLoggedDate = sharedPref.getString(getString(R.string.last_logged_date), "")
-
-        if (lastLoggedDate == null) {
-            showEverydayReward(defaultCryptoStatus, todayDate)
-        } else if (todayDate != lastLoggedDate) {
-
-            defaultCryptoStatus = Status.CryptoStatus.UPDATE
-            showEverydayReward(
-                defaultCryptoStatus,
-                todayDate
-            )
-        }
-
-    }
-
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-
-    }
 
 }
