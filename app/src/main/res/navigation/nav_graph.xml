@@ -8,8 +8,8 @@
     <fragment
         android:id="@+id/fragmentSignup"
         android:name="com.example.limitr.ui.auth.fragment.FragmentSignup"
-        tools:layout="@layout/signup_layout"
-        android:label="Signup" >
+        android:label="Signup"
+        tools:layout="@layout/signup_layout">
         <action
             android:id="@+id/action_fragmentSignup_to_fragmentHome"
             app:destination="@id/fragmentHome"
@@ -18,21 +18,11 @@
     <fragment
         android:id="@+id/fragmentHome"
         android:name="com.example.limitr.ui.home.main_fragment.fragment.FragmentHome"
-        tools:layout="@layout/fragment_home"
-        android:label="FragmentHome" >
+        android:label="FragmentHome"
+        tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_fragmentHome_to_fragmentEditProfile"
             app:destination="@id/fragmentEditProfile" />
-
-        <action
-            android:id="@+id/action_fragmentHome_to_fragmentBlockApp"
-            app:destination="@id/fragmentBlockApp"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@android:anim/fade_out"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@android:anim/fade_out">
-
-        </action>
 
         <action
             android:id="@+id/action_fragmentHome_to_fragmentEditProfile2"
@@ -45,33 +35,17 @@
     <fragment
         android:id="@+id/fragmentEditProfile"
         android:name="com.example.limitr.ui.profile.fragment.FragmentEditProfile"
-        tools:layout="@layout/fragment_edit_profile"
-        android:label="Edit Profile" />
-    <fragment
-        android:id="@+id/fragmentBlockApp"
-        android:name="com.example.limitr.ui.blocker.fragment.FragmentBlockApp"
-        tools:layout="@layout/block_app_fragment"
-        android:label="Block App" >
-
-        <argument
-            android:name="appInfo"
-            app:argType= "string"
-            app:nullable="true" />
-    </fragment>
-<!--    <activity-->
-<!--        android:id="@+id/activityBlocked"-->
-<!--        android:name="com.example.limitr.ui.blocker.activity.ActivityBlocked"-->
-<!--        tools:layout="@layout/activity_blocked"-->
-<!--        android:label="ActivityBlocked" />-->
+        android:label="Edit Profile"
+        tools:layout="@layout/fragment_edit_profile" />
 
     <fragment
         android:id="@+id/appList"
         android:name="com.example.limitr.ui.home.apps.fragment.AppList"
-        tools:layout="@layout/applist_layout"
-        android:label="App List" />
+        android:label="App List"
+        tools:layout="@layout/applist_layout" />
     <fragment
         android:id="@+id/hilt_SystemAppFragment"
         android:name="com.example.limitr.ui.home.blockedApps.fragment.BlockedApps"
-        tools:layout="@layout/blocked_app_list_layout"
-        android:label="Blocked Apps" />
+        android:label="Blocked Apps"
+        tools:layout="@layout/blocked_app_list_layout" />
 </navigation>

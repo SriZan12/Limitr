@@ -17,7 +17,6 @@
     <uses-permission
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
-
     <uses-permission
         android:name="android.permission.BIND_ACCESSIBILITY_SERVICE"
         tools:ignore="ProtectedPermissions" />
@@ -32,49 +31,46 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Limitr"
         tools:targetApi="31">
-
+        <activity
+            android:name=".ui.blocker.activity.BlockAppActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.splash_activity.SplashActivity"
             android:exported="true"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".ui.mainactivity.MainActivity">
-        </activity>
-
+        <activity android:name=".ui.mainactivity.MainActivity"></activity>
         <activity
             android:name=".ui.blocker.activity.ActivityBlocked"
-            android:noHistory="true"
-            android:exported="false" />
+            android:exported="false"
+            android:noHistory="true" />
 
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
 
         <receiver android:name=".services.notifications.TimerStartNotification" />
-
         <receiver
             android:name=".services.notifications.TimerEndNotification"
             android:enabled="true" />
 
-
         <service
             android:name=".services.blockerServices.AccessibilityService"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-            android:exported="true">
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
+
             <meta-data
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
         </service>
-
         <service
             android:name=".services.notifications.NotificationListener"
             android:exported="false"
@@ -84,7 +80,6 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
-
     </application>
 
 </manifest>

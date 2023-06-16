@@ -3,15 +3,19 @@ package com.example.limitr.services.blockerServices
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.pm.PackageManager
 import android.view.accessibility.AccessibilityEvent
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.*
 import com.example.limitr.R
 import com.example.limitr.data.local.appdatabase.LimitrDao
 import com.example.limitr.ui.blocker.activity.ActivityBlocked
 import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -65,22 +69,21 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
 
     private fun launchBlockingActivity(appName: String, appPackage: String?) {
         val blockedIntent = Intent(this, ActivityBlocked::class.java)
+        blockedIntent.flags = FLAG_ACTIVITY_CLEAR_TOP
         blockedIntent.flags = FLAG_ACTIVITY_NEW_TASK
         blockedIntent.putExtra("appName", appName)
         blockedIntent.putExtra("appPackage", appPackage)
-        startActivity(blockedIntent)
+        ContextCompat.startActivity(this@AccessibilityService, blockedIntent, null)
     }
 
     private fun checkApp(appName: String) {
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.Main) {
             with(this@AccessibilityService) {
                 val currentTime = System.currentTimeMillis()
                 limitrDao.getRemainingTime(appName).observeForever {
                     if (it != null) {
                         val getAppName = it.appName
-                        if (it.starTime != null && it.endTime != null)
-
-                         {
+                        if (it.starTime != null && it.endTime != null) {
                             Timber.d("Inside Interval")
                             if (getAppName == appName &&
                                 currentTime >= it.starTime!! &&

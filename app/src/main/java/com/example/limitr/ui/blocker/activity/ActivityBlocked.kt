@@ -1,6 +1,7 @@
 package com.example.limitr.ui.blocker.activity
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
 import android.content.SharedPreferences
@@ -9,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
@@ -154,16 +156,33 @@ class ActivityBlocked : AppCompatActivity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        val intent = Intent(Intent.ACTION_MAIN)
-        intent.addCategory(Intent.CATEGORY_HOME)
-//        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-        startActivity(intent)
-        finishAffinity()
+        super.onBackPressed()
+
+//        val intent = Intent(Intent.ACTION_MAIN)
+//        intent.addCategory(Intent.CATEGORY_HOME)
+////        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+//        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+//        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+//        startActivity(intent)
+//        finish()
+
+        val intent = Intent(this@ActivityBlocked,MainActivity::class.java)
+        intent.flags.apply {
+            Intent.FLAG_ACTIVITY_CLEAR_TASK
+            Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+//        startActivityForResult(intent,101)
+        launcher.launch(intent)
         finish()
 
-        super.onBackPressed()
     }
+
+    private val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            Timber.d("ResultCode = ${result.resultCode} + Activity = ${Activity.RESULT_OK}")
+            if (result.resultCode == Activity.RESULT_OK) {
+            }
+        }
 
     private fun unBlockAppByCrypto() {
         val cryptoDialog = Dialog(this@ActivityBlocked)
@@ -194,5 +213,11 @@ class ActivityBlocked : AppCompatActivity() {
             }
 
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Timber.d("ONDESTROY")
+        finishAndRemoveTask()
     }
 }

@@ -21,13 +21,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
 import com.example.limitr.common.Status
-import com.example.limitr.common.showDialog
+import com.example.limitr.common.dialogShow
 import com.example.limitr.databinding.FragmentHomeBinding
 import com.example.limitr.ui.home.main_fragment.adapter.AppListViewPagerAdapter
 import com.example.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
-import com.example.limitr.utils.Constants.CRYPTO
 import com.example.limitr.utils.Constants.DAILYCRYPTOREWARD
-import com.example.limitr.utils.Constants.LASTLOGGEDDATE
 import com.example.limitr.utils.DateAndTime.getTodayDate
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
 import com.example.limitr.utils.Permissions.checkAccessibilityPermission
@@ -70,10 +68,15 @@ class FragmentHome :
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        dialog = showDialog(requireContext(), R.layout.permission_layout)
+        dialog = dialogShow(requireContext(), R.layout.permission_layout)
 
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             if (System.currentTimeMillis() < onBackPressed + 2000) {
+                val intent = Intent(Intent.ACTION_MAIN)
+                intent.addCategory(Intent.CATEGORY_HOME)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                startActivity(intent)
                 requireActivity().finish()
             } else {
                 showToast(requireContext(), getString(R.string.press_again_to_exit))

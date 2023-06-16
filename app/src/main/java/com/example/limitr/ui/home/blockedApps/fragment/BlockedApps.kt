@@ -1,5 +1,6 @@
 package com.example.limitr.ui.home.blockedApps.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +14,7 @@ import com.example.limitr.R
 import com.example.limitr.common.OnAppClickListener
 import com.example.limitr.data.local.appdatabase.model.LimitrEntities
 import com.example.limitr.databinding.BlockedAppListLayoutBinding
+import com.example.limitr.ui.blocker.activity.BlockAppActivity
 import com.example.limitr.ui.home.blockedApps.adapter.BlockedAppListAdapter
 import com.example.limitr.ui.home.blockedApps.vm.BlockedAppViewModels
 import com.example.limitr.ui.home.main_fragment.fragment.FragmentHomeDirections
@@ -66,9 +68,15 @@ class BlockedApps : Fragment(R.layout.blocked_app_list_layout) {
             appPackageName: String
         ) {
 
-            val action =
-                FragmentHomeDirections.actionFragmentHomeToFragmentBlockApp(appPackageName)
-            findNavController().navigate(action)
+//            val action =
+//                FragmentHomeDirections.actionFragmentHomeToFragmentBlockApp(appPackageName)
+//            findNavController().navigate(action)
+            val intent = Intent(requireContext(), BlockAppActivity::class.java)
+            intent.putExtra("packageName", appPackageName)
+
+            startActivity(intent)
+
+
         }
 
     }

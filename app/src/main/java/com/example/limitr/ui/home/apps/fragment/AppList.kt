@@ -6,6 +6,7 @@ import android.app.AppOpsManager
 import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -20,6 +21,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
 import com.example.limitr.databinding.ApplistLayoutBinding
 import com.example.limitr.common.OnAppClickListener
+import com.example.limitr.ui.blocker.activity.BlockAppActivity
 import com.example.limitr.ui.home.apps.adapter.AppListAdapter
 import com.example.limitr.ui.home.main_fragment.fragment.FragmentHomeDirections
 import com.example.limitr.ui.home.model.App
@@ -89,8 +91,14 @@ class AppList : Fragment(R.layout.applist_layout) {
             appPackageName: String
         ) {
 
-            val action = FragmentHomeDirections.actionFragmentHomeToFragmentBlockApp(appPackageName)
-            findNavController().navigate(action)
+//            val action = FragmentHomeDirections.actionFragmentHomeToFragmentBlockApp(appPackageName)
+//            findNavController().navigate(action)
+            val intent = Intent(requireContext(), BlockAppActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            intent.putExtra("packageName", appPackageName)
+            startActivity(intent)
         }
 
     }
