@@ -4,7 +4,7 @@ import android.app.Dialog
 import android.content.Context
 import android.view.ViewGroup
 
-fun showDialog(context: Context, layout: Int): Dialog {
+fun dialogShow(context: Context, layout: Int): Dialog {
 
     val dialog = Dialog(context)
 
