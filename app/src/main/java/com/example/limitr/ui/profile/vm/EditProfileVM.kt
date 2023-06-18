@@ -8,7 +8,8 @@ import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.limitr.resource.EditProfileState
+import com.example.limitr.R
+import com.example.limitr.resource.LimitrResource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.storage.FirebaseStorage
@@ -18,25 +19,32 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor() : ViewModel() {
-    private val firebaseAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
-    private val firebaseStorage: FirebaseStorage by lazy { FirebaseStorage.getInstance() }
+
+    @Inject
+    lateinit var firebaseAuth: FirebaseAuth
+
+    @Inject
+    lateinit var firebaseStorage: FirebaseStorage
+
+    //    private val firebaseAuth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
+//    private val firebaseStorage: FirebaseStorage by lazy { FirebaseStorage.getInstance() }
     private val editProfileState =
-        MutableLiveData<EditProfileState>(EditProfileState.Loading(0L))
+        MutableLiveData<LimitrResource>(LimitrResource.Loading(0L))
 
 
-    val _editProfileState: LiveData<EditProfileState> = editProfileState
+    val _editProfileState: LiveData<LimitrResource> = editProfileState
 
     fun uploadToFirebase(imageUri: Uri, context: Context) {
         val user = firebaseAuth.currentUser
         val storageReference = firebaseStorage.reference
-            .child("UserProfileImages")
+            .child(context.getString(R.string.UserProfileImages))
             .child(user!!.uid)
 
         storageReference.putFile(imageUri)
             .addOnSuccessListener { getDownloadImageUrl(storageReference, context) }
             .addOnProgressListener { snapshot ->
                 val progress = 100 * snapshot.bytesTransferred / snapshot.totalByteCount
-                editProfileState.value = EditProfileState.Loading(progress = progress)
+                editProfileState.value = LimitrResource.Loading(progress = progress)
             }
 
     }
@@ -60,10 +68,10 @@ class EditProfileViewModel @Inject constructor() : ViewModel() {
 
         assert(user != null)
         user!!.updateProfile(updateProfilePhoto).addOnSuccessListener {
-            Toast.makeText(context, "Profile Updated", Toast.LENGTH_SHORT).show()
-            editProfileState.value = EditProfileState.Success
+            editProfileState.value =
+                LimitrResource.Success(context.getString(R.string.profile_updated))
         }.addOnFailureListener { error ->
-            EditProfileState.Error(error.message.toString())
+            LimitrResource.Error(error)
         }
     }
 

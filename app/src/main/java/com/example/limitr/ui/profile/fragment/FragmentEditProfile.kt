@@ -16,6 +16,7 @@ import androidx.fragment.app.viewModels
 import com.example.limitr.R
 import com.example.limitr.databinding.FragmentEditProfileBinding
 import com.example.limitr.resource.EditProfileState
+import com.example.limitr.resource.LimitrResource
 import com.example.limitr.ui.profile.vm.EditProfileViewModel
 import com.example.limitr.utils.Constants.STORAGEPERMISSIONCODE
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
@@ -69,7 +70,11 @@ class FragmentEditProfile :
         fragmentEditProfileBinding.ButtonEditProfile.setOnClickListener {
             fragmentEditProfileBinding.progressBar.visibility = View.VISIBLE
             val name = fragmentEditProfileBinding.profileName.text.toString()
-            viewModel.updateNameToFirebase(name, fragmentEditProfileBinding.progressBar, requireContext())
+            viewModel.updateNameToFirebase(
+                name,
+                fragmentEditProfileBinding.progressBar,
+                requireContext()
+            )
         }
     }
 
@@ -98,20 +103,20 @@ class FragmentEditProfile :
         val progressDialog = ProgressDialog(requireContext())
         viewModel._editProfileState.observe(viewLifecycleOwner) { state ->
             when (state) {
-                is EditProfileState.Loading -> {
+                is LimitrResource.Loading<*> -> {
                     progressDialog.setCancelable(false)
                     progressDialog.show()
 
                     progressDialog.setMessage("Uploading: ${state.progress} %")
                 }
 
-                is EditProfileState.Success -> {
-                    showToast(requireContext(), "Profile Updated")
+                is LimitrResource.Success<*> -> {
+                    showToast(requireContext(), state.result.toString())
                     progressDialog.dismiss()
                 }
 
-                is EditProfileState.Error -> {
-                    showToast(requireContext(), state.errorMessage.toString())
+                is LimitrResource.Error -> {
+                    showToast(requireContext(), state.error.message.toString())
                 }
 
                 else -> {}

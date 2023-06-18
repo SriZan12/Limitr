@@ -56,4 +56,6 @@
     <string name="ok">OK</string>
     <string name="loading">Loading</string>
     <string name="account_created">Account Created</string>
+    <string name="profile_updated">Profile Updated</string>
+    <string name="UserProfileImages">UserProfileImages</string>
 </resources>
