@@ -67,10 +67,6 @@ class BlockedApps : Fragment(R.layout.blocked_app_list_layout) {
         override fun onClick(
             appPackageName: String
         ) {
-
-//            val action =
-//                FragmentHomeDirections.actionFragmentHomeToFragmentBlockApp(appPackageName)
-//            findNavController().navigate(action)
             val intent = Intent(requireContext(), BlockAppActivity::class.java)
             intent.putExtra("packageName", appPackageName)
 

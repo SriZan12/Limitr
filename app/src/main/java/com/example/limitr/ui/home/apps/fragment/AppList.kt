@@ -90,9 +90,6 @@ class AppList : Fragment(R.layout.applist_layout) {
         override fun onClick(
             appPackageName: String
         ) {
-
-//            val action = FragmentHomeDirections.actionFragmentHomeToFragmentBlockApp(appPackageName)
-//            findNavController().navigate(action)
             val intent = Intent(requireContext(), BlockAppActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
