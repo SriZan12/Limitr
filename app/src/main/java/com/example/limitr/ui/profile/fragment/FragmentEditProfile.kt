@@ -15,7 +15,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.limitr.R
 import com.example.limitr.databinding.FragmentEditProfileBinding
-import com.example.limitr.resource.EditProfileState
 import com.example.limitr.resource.LimitrResource
 import com.example.limitr.ui.profile.vm.EditProfileViewModel
 import com.example.limitr.utils.Constants.STORAGEPERMISSIONCODE
