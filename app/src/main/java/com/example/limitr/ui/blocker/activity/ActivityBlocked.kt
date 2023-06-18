@@ -17,7 +17,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.example.limitr.R
 import com.example.limitr.databinding.ActivityBlockedBinding
-import com.example.limitr.ui.blocker.vm.RemainingTimeViewModel
+import com.example.limitr.ui.blocker.vm.BlockedAppViewModel
 import com.example.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
 import com.example.limitr.ui.mainactivity.MainActivity
 import com.example.limitr.utils.Constants.REQUIREDCRYPTOFORUNBLOCK
@@ -25,7 +25,6 @@ import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
 import com.example.limitr.utils.DateAndTime.getTimer
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
 import com.example.limitr.utils.NotificationUtils.cancelNotification
-import com.example.limitr.utils.ViewUtils
 import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
 import com.example.limitr.utils.ViewUtils.showToast
 import dagger.hilt.android.AndroidEntryPoint
@@ -41,7 +40,7 @@ class ActivityBlocked : AppCompatActivity() {
     private lateinit var appName: String
     private lateinit var appPackage: String
     private lateinit var activityBlockedBinding: ActivityBlockedBinding
-    private val remainingTimeViewModel: RemainingTimeViewModel by viewModels()
+    private val blockedAppViewModel: BlockedAppViewModel by viewModels()
     private var unBlockAppStatus: Boolean = false
     private var appIcon: Drawable? = null
     private val mainViewModel: MainFragmentViewModel by viewModels()
@@ -76,6 +75,7 @@ class ActivityBlocked : AppCompatActivity() {
             unBlockAppByCrypto()
         }
 
+
     }
 
     private fun setView() {
@@ -89,7 +89,7 @@ class ActivityBlocked : AppCompatActivity() {
             activityBlockedBinding.totalCrypto.text = mainViewModel.getCrypto().first().toString()
         }
 
-        remainingTimeViewModel.getRemainingTime(appName).observe(this) {
+        blockedAppViewModel.getRemainingTime(appName).observe(this) {
 
             if (it != null) {
 
@@ -141,7 +141,7 @@ class ActivityBlocked : AppCompatActivity() {
     }
 
     private fun unBlockApp(appName: String) {
-        remainingTimeViewModel.deleteRemainingTime(appName)
+        blockedAppViewModel.deleteRemainingTime(appName)
             .observe(this) {
                 showToast(this@ActivityBlocked, "$appName is free now!")
                 removeNotificationStatus()

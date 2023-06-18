@@ -9,6 +9,7 @@
     <string name="AccessibilityService">This apps needs Accessibility Service enabled to function properly.</string>
     <string name="usageSateManagerSate">This apps needs to read app usage state to give user the proper stats.</string>
     <string name="NotificationBlock">This app needs permission to Listen the Notifications to block the Notifications.</string>
+    <string name="turn_on_internet">Please Turn on Internet!</string>
     <string name="usage">Usage:</string>
     <string name="set_timer">Set Timer</string>
     <string name="app_size">App Size:</string>
@@ -18,6 +19,7 @@
     <string name="accessibility_service_label">Accessibility Service</string>
     <string name="accessibility_service_description">Accessibility Service for App Launch.</string>
     <string name="permission_required">Permission Required</string>
+    <string name="internet_required">Internet Required</string>
     <string name="reward">Claim Crypto</string>
     <string name="notification_status">Notification Status</string>
     <string name="duration">Duration</string>
@@ -48,4 +50,10 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="dataStore">Data_Store</string>
+    <string name="invalid_email">Email Invalid</string>
+    <string name="network_Error">Network Error</string>
+    <string name="invalid_credentials">Invalid Credentials</string>
+    <string name="ok">OK</string>
+    <string name="loading">Loading</string>
+    <string name="account_created">Account Created</string>
 </resources>

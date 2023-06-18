@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/Ui_Color"
+        android:fontFamily="@font/acme"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="@string/internet_required"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center_horizontal"
+        android:src="@drawable/no_internet"
+        android:layout_margin="10dp"/>
+
+    <TextView
+        android:id="@+id/permissionOne"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        android:fontFamily="@font/acme"
+        android:gravity="center_horizontal"
+        android:padding="8dp"
+        android:text="@string/turn_on_internet"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/okInternet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/textview_design"
+        android:fontFamily="@font/acme"
+        android:padding="8dp"
+        android:text="@string/ok"
+        android:textColor="@color/white" />
+
+
+</LinearLayout>

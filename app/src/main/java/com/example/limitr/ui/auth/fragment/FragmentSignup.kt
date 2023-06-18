@@ -1,18 +1,24 @@
 package com.example.limitr.ui.auth.fragment
 
 import android.app.Activity
+import android.content.Context
+import android.net.ConnectivityManager
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.res.stringResource
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
+import com.example.limitr.common.dialogShow
 import com.example.limitr.databinding.SignupLayoutBinding
-import com.example.limitr.resource.AuthState
+import com.example.limitr.resource.LimitrResource
 import com.example.limitr.ui.auth.vm.AuthViewModel
 import com.example.limitr.utils.ViewUtils.showToast
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -20,7 +26,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.tasks.Task
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthEmailException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -36,6 +45,8 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
             updateUI()
+        }else if(!isOnline()){
+            showNoInternetDialog()
         }
     }
 
@@ -53,30 +64,53 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
         super.onViewCreated(view, savedInstanceState)
 
         fragmentSignupBinding.googleLogin.setOnClickListener {
-            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build()
 
-            googleSignInClient = GoogleSignIn.getClient(requireContext(), gso)
-            signInGoogle()
+            if (!isOnline()) {
+                showNoInternetDialog()
+            } else {
+
+                val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(getString(R.string.default_web_client_id))
+                    .requestEmail()
+                    .build()
+
+                googleSignInClient = GoogleSignIn.getClient(requireContext(), gso)
+                signInGoogle()
+            }
         }
     }
 
     private fun observeAuthState() {
-        authViewModel.authState.observe(viewLifecycleOwner) { authState ->
-            when (authState) {
-                is AuthState.Idle -> {
+        authViewModel.authResponse.observe(viewLifecycleOwner) { response ->
+            when (response) {
+                is LimitrResource.Loading<*> -> {
                 }
 
-                is AuthState.Success -> {
-                    showToast(requireContext(), "Account Created")
+                is LimitrResource.Success<*> -> {
+                    showToast(requireContext(), response.result.toString())
                     fragmentSignupBinding.progressBar.visibility = View.GONE
                     updateUI()
                 }
 
-                is AuthState.AuthError -> {
-                    authState.message?.let { showToast(requireContext(), it) }
+                is LimitrResource.Error -> {
+                    when (response.error) {
+                        is FirebaseAuthEmailException -> {
+                            showToast(requireContext(), requireContext().getString(R.string.invalid_email))
+                        }
+
+                        is FirebaseNetworkException -> {
+                            showToast(requireContext(), requireContext().getString(R.string.network_Error))
+                        }
+
+                        is FirebaseAuthInvalidCredentialsException -> {
+                            showToast(requireContext(), requireContext().getString(R.string.invalid_credentials))
+                        }
+
+                        else -> {
+                            showToast(requireContext(), response.error.message.toString())
+                        }
+                    }
+
                     fragmentSignupBinding.progressBar.visibility = View.GONE
                 }
 
@@ -90,6 +124,18 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
         val action =
             FragmentSignupDirections.actionFragmentSignupToFragmentHome()
         findNavController().navigate(action)
+    }
+
+    private fun showNoInternetDialog() {
+        val dialog = dialogShow(requireContext(), R.layout.no_internet_dialog)
+
+        dialog.show()
+
+        val okButton: Button = dialog.findViewById(R.id.okInternet)
+
+        okButton.setOnClickListener {
+            dialog.dismiss()
+        }
     }
 
     private fun signInGoogle() {
@@ -110,6 +156,15 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
                 handleResults(task)
             }
         }
+
+    private fun isOnline(): Boolean {
+        val connectivityManger =
+            requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        connectivityManger.activeNetworkInfo.also {
+            return it != null && it.isConnected
+        }
+    }
+
 
     private fun handleResults(task: Task<GoogleSignInAccount>) {
         if (task.isSuccessful) {
