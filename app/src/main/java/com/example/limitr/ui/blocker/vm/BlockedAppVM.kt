@@ -9,7 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class BlockedAppViewModel @Inject constructor(private val remainingTimeRepository: RemainingTimeRepository) :
+class BlockedAppVM @Inject constructor(private val remainingTimeRepository: RemainingTimeRepository) :
     ViewModel() {
 
 

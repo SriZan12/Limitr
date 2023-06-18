@@ -44,7 +44,7 @@ object NotificationUtils {
         val startNotificationIntent = Intent(context, TimerStartNotification::class.java)
         startNotificationIntent.putExtra("title", appName)
         startNotificationIntent.putExtra("text", " Blocked For ${formatTimeInWords(blockedTime)}")
-        startNotificationIntent.putExtra("notificationId", notificationId)
+        startNotificationIntent.putExtra("notificationId", notificationId.toInt())
         startNotificationIntent.putExtra("appIcon", appIcon)
 
         val pendingIntent =

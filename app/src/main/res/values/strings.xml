@@ -58,4 +58,6 @@
     <string name="account_created">Account Created</string>
     <string name="profile_updated">Profile Updated</string>
     <string name="UserProfileImages">UserProfileImages</string>
+    <string name="packageName">packageName</string>
+    <string name="appName">appName</string>
 </resources>

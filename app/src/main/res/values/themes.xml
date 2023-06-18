@@ -31,7 +31,14 @@
         <item name="android:datePickerStyle">@style/MyTimePickerStyle</item>
     </style>
 
-        <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="CustomSwitchStyle" parent="Widget.AppCompat.CompoundButton.Switch">
+        <item name="colorControlActivated">@color/white</item>
+        <item name="colorSwitchThumbNormal">@color/white</item>
+        <item name="android:alpha">1.0</item>
+    </style>
+
+
+    <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
             <item name="android:windowBackground">@drawable/splash_drawable</item>
             <item name="android:statusBarColor">@color/Ui_Color</item>
         </style>

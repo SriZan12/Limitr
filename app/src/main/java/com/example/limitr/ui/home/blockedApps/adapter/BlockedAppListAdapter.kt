@@ -8,7 +8,7 @@ import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.limitr.R
-import com.example.limitr.common.OnAppClickListener
+import com.example.limitr.utils.OnAppClickListener
 import com.example.limitr.data.local.appdatabase.model.LimitrEntities
 import com.example.limitr.databinding.ItemAppBlockedBinding
 import com.example.limitr.utils.DateAndTime.getIntervalForBlocking

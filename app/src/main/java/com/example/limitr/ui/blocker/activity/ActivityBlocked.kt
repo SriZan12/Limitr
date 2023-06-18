@@ -8,8 +8,11 @@ import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
@@ -17,7 +20,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.example.limitr.R
 import com.example.limitr.databinding.ActivityBlockedBinding
-import com.example.limitr.ui.blocker.vm.BlockedAppViewModel
+import com.example.limitr.ui.blocker.vm.BlockedAppVM
 import com.example.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
 import com.example.limitr.ui.mainactivity.MainActivity
 import com.example.limitr.utils.Constants.REQUIREDCRYPTOFORUNBLOCK
@@ -25,8 +28,10 @@ import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
 import com.example.limitr.utils.DateAndTime.getTimer
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
 import com.example.limitr.utils.NotificationUtils.cancelNotification
+import com.example.limitr.utils.Permissions
 import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
 import com.example.limitr.utils.ViewUtils.showToast
+import com.example.limitr.utils.dialogShow
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -40,9 +45,10 @@ class ActivityBlocked : AppCompatActivity() {
     private lateinit var appName: String
     private lateinit var appPackage: String
     private lateinit var activityBlockedBinding: ActivityBlockedBinding
-    private val blockedAppViewModel: BlockedAppViewModel by viewModels()
+    private val blockedAppVM: BlockedAppVM by viewModels()
     private var unBlockAppStatus: Boolean = false
     private var appIcon: Drawable? = null
+    private lateinit var dialog: Dialog
     private val mainViewModel: MainFragmentViewModel by viewModels()
 
     @Inject
@@ -58,8 +64,14 @@ class ActivityBlocked : AppCompatActivity() {
         activityBlockedBinding = DataBindingUtil.setContentView(this, R.layout.activity_blocked)
         setContentView(activityBlockedBinding.root)
 
-        appName = intent.getStringExtra("appName").toString()
-        appPackage = intent.getStringExtra("appPackage").toString()
+        dialog =
+            dialogShow(
+                this@ActivityBlocked,
+                R.layout.notification_dialog
+            )
+
+        appName = intent.getStringExtra(this.getString(R.string.appName)).toString()
+        appPackage = intent.getStringExtra(this.getString(R.string.packageName)).toString()
         appIcon = getAppIconByPackageName(this, appPackage)
 
         setView()
@@ -75,6 +87,20 @@ class ActivityBlocked : AppCompatActivity() {
             unBlockAppByCrypto()
         }
 
+        activityBlockedBinding.blockNotification.setOnClickListener {
+
+            if (!Permissions.isNotificationServiceEnable(this@ActivityBlocked)) {
+                showNotificationDialog()
+            } else {
+
+                if (activityBlockedBinding.blockNotification.isChecked) {
+                    setNotificationStatus(true)
+
+                } else if (!activityBlockedBinding.blockNotification.isChecked) {
+                    setNotificationStatus(false)
+                }
+            }
+        }
 
     }
 
@@ -89,7 +115,7 @@ class ActivityBlocked : AppCompatActivity() {
             activityBlockedBinding.totalCrypto.text = mainViewModel.getCrypto().first().toString()
         }
 
-        blockedAppViewModel.getRemainingTime(appName).observe(this) {
+        blockedAppVM.getRemainingTime(appName).observe(this) {
 
             if (it != null) {
 
@@ -141,7 +167,7 @@ class ActivityBlocked : AppCompatActivity() {
     }
 
     private fun unBlockApp(appName: String) {
-        blockedAppViewModel.deleteRemainingTime(appName)
+        blockedAppVM.deleteRemainingTime(appName)
             .observe(this) {
                 showToast(this@ActivityBlocked, "$appName is free now!")
                 removeNotificationStatus()
@@ -154,24 +180,22 @@ class ActivityBlocked : AppCompatActivity() {
         editor.apply()
     }
 
+    private fun setNotificationStatus(status: Boolean) {
+        editor.putBoolean(appName, status)
+        editor.apply()
+        activityBlockedBinding.blockNotification.isChecked = status
+    }
+
+
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         super.onBackPressed()
 
-//        val intent = Intent(Intent.ACTION_MAIN)
-//        intent.addCategory(Intent.CATEGORY_HOME)
-////        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-//        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
-//        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-//        startActivity(intent)
-//        finish()
-
-        val intent = Intent(this@ActivityBlocked,MainActivity::class.java)
+        val intent = Intent(this@ActivityBlocked, MainActivity::class.java)
         intent.flags.apply {
             Intent.FLAG_ACTIVITY_CLEAR_TASK
             Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
-//        startActivityForResult(intent,101)
         launcher.launch(intent)
         finish()
 
@@ -215,9 +239,32 @@ class ActivityBlocked : AppCompatActivity() {
         }
     }
 
+    private fun showNotificationDialog() {
+
+        val grantPermission: TextView = dialog.findViewById(R.id.grantPermission)
+        val cancel: ImageView = dialog.findViewById(R.id.cancel)
+
+        grantPermission.setOnClickListener {
+            gotoSettings()
+        }
+
+        cancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun gotoSettings() {
+        val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+        intent.apply {
+            Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        Timber.d("ONDESTROY")
         finishAndRemoveTask()
     }
 }

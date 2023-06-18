@@ -11,7 +11,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.limitr.R
 import com.example.limitr.databinding.ItemAppBinding
-import com.example.limitr.common.OnAppClickListener
+import com.example.limitr.utils.OnAppClickListener
 import com.example.limitr.ui.home.model.App
 import com.example.limitr.utils.ViewUtils.animateProgressBar
 import javax.inject.Inject

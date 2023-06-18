@@ -20,8 +20,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
-import com.example.limitr.common.Status
-import com.example.limitr.common.dialogShow
+import com.example.limitr.utils.Status
+import com.example.limitr.utils.dialogShow
 import com.example.limitr.databinding.FragmentHomeBinding
 import com.example.limitr.ui.home.main_fragment.adapter.AppListViewPagerAdapter
 import com.example.limitr.ui.home.main_fragment.vm.MainFragmentViewModel

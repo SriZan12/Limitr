@@ -1,4 +1,4 @@
-package com.example.limitr.common
+package com.example.limitr.utils
 interface OnAppClickListener {
 
     fun onClick(

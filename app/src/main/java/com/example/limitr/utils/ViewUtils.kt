@@ -3,6 +3,7 @@ package com.example.limitr.utils
 import android.animation.ObjectAnimator
 import android.app.TimePickerDialog
 import android.content.Context
+import android.content.SharedPreferences
 import  android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.ApplicationInfoFlags
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import java.util.*
+import javax.inject.Inject
 
 
 object ViewUtils {

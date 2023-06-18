@@ -12,6 +12,7 @@ import androidx.lifecycle.*
 import com.example.limitr.R
 import com.example.limitr.data.local.appdatabase.LimitrDao
 import com.example.limitr.ui.blocker.activity.ActivityBlocked
+import com.example.limitr.ui.blocker.activity.BlockAppActivity
 import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -71,9 +72,9 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
         val blockedIntent = Intent(this, ActivityBlocked::class.java)
         blockedIntent.flags = FLAG_ACTIVITY_CLEAR_TOP
         blockedIntent.flags = FLAG_ACTIVITY_NEW_TASK
-        blockedIntent.putExtra("appName", appName)
-        blockedIntent.putExtra("appPackage", appPackage)
-        ContextCompat.startActivity(this@AccessibilityService, blockedIntent, null)
+        blockedIntent.putExtra(this.getString(R.string.appName), appName)
+        blockedIntent.putExtra(this.getString(R.string.packageName), appPackage)
+        this.startActivity(blockedIntent)
     }
 
     private fun checkApp(appName: String) {

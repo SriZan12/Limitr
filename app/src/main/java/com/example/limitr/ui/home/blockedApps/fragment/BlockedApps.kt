@@ -9,16 +9,15 @@ import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
-import com.example.limitr.common.OnAppClickListener
+import com.example.limitr.utils.OnAppClickListener
 import com.example.limitr.data.local.appdatabase.model.LimitrEntities
 import com.example.limitr.databinding.BlockedAppListLayoutBinding
 import com.example.limitr.ui.blocker.activity.BlockAppActivity
 import com.example.limitr.ui.home.blockedApps.adapter.BlockedAppListAdapter
 import com.example.limitr.ui.home.blockedApps.vm.BlockedAppViewModels
-import com.example.limitr.ui.home.main_fragment.fragment.FragmentHomeDirections
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -50,7 +49,9 @@ class BlockedApps : Fragment(R.layout.blocked_app_list_layout) {
                 blockedAppsList.clear()
                 for (apps in it) {
                     blockedAppsList.add(apps)
+                    Timber.d("BLOCKEDAPPS = ${apps.appName}")
                 }
+
                 blockedAppListAdapter.setBlockedAppList(
                     requireContext(),
                     blockedAppsList,
@@ -68,7 +69,7 @@ class BlockedApps : Fragment(R.layout.blocked_app_list_layout) {
             appPackageName: String
         ) {
             val intent = Intent(requireContext(), BlockAppActivity::class.java)
-            intent.putExtra("packageName", appPackageName)
+            intent.putExtra(requireContext().getString(R.string.packageName), appPackageName)
 
             startActivity(intent)
 
