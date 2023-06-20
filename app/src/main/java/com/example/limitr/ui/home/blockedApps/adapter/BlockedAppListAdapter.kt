@@ -3,6 +3,7 @@ package com.example.limitr.ui.home.blockedApps.adapter
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
@@ -14,6 +15,7 @@ import com.example.limitr.databinding.ItemAppBlockedBinding
 import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
 import com.example.limitr.utils.DateAndTime.getTimer
 import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
+import com.example.limitr.utils.ViewUtils.setFadeInAnimation
 import javax.inject.Inject
 
 class BlockedAppListAdapter @Inject constructor() :
@@ -51,16 +53,22 @@ class BlockedAppListAdapter @Inject constructor() :
     }
 
     override fun onBindViewHolder(holder: BlockedAppViewHolder, position: Int) {
-        holder.bind(blockedAppsList[position])
+        holder.bind(
+            appInfo = blockedAppsList[position],
+            view = holder.itemView,
+            position = position
+        )
     }
 
     inner class BlockedAppViewHolder(val binding: ItemAppBlockedBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         @SuppressLint("SetTextI18n")
-        fun bind(appInfo: LimitrEntities) {
+        fun bind(appInfo: LimitrEntities, view: View, position: Int) {
             with(binding) {
                 appNameTv.text = appInfo.appName
+                setFadeInAnimation(view = view, position = position)
+
                 if (appInfo.starTime != null && appInfo.endTime != null) {
                     interval.isVisible = true
                     getIntervalForBlocking(

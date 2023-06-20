@@ -3,23 +3,19 @@ package com.example.limitr.utils
 import android.animation.ObjectAnimator
 import android.app.TimePickerDialog
 import android.content.Context
-import android.content.SharedPreferences
 import  android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.PackageManager.ApplicationInfoFlags
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.view.View
+import android.view.animation.AlphaAnimation
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.TimePicker
 import android.widget.Toast
-import androidx.datastore.preferences.core.Preferences
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import java.util.*
-import javax.inject.Inject
-
 
 object ViewUtils {
 
@@ -89,6 +85,14 @@ object ViewUtils {
 
     fun showToast(context: Context, message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
+    fun setFadeInAnimation(view: View, position: Int) {
+        val animation = AlphaAnimation(0f, 1f)
+        animation.duration = 500
+        animation.startOffset = (position * 10).toLong()
+
+        view.startAnimation(animation)
     }
 
 

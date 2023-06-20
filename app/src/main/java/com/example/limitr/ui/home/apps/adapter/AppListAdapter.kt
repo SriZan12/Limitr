@@ -4,7 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AlphaAnimation
+import android.view.animation.Animation
+import android.view.animation.TranslateAnimation
 import android.widget.ProgressBar
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
@@ -14,6 +18,7 @@ import com.example.limitr.databinding.ItemAppBinding
 import com.example.limitr.utils.OnAppClickListener
 import com.example.limitr.ui.home.model.App
 import com.example.limitr.utils.ViewUtils.animateProgressBar
+import com.example.limitr.utils.ViewUtils.setFadeInAnimation
 import javax.inject.Inject
 
 class AppListAdapter @Inject constructor() :
@@ -50,7 +55,7 @@ class AppListAdapter @Inject constructor() :
     }
 
     override fun onBindViewHolder(holder: AppListViewHolder, position: Int) {
-        holder.bind(appsList[position])
+        holder.bind(appsList[position], holder.itemView, position)
     }
 
     override fun getItemCount(): Int {
@@ -61,12 +66,17 @@ class AppListAdapter @Inject constructor() :
         RecyclerView.ViewHolder(binding.root) {
 
         @SuppressLint("SetTextI18n")
-        fun bind(appInfo: App?) {
+        fun bind(appInfo: App?, itemView: View, position: Int) {
             with(binding) {
+
+                setFadeInAnimation(view = itemView, position = position)
+
                 appNameTv.text = appInfo?.appName
                 iconImg.setImageDrawable(appInfo?.appIcon)
                 usageDurationTv.text = appInfo?.usageDuration
                 usagePercTv.text = appInfo?.usagePercentage.toString() + "%"
+
+//                slideInAnimation(view = itemView, position = position)
 
                 if (appInfo != null) {
                     animateProgressBar(progressBar, appInfo.usagePercentage)
@@ -97,5 +107,14 @@ class AppListAdapter @Inject constructor() :
 
             }
         }
+
+//        private fun slideInAnimation(view: View, position: Int) {
+//            val animation = TranslateAnimation(view.width.toFloat(), 0f, 0f, 0f)
+//            animation.duration = 500
+//            animation.startOffset = (position * 5).toLong()
+//
+//            view.startAnimation(animation)
+//        }
+
     }
 }
