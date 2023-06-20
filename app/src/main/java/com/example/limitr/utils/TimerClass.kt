@@ -12,7 +12,6 @@ class TimerClass(private val timerText: TextView, duration: Long) : CountDownTim
     1000
 ) {
 
-
     @SuppressLint("SetTextI18n")
     override fun onTick(millisUntilFinished: Long) {
 

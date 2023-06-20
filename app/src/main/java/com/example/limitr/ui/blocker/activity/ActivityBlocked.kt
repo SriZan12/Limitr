@@ -203,9 +203,6 @@ class ActivityBlocked : AppCompatActivity() {
 
     private val launcher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            Timber.d("ResultCode = ${result.resultCode} + Activity = ${Activity.RESULT_OK}")
-            if (result.resultCode == Activity.RESULT_OK) {
-            }
         }
 
     private fun unBlockAppByCrypto() {

@@ -23,6 +23,7 @@ preferencesDataStore(name = "Data_Store")
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+//    singleton
 
     @Provides
     @Singleton
