@@ -7,9 +7,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 /*
-n Dagger and Hilt,
+ Dagger and Hilt,
  a module is a class that defines how to create or provide instances of a certain type of object.
  */
 
@@ -18,16 +19,19 @@ n Dagger and Hilt,
 object AuthModule {
 
     @Provides
+    @Singleton
     fun provideFirebaseAuth(): FirebaseAuth {
         return FirebaseAuth.getInstance()
     }
 
     @Provides
+    @Singleton
     fun providesAuthRepository(firebaseAuth: FirebaseAuth): AuthRepository {
         return AuthRepository(firebaseAuth)
     }
 
     @Provides
+    @Singleton
     fun providesFirebaseStorage(): FirebaseStorage {
         return FirebaseStorage.getInstance()
     }

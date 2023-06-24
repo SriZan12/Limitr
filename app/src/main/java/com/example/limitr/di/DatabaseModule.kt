@@ -39,11 +39,13 @@ object DatabaseModule {
     }
 
     @Provides
+    @Singleton
     fun providesLimitrDao(limitrDatabase: LimitrDatabase): LimitrDao {
         return limitrDatabase.getLimitrDao()
     }
 
     @Provides
+    @Singleton
     fun getSharedPrefDb(@ApplicationContext context: Context): SharedPreferences {
         return context.getSharedPreferences(
             context.getString(R.string.my_sharedPref),
@@ -52,11 +54,13 @@ object DatabaseModule {
     }
 
     @Provides
+    @Singleton
     fun getSharedPrefEditor(sharedPreferences: SharedPreferences): SharedPreferences.Editor {
         return sharedPreferences.edit()
     }
 
     @Provides
+    @Singleton
     fun getDataStore(@ApplicationContext context: Context): DataStore<androidx.datastore.preferences.core.Preferences> {
         return context.dataStore
     }
