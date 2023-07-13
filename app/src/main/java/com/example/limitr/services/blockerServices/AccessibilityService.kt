@@ -80,9 +80,11 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
         applicationContext.startActivity(blockedIntent)
     }
 
-    fun sendInterceptIntent(context: Context) {
+    private fun sendInterceptIntent(context: Context,appName: String, appPackage: String?) {
         val intent = Intent(this, AppFoundReceiver::class.java)
-        context.sendBroadcast(intent)
+        intent.putExtra(this.getString(R.string.appName), appName)
+        intent.putExtra(this.getString(R.string.packageName), appPackage)
+        this.sendBroadcast(intent)
     }
 
 //    private fun sendAppBlockNotification(appName: String, appPackage: String?) {
@@ -149,12 +151,14 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
                                 currentTime <= it.endTime!!
                             ) {
 //                                launchBlockingActivity(appName, it.appPackage)
-                                performGlobalAction(GLOBAL_ACTION_BACK)
+//                                performGlobalAction(GLOBAL_ACTION_BACK)
 //                                sendAppBlockNotification(appName, it.appPackage)
+                                sendInterceptIntent(this@AccessibilityService,appName,it.appPackage)
                             }
                         } else {
 //                            launchBlockingActivity(appName, it.appPackage)
-                            performGlobalAction(GLOBAL_ACTION_BACK)
+//                            performGlobalAction(GLOBAL_ACTION_BACK)
+                            sendInterceptIntent(this@AccessibilityService,appName,it.appPackage)
 //                            sendAppBlockNotification(appName, it.appPackage)
 
                         }
