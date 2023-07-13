@@ -12,7 +12,7 @@ import com.example.limitr.utils.DateAndTime.formatTimeInWords
 
 object NotificationUtils {
 
-    private fun createNotificationChannel(context: Context, appName: String) {
+     fun createNotificationChannel(context: Context, appName: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "LimitrNotification"
             val descriptionText = "LimitrNotifies"

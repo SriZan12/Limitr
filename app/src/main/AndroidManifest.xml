@@ -60,6 +60,18 @@
             android:name=".services.notifications.TimerEndNotification"
             android:enabled="true" />
 
+        <receiver
+            android:name=".services.blockerServices.ShowBlockNotification"/>
+
+        <receiver android:name=".services.blockerServices.AppFoundReceiver"
+            android:exported="true"
+            android:enabled="true">
+            <intent-filter>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </receiver>
+
+
         <service
             android:name=".services.blockerServices.AccessibilityService"
             android:exported="true"
