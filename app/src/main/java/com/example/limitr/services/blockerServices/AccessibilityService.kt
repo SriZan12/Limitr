@@ -2,27 +2,29 @@ package com.example.limitr.services.blockerServices
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.pm.PackageManager
+import android.graphics.PixelFormat
+import android.os.Build
+import android.view.LayoutInflater
+import android.view.View
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
-import androidx.core.graphics.drawable.toBitmap
+import android.widget.TextView
 import androidx.lifecycle.*
 import com.example.limitr.R
 import com.example.limitr.data.local.appdatabase.LimitrDao
 import com.example.limitr.ui.blocker.activity.ActivityBlocked
-import com.example.limitr.utils.NotificationUtils.createNotificationChannel
-import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
 import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.system.exitProcess
 
 
 @AndroidEntryPoint
@@ -30,6 +32,10 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
     @Inject
     lateinit var limitrDao: LimitrDao
     private lateinit var lifecycleRegistry: LifecycleRegistry
+    private var windowManager: WindowManager? = null
+    private var overlayView: View? = null
+    private var isOverlayShowing: Boolean = false
+
 
     override fun onCreate() {
         super.onCreate()
@@ -80,7 +86,7 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
         applicationContext.startActivity(blockedIntent)
     }
 
-    private fun sendInterceptIntent(context: Context,appName: String, appPackage: String?) {
+    private fun sendInterceptIntent(context: Context, appName: String, appPackage: String?) {
         val intent = Intent(this, AppFoundReceiver::class.java)
         intent.putExtra(this.getString(R.string.appName), appName)
         intent.putExtra(this.getString(R.string.packageName), appPackage)
@@ -136,6 +142,45 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
 //        }
 //    }
 
+    private fun showOverlayScreen(appName: String, appPackage: String?) {
+        if (!isOverlayShowing) {
+            // Create and configure your overlay view here
+            overlayView = LayoutInflater.from(this).inflate(R.layout.overlay, null)
+
+            // Set the layout params for the overlay view
+            val params = WindowManager.LayoutParams(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                else
+                    WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                PixelFormat.TRANSLUCENT
+            )
+
+            // Add the overlay view to the window manager
+            windowManager = this.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            windowManager!!.addView(overlayView, params)
+
+            val textView: TextView = overlayView!!.findViewById(R.id.appBlock)
+            textView.text = "$appName is Currently Blocked"
+
+            isOverlayShowing = true
+            Timber.d("INSIDE OVERLAY")
+        }
+    }
+
+
+    private fun removeOverlayView(appName: String, appPackage: String?) {
+        if (isOverlayShowing && overlayView != null && windowManager != null) {
+            windowManager!!.removeView(overlayView)
+            isOverlayShowing = false
+            launchBlockingActivity(appName,appPackage)
+        }
+    }
+
+
 
     private fun checkApp(appName: String) {
         lifecycleScope.launch(Dispatchers.Main) {
@@ -153,13 +198,15 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
 //                                launchBlockingActivity(appName, it.appPackage)
 //                                performGlobalAction(GLOBAL_ACTION_BACK)
 //                                sendAppBlockNotification(appName, it.appPackage)
-                                sendInterceptIntent(this@AccessibilityService,appName,it.appPackage)
+//                                sendInterceptIntent(this@AccessibilityService,appName,it.appPackage)
+                                showOverlayScreen(appName, it.appPackage)
                             }
                         } else {
 //                            launchBlockingActivity(appName, it.appPackage)
 //                            performGlobalAction(GLOBAL_ACTION_BACK)
-                            sendInterceptIntent(this@AccessibilityService,appName,it.appPackage)
+//                            sendInterceptIntent(this@AccessibilityService,appName,it.appPackage)
 //                            sendAppBlockNotification(appName, it.appPackage)
+                            showOverlayScreen(appName, it.appPackage)
 
                         }
                     }
@@ -170,7 +217,6 @@ class AccessibilityService : AccessibilityService(), LifecycleOwner {
 
     override fun onDestroy() {
         super.onDestroy()
-
         lifecycleRegistry.markState(Lifecycle.State.DESTROYED)
     }
 
