@@ -29,7 +29,8 @@
         android:padding="6dp"
         app:layout_constraintBottom_toBottomOf="@+id/textView2"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/textView2" />
+        app:layout_constraintTop_toTopOf="@+id/textView2"
+        android:contentDescription="@string/cancel" />
 
     <LinearLayout
         android:id="@+id/linearLayout5"

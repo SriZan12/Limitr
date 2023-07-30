@@ -12,7 +12,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.limitr.R
 import com.example.limitr.ui.blocker.activity.BlockAppActivity
-import com.example.limitr.ui.mainactivity.MainActivity
 
 class ShowBlockNotification : BroadcastReceiver() {
 
@@ -29,7 +28,8 @@ class ShowBlockNotification : BroadcastReceiver() {
         tapIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 
         val pendingIntent =
-            PendingIntent.getActivity(context, 104, tapIntent, PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.getActivity(
+                context, 104, tapIntent, PendingIntent.FLAG_UPDATE_CURRENT
             )
         val notificationBuilder = NotificationCompat.Builder(
             context!!,
@@ -54,7 +54,5 @@ class ShowBlockNotification : BroadcastReceiver() {
             }
 
         }
-
-
     }
 }

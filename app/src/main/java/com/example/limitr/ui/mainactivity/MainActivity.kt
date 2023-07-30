@@ -12,6 +12,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.limitr.R
 import com.example.limitr.databinding.ActivityMainBinding
+import com.example.limitr.services.blockerServices.OVERLAY_DISPLAYED
 import com.example.limitr.utils.ViewUtils
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -55,4 +56,11 @@ class MainActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         return findNavController(R.id.nav_host_fragment).navigateUp()
     }
+
+/*    override fun onDestroy() {
+        super.onDestroy()
+
+        OVERLAY_DISPLAYED = false
+
+    }*/
 }

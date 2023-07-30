@@ -1,12 +1,10 @@
 package com.example.limitr.ui.blocker.activity
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
 import android.view.ViewGroup
@@ -15,11 +13,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.example.limitr.R
 import com.example.limitr.databinding.ActivityBlockedBinding
+import com.example.limitr.services.blockerServices.OVERLAY_DISPLAYED
 import com.example.limitr.ui.blocker.vm.BlockedAppVM
 import com.example.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
 import com.example.limitr.ui.mainactivity.MainActivity
@@ -28,6 +28,7 @@ import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
 import com.example.limitr.utils.DateAndTime.getTimer
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
 import com.example.limitr.utils.NotificationUtils.cancelNotification
+import com.example.limitr.utils.OverlayScreen
 import com.example.limitr.utils.Permissions
 import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
 import com.example.limitr.utils.ViewUtils.showToast
@@ -57,12 +58,24 @@ class ActivityBlocked : AppCompatActivity() {
     @Inject
     lateinit var editor: SharedPreferences.Editor
 
+    @Inject
+    lateinit var overlayScreen: OverlayScreen
+
+    override fun onResume() {
+        super.onResume()
+
+        overlayScreen.removeOverlayView()
+    }
+
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityBlockedBinding = DataBindingUtil.setContentView(this, R.layout.activity_blocked)
         setContentView(activityBlockedBinding.root)
+
+        overlayScreen.removeOverlayView()
+
 
         dialog =
             dialogShow(
@@ -191,6 +204,8 @@ class ActivityBlocked : AppCompatActivity() {
     override fun onBackPressed() {
         super.onBackPressed()
 
+        OVERLAY_DISPLAYED = false
+
         val intent = Intent(this@ActivityBlocked, MainActivity::class.java)
         intent.flags.apply {
             Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -217,6 +232,7 @@ class ActivityBlocked : AppCompatActivity() {
         }.show()
 
         val unBlockButton: Button = cryptoDialog.findViewById(R.id.unBlockApp)
+        val cancel: ImageView = cryptoDialog.findViewById(R.id.cancel)
 
         unBlockButton.setOnClickListener {
             lifecycleScope.launch(Dispatchers.Main) {
@@ -233,6 +249,10 @@ class ActivityBlocked : AppCompatActivity() {
                 }
             }
 
+        }
+
+        cancel.setOnClickListener {
+            cryptoDialog.dismiss()
         }
     }
 
@@ -262,6 +282,7 @@ class ActivityBlocked : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        finishAndRemoveTask()
+
+        OVERLAY_DISPLAYED = false
     }
 }

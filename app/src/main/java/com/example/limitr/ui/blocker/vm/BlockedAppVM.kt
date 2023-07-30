@@ -33,5 +33,9 @@ class BlockedAppVM @Inject constructor(private val remainingTimeRepository: Rema
         }
     }
 
+//    fun getAppName(appName: String): LimitrEntities? {
+//        return remainingTimeRepository.getAppName(appName)
+//    }
+
 
 }

@@ -71,6 +71,7 @@ class BlockedAppListAdapter @Inject constructor() :
 
                 if (appInfo.starTime != null && appInfo.endTime != null) {
                     interval.isVisible = true
+                    timerText.isVisible = true
                     getIntervalForBlocking(
                         appInfo.starTime,
                         appInfo.endTime,

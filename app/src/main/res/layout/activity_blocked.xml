@@ -39,6 +39,7 @@
                 android:gravity="center_vertical|center|center_horizontal"
                 android:padding="10dp"
                 android:text="@string/app_blocked"
+                android:fontFamily="@font/acme"
                 android:textColor="@color/white"
                 android:textSize="24sp"
                 android:textStyle="bold"
@@ -182,6 +183,7 @@
                     android:layout_gravity="center_horizontal"
                     android:gravity="center_horizontal"
                     android:text="@string/set_timer"
+                    android:fontFamily="@font/acme"
                     android:textAllCaps="true"
                     android:textColor="@color/black"
                     android:textSize="11sp"
@@ -237,6 +239,7 @@
                     android:layout_gravity="center_horizontal"
                     android:textAllCaps="true"
                     android:textColor="@color/black"
+                    android:fontFamily="@font/acme"
                     android:textSize="14sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -251,6 +254,7 @@
                 android:gravity="center"
                 android:padding="8dp"
                 android:text="@string/unblock_app"
+                android:fontFamily="@font/acme"
                 android:textColor="@color/black"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

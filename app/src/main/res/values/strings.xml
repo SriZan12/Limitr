@@ -60,4 +60,8 @@
     <string name="UserProfileImages">UserProfileImages</string>
     <string name="packageName">packageName</string>
     <string name="appName">appName</string>
+    <string name="click_here_for_more_details">Click Here For More Details</string>
+    <string name="exit">EXIT</string>
+    <string name="icon_image">Icon Image</string>
+    <string name="cancel">cancel</string>
 </resources>
