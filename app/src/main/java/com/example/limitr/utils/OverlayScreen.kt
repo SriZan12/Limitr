@@ -19,7 +19,12 @@ class OverlayScreen {
     private var isOverlayShowing: Boolean = false
 
     @SuppressLint("SetTextI18n")
-    fun showOverlayScreen(appName: String, context: Context, onButtonClicked: () -> Unit) {
+    fun showOverlayScreen(
+        appName: String,
+        context: Context,
+        onButtonClicked: () -> Unit,
+        onExit: () -> Unit
+    ) {
         if (!isOverlayShowing) {
             overlayView = LayoutInflater.from(context).inflate(R.layout.overlay, null)
 
@@ -45,9 +50,14 @@ class OverlayScreen {
             textView.text = "$appName is Currently Blocked"
 
             val button: Button = overlayView!!.findViewById(R.id.goToActivityBlocked)
+            val exitButton: Button = overlayView!!.findViewById(R.id.exit)
 
             button.setOnClickListener {
                 onButtonClicked()
+            }
+
+            exitButton.setOnClickListener {
+                onExit()
             }
 
             isOverlayShowing = true

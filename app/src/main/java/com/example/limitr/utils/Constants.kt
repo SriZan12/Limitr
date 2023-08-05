@@ -11,9 +11,12 @@ object Constants {
 
 //   Rewards
    const val REQUIREDCRYPTOFORUNBLOCK: Int = 2
-   const val DAILYCRYPTOREWARD : Int = 1
+   const val DAILYCRYPTOREWARD : Int = 100
 
 //   DataStore Keys
    val CRYPTO = intPreferencesKey("Crypto")
    val LASTLOGGEDDATE = stringPreferencesKey("last_logged_date")
+
+   var OVERLAY_DISPLAYED = false
+
 }

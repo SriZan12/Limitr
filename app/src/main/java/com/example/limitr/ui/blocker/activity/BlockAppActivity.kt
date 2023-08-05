@@ -1,12 +1,10 @@
 package com.example.limitr.ui.blocker.activity
 
 import android.app.Dialog
-import android.content.BroadcastReceiver
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
@@ -15,6 +13,7 @@ import android.widget.NumberPicker
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
@@ -22,7 +21,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.lifecycleScope
 import com.example.limitr.R
-import com.example.limitr.utils.dialogShow
 import com.example.limitr.data.local.appdatabase.model.LimitrEntities
 import com.example.limitr.databinding.ActivityBlockAppBinding
 import com.example.limitr.ui.blocker.vm.BlockedAppVM
@@ -32,12 +30,12 @@ import com.example.limitr.utils.DateAndTime
 import com.example.limitr.utils.NotificationUtils
 import com.example.limitr.utils.Permissions
 import com.example.limitr.utils.ViewUtils
+import com.example.limitr.utils.dialogShow
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import pub.devrel.easypermissions.EasyPermissions
-import timber.log.Timber
 import java.util.Date
 import javax.inject.Inject
 

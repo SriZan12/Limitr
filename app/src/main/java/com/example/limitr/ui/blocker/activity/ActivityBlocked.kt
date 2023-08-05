@@ -19,10 +19,10 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.example.limitr.R
 import com.example.limitr.databinding.ActivityBlockedBinding
-import com.example.limitr.services.blockerServices.OVERLAY_DISPLAYED
 import com.example.limitr.ui.blocker.vm.BlockedAppVM
 import com.example.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
 import com.example.limitr.ui.mainactivity.MainActivity
+import com.example.limitr.utils.Constants.OVERLAY_DISPLAYED
 import com.example.limitr.utils.Constants.REQUIREDCRYPTOFORUNBLOCK
 import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
 import com.example.limitr.utils.DateAndTime.getTimer

@@ -6,27 +6,40 @@ import android.content.Context
 import android.content.Intent
 import android.view.accessibility.AccessibilityEvent
 import com.example.limitr.R
+import com.example.limitr.data.local.appdatabase.LimitrDao
+import com.example.limitr.ui.blocker.activity.ActivityBlocked
+import com.example.limitr.utils.Constants.OVERLAY_DISPLAYED
+import com.example.limitr.utils.OverlayScreen
 import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
+import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
+import javax.inject.Inject
 
 
+@AndroidEntryPoint
 class AppLaunchDetector : AccessibilityService() {
+
+    @Inject
+    lateinit var overlayScreen: OverlayScreen
+
+    @Inject
+    lateinit var limitrDao: LimitrDao
+
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
 
-        if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+        if (!OVERLAY_DISPLAYED) {
+            if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
 
-            val launchedAppPackage = event.packageName as String
-            val appName = getAppNameByPackageName(context = this, packageName = launchedAppPackage)
+                val launchedAppPackage = event.packageName as String
+                val appName =
+                    getAppNameByPackageName(context = this, packageName = launchedAppPackage)
 
-            try {
-                sendInterceptIntent(
-                    context = this,
-                    appName = appName,
-                    appPackage = launchedAppPackage
-                )
-            } catch (exception: Exception) {
-                exception.printStackTrace()
+                try {
+                    checkApp(appName, launchedAppPackage, this)
+                } catch (exception: Exception) {
+                    exception.printStackTrace()
+                }
             }
         }
 
@@ -37,7 +50,8 @@ class AppLaunchDetector : AccessibilityService() {
 
         val info = AccessibilityServiceInfo()
         info.apply {
-            eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+            eventTypes =
+                AccessibilityEvent.TYPE_VIEW_CLICKED or AccessibilityEvent.TYPE_VIEW_FOCUSED or AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
 
             feedbackType = AccessibilityServiceInfo.FEEDBACK_SPOKEN
         }
@@ -50,12 +64,111 @@ class AppLaunchDetector : AccessibilityService() {
     }
 
 
-    private fun sendInterceptIntent(context: Context, appName: String, appPackage: String?) {
-        Timber.d("INSIDE INTERCEPTION FUNCTION")
-        val intent = Intent(this, AppFoundReceiver::class.java)
-        intent.putExtra(this.getString(R.string.appName), appName)
-        intent.putExtra(this.getString(R.string.packageName), appPackage)
-        context.sendBroadcast(intent)
+    private fun checkApp(appName: String, appPackage: String?, context: Context) {
+
+
+        Timber.d("INSIDE CHECK APP")
+        Timber.d("REMAINING TIME = ${limitrDao.getAppName(appName)?.remainingTime}")
+
+        /*
+                if (limitrDao.getAppName(appName = appName)?.appName == appName ) {
+
+                    Timber.d("OVERLAY_DISPLAYED = $OVERLAY_DISPLAYED")
+
+                    performGlobalAction(GLOBAL_ACTION_HOME)
+
+
+                    Timber.d("OVERLAY SHOWN")
+
+                    overlayScreen.showOverlayScreen(
+                        appName = appName,
+                        context = context,
+                        onButtonClicked = {
+
+                            launchBlockingActivity(
+                                appName = appName,
+                                appPackage = appPackage,
+                                context = context
+                            )
+
+                            OVERLAY_DISPLAYED = true
+                        }
+                    )
+
+                }
+        */
+
+        val currentTime = System.currentTimeMillis()
+        val starTime = limitrDao.getAppName(appName)?.starTime
+        val endTime = limitrDao.getAppName(appName)?.endTime
+
+        Timber.d("Inside Interval")
+        if (getAppName(appName) && starTime != null && endTime != null) {
+
+            if (currentTime >= starTime && currentTime <= endTime) {
+                performGlobalAction(GLOBAL_ACTION_HOME)
+
+                showOverlayScreen(
+                    appName = appName,
+                    context = this@AppLaunchDetector,
+                    appPackage = appPackage
+                )
+            }
+        } else if (getAppName(appName) &&
+            limitrDao.getAppName(appName)?.remainingTime != null &&
+            limitrDao.getAppName(appName)?.remainingTime!! > 0
+        ) {
+            performGlobalAction(GLOBAL_ACTION_HOME)
+
+            showOverlayScreen(
+                appName = appName,
+                context = this@AppLaunchDetector,
+                appPackage = appPackage
+            )
+        }
+
+    }
+
+    private fun showOverlayScreen(appName: String, context: Context, appPackage: String?) {
+        overlayScreen.showOverlayScreen(
+            appName = appName,
+            context = context,
+            onButtonClicked = {
+
+                launchBlockingActivity(
+                    appName = appName,
+                    appPackage = appPackage,
+                    context = context
+                )
+
+                OVERLAY_DISPLAYED = true
+            },
+            onExit = {
+                overlayScreen.removeOverlayView()
+                exitToHome()
+            }
+        )
+    }
+
+    private fun launchBlockingActivity(appName: String, appPackage: String?, context: Context) {
+        val blockedIntent = Intent(context, ActivityBlocked::class.java)
+        blockedIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+        blockedIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        blockedIntent.putExtra(context.getString(R.string.appName), appName)
+        blockedIntent.putExtra(context.getString(R.string.packageName), appPackage)
+        context.startActivity(blockedIntent)
+    }
+
+    private fun exitToHome() {
+        OVERLAY_DISPLAYED = false
+        val intent = Intent(Intent.ACTION_MAIN)
+        intent.addCategory(Intent.CATEGORY_HOME)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        this.startActivity(intent)
+    }
+
+    private fun getAppName(appName: String): Boolean {
+        return limitrDao.getAppName(appName)?.appName == appName
     }
 
 }
