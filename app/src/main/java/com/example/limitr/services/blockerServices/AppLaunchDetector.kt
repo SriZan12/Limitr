@@ -141,6 +141,8 @@ class AppLaunchDetector : AccessibilityService() {
                     context = context
                 )
 
+                overlayScreen.removeOverlayView()
+
                 OVERLAY_DISPLAYED = true
             },
             onExit = {

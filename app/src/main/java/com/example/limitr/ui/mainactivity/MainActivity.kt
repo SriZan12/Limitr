@@ -12,7 +12,10 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.limitr.R
 import com.example.limitr.databinding.ActivityMainBinding
+import com.example.limitr.utils.Constants.OVERLAY_DISPLAYED
+import com.example.limitr.utils.OverlayScreen
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -21,8 +24,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
 
+    @Inject
+    lateinit var overlayScreen: OverlayScreen
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        overlayScreen.removeOverlayView()
         activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         setContentView(activityMainBinding.root)
 
@@ -54,10 +61,10 @@ class MainActivity : AppCompatActivity() {
         return findNavController(R.id.nav_host_fragment).navigateUp()
     }
 
-/*    override fun onDestroy() {
+    override fun onDestroy() {
         super.onDestroy()
 
         OVERLAY_DISPLAYED = false
 
-    }*/
+    }
 }
