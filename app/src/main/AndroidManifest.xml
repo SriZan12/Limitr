@@ -12,7 +12,8 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.NOTIFICATION_SERVICE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
@@ -59,18 +60,19 @@
         <receiver android:name=".services.notifications.TimerStartNotification" />
         <receiver
             android:name=".services.notifications.TimerEndNotification"
+            android:exported="true"
             android:enabled="true" />
 
         <receiver
             android:name=".services.blockerServices.ShowBlockNotification"/>
 
-        <receiver android:name=".services.blockerServices.AppFoundReceiver"
-            android:exported="true"
-            android:enabled="true">
-            <intent-filter>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </receiver>
+<!--        <receiver android:name=".services.blockerServices.AppFoundReceiver"-->
+<!--            android:exported="true"-->
+<!--            android:enabled="true">-->
+<!--            <intent-filter>-->
+<!--                <category android:name="android.intent.category.LAUNCHER"/>-->
+<!--            </intent-filter>-->
+<!--        </receiver>-->
 
 
         <service

@@ -30,7 +30,12 @@ class TimerEndNotification : BroadcastReceiver() {
         appIcon = intent.getParcelableExtra<Bitmap>("appIcon")!!
 
         pendingIntent =
-            PendingIntent.getActivity(context, 102, tapIntent, PendingIntent.FLAG_MUTABLE)
+            PendingIntent.getActivity(
+                context,
+                notificationId,
+                tapIntent,
+                PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_ONE_SHOT
+            )
         val notificationBuilder = NotificationCompat.Builder(
             context!!,
             notificationTitle
@@ -41,6 +46,7 @@ class TimerEndNotification : BroadcastReceiver() {
             .setContentText("Enroll now!")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true).build()
 
         with(NotificationManagerCompat.from(context)) {
