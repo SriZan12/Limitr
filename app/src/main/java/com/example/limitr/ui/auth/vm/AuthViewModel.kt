@@ -32,9 +32,7 @@ class AuthViewModel @Inject constructor(
             try {
                 authRepository.loginWithGoogle(account)
 
-                /* authResult?.let { result ->
-                  IS_NEW_USER = authResult.additionalUserInfo?.isNewUser == true
-              }*/
+
                 _authResponse.value = LimitrResource.Loading("Loading")
                 _authResponse.value = LimitrResource.Success("Account Created")
 
