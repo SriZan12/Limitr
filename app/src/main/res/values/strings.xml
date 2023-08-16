@@ -7,6 +7,7 @@
     <string name="storage_rationale">This app needs access to your Storage to Upload Picture.</string>
     <string name="DrawOverOtherApps">This app needs permission to display over other apps in order to perform its functions</string>
     <string name="AccessibilityService">This apps needs Accessibility Service enabled to function properly.</string>
+    <string name="Help">You May need Help! Click Here</string>
     <string name="usageSateManagerSate">This apps needs to read app usage state to give user the proper stats.</string>
     <string name="NotificationBlock">This app needs permission to Listen the Notifications to block the Notifications.</string>
     <string name="turn_on_internet">Please Turn on Internet!</string>
@@ -64,4 +65,17 @@
     <string name="exit">EXIT</string>
     <string name="icon_image">Icon Image</string>
     <string name="cancel">cancel</string>
+    <string name="first_login_reward">First Login Reward</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="help_instructions">Help Instructions</string>
+    <string name="for_android_version_below_13">For Android version below 13:</string>
+    <string name="_1_go_to_downloaded_services">1. Try Finding Limitr if not found,
+        Go to \'Downloaded Services\'</string>
+    <string name="_2_find_limitr_and_enable_permission">2. Find \'Limitr\' and enable permission</string>
+    <string name="for_android_version_13_and_above">For Android version 13 and above:</string>
+    <string name="_1_go_to_app_management_or_app_in_settings">1. Go to \'App Management\' or \'App\' in Settings</string>
+    <string name="_2_find_limitr_and_tap_the_three_dot_menu">2. Find \'Limitr\' and tap the three-dot menu</string>
+    <string name="_3_allow_restricted_permissions">3. Allow restricted permissions</string>
+    <string name="_4_come_back_to_limitr_and_grant_accessibility_service_permission">4. Come back to Limitr and Grant accessibility service permission</string>
+    <string name="_5_find_downloaded_apps_or_service_and_enable_permission">5. Find \'Downloaded Apps\' or \'Service\' and enable permission</string>
 </resources>

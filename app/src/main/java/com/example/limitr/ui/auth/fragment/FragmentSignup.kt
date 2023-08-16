@@ -14,11 +14,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
-import com.example.limitr.utils.dialogShow
 import com.example.limitr.databinding.SignupLayoutBinding
 import com.example.limitr.resource.LimitrResource
 import com.example.limitr.ui.auth.vm.AuthViewModel
 import com.example.limitr.utils.ViewUtils.showToast
+import com.example.limitr.utils.dialogShow
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -43,7 +43,7 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
             updateUI()
-        }else if(!isOnline()){
+        } else if (!isOnline()) {
             showNoInternetDialog()
         }
     }
@@ -93,15 +93,24 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
                 is LimitrResource.Error -> {
                     when (response.error) {
                         is FirebaseAuthEmailException -> {
-                            showToast(requireContext(), requireContext().getString(R.string.invalid_email))
+                            showToast(
+                                requireContext(),
+                                requireContext().getString(R.string.invalid_email)
+                            )
                         }
 
                         is FirebaseNetworkException -> {
-                            showToast(requireContext(), requireContext().getString(R.string.network_Error))
+                            showToast(
+                                requireContext(),
+                                requireContext().getString(R.string.network_Error)
+                            )
                         }
 
                         is FirebaseAuthInvalidCredentialsException -> {
-                            showToast(requireContext(), requireContext().getString(R.string.invalid_credentials))
+                            showToast(
+                                requireContext(),
+                                requireContext().getString(R.string.invalid_credentials)
+                            )
                         }
 
                         else -> {
@@ -177,4 +186,6 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
             showToast(requireContext(), task.exception.toString())
         }
     }
+
+
 }

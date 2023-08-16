@@ -6,11 +6,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.limitr.resource.LimitrResource
 import com.example.limitr.repository.AuthRepository
+import com.example.limitr.utils.Constants.IS_NEW_USER
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,10 +26,15 @@ class AuthViewModel @Inject constructor(
         MutableLiveData<LimitrResource>(LimitrResource.Loading("Loading"))  //The value of _authState is initialized to the Loading state.
     val authResponse: LiveData<LimitrResource> = _authResponse
 
+
     fun loginWithGoogle(account: GoogleSignInAccount) {
         viewModelScope.launch(Dispatchers.Main) {
             try {
                 authRepository.loginWithGoogle(account)
+
+                /* authResult?.let { result ->
+                  IS_NEW_USER = authResult.additionalUserInfo?.isNewUser == true
+              }*/
                 _authResponse.value = LimitrResource.Loading("Loading")
                 _authResponse.value = LimitrResource.Success("Account Created")
 
@@ -34,5 +43,9 @@ class AuthViewModel @Inject constructor(
             }
 
         }
+    }
+
+    private fun isNewUser(authResult: AuthResult): Boolean {
+        return authResult.additionalUserInfo?.isNewUser ?: false
     }
 }

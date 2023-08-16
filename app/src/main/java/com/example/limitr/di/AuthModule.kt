@@ -1,5 +1,6 @@
 package com.example.limitr.di
 
+import android.content.Context
 import com.example.limitr.repository.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
@@ -26,8 +27,8 @@ object AuthModule {
 
     @Provides
     @Singleton
-    fun providesAuthRepository(firebaseAuth: FirebaseAuth): AuthRepository {
-        return AuthRepository(firebaseAuth)
+    fun providesAuthRepository(firebaseAuth: FirebaseAuth, context: Context): AuthRepository {
+        return AuthRepository(firebaseAuth, context)
     }
 
     @Provides
