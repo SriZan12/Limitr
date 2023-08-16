@@ -28,7 +28,12 @@ class TimerStartNotification : BroadcastReceiver() {
         val appIcon = intent?.getParcelableExtra<Bitmap>("appIcon")
 
         val pendingIntent: PendingIntent =
-            PendingIntent.getActivity(context, 101, tapIntent, PendingIntent.FLAG_MUTABLE)
+            PendingIntent.getActivity(
+                context,
+                notificationId!!,
+                tapIntent,
+                PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_ONE_SHOT
+            )
 
         val notificationBuilder = NotificationCompat.Builder(context, notificationTitle!!)
             .setSmallIcon(R.drawable.logo_color)
@@ -37,6 +42,7 @@ class TimerStartNotification : BroadcastReceiver() {
             .setContentText(blockedTime)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true).build()
 
         with(NotificationManagerCompat.from(context)) {
