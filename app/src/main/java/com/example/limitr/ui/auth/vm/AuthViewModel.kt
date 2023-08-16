@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuthException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,9 +26,10 @@ class AuthViewModel @Inject constructor(
     fun loginWithGoogle(account: GoogleSignInAccount) {
         viewModelScope.launch(Dispatchers.Main) {
             try {
-                authRepository.loginWithGoogle(account)
+                val isNewUser = authRepository.loginWithGoogle(account)
+                Timber.d("IS NEW USER? == $isNewUser")
                 _authResponse.value = LimitrResource.Loading("Loading")
-                _authResponse.value = LimitrResource.Success("Account Created")
+                _authResponse.value = LimitrResource.Success(isNewUser)
 
             } catch (exception: FirebaseAuthException) {
                 _authResponse.value = LimitrResource.Error(exception)

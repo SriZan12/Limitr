@@ -10,8 +10,10 @@ class AuthRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth
 ) {
 
-    suspend fun loginWithGoogle(account: GoogleSignInAccount) {
+    suspend fun loginWithGoogle(account: GoogleSignInAccount): Boolean {
         val credential = GoogleAuthProvider.getCredential(account.idToken, null)
-        firebaseAuth.signInWithCredential(credential).await()
+        val authResult = firebaseAuth.signInWithCredential(credential).await()
+
+        return authResult.additionalUserInfo?.isNewUser ?: false
     }
 }

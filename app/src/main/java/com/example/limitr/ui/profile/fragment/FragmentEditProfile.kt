@@ -17,7 +17,7 @@ import com.example.limitr.R
 import com.example.limitr.databinding.FragmentEditProfileBinding
 import com.example.limitr.resource.LimitrResource
 import com.example.limitr.ui.profile.vm.EditProfileViewModel
-import com.example.limitr.utils.Constants.STORAGEPERMISSIONCODE
+import com.example.limitr.utils.Constants.STORAGE_PERMISSION_CODE
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
 import com.example.limitr.utils.ViewUtils.showToast
 import com.google.firebase.auth.FirebaseAuth
@@ -139,7 +139,7 @@ class FragmentEditProfile :
             EasyPermissions.requestPermissions(
                 this,
                 getString(R.string.storage_rationale),
-                STORAGEPERMISSIONCODE,
+                STORAGE_PERMISSION_CODE,
                 Manifest.permission.READ_EXTERNAL_STORAGE
             )
         }

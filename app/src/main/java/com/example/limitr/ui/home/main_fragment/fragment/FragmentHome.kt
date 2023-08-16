@@ -20,17 +20,17 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
-import com.example.limitr.utils.Status
-import com.example.limitr.utils.dialogShow
 import com.example.limitr.databinding.FragmentHomeBinding
 import com.example.limitr.ui.home.main_fragment.adapter.AppListViewPagerAdapter
 import com.example.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
-import com.example.limitr.utils.Constants.DAILYCRYPTOREWARD
+import com.example.limitr.utils.Constants.DAILY_CRYPTO_REWARD
 import com.example.limitr.utils.DateAndTime.getTodayDate
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
 import com.example.limitr.utils.Permissions.checkAccessibilityPermission
 import com.example.limitr.utils.Permissions.isUsageStateManagerEnabled
+import com.example.limitr.utils.Status
 import com.example.limitr.utils.ViewUtils.showToast
+import com.example.limitr.utils.dialogShow
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -246,7 +246,7 @@ class FragmentHome :
 
             if (status == Status.CryptoStatus.INSERT) {
                 mainViewModel.upsertEverydayDate(getTodayDate())
-                mainViewModel.upsertCrypto(DAILYCRYPTOREWARD)
+                mainViewModel.upsertCrypto(DAILY_CRYPTO_REWARD)
                 rewardDialog.dismiss()
 
             } else {
@@ -255,7 +255,7 @@ class FragmentHome :
                     val currentCrypto = mainViewModel.getCrypto().first()
                     if (currentCrypto != null) {
                         mainViewModel.upsertEverydayDate(getTodayDate())
-                        mainViewModel.upsertCrypto(currentCrypto + DAILYCRYPTOREWARD)
+                        mainViewModel.upsertCrypto(currentCrypto + DAILY_CRYPTO_REWARD)
                         rewardDialog.dismiss()
                     }
                 }

@@ -3,7 +3,7 @@ package com.example.limitr.repository
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.edit
 import com.example.limitr.utils.Constants.CRYPTO
-import com.example.limitr.utils.Constants.LASTLOGGEDDATE
+import com.example.limitr.utils.Constants.LAST_LOGGED_DATE
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
@@ -29,13 +29,13 @@ class MainFragmentRepository @Inject constructor() {
 
     fun getLastLoggedDate(): Flow<String> {
         return dataStore.data.map { date ->
-            date[LASTLOGGEDDATE] ?: ""
+            date[LAST_LOGGED_DATE] ?: ""
         }
     }
 
     suspend fun upsertEverydayDate(todayDate: String) {
         dataStore.edit { date ->
-            date[LASTLOGGEDDATE] = todayDate
+            date[LAST_LOGGED_DATE] = todayDate
         }
     }
 }
