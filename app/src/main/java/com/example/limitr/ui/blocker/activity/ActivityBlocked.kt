@@ -23,7 +23,7 @@ import com.example.limitr.ui.blocker.vm.BlockedAppVM
 import com.example.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
 import com.example.limitr.ui.mainactivity.MainActivity
 import com.example.limitr.utils.Constants.OVERLAY_DISPLAYED
-import com.example.limitr.utils.Constants.REQUIREDCRYPTOFORUNBLOCK
+import com.example.limitr.utils.Constants.REQUIRED_CRYPTO_FOR_UNBLOCK
 import com.example.limitr.utils.DateAndTime.getIntervalForBlocking
 import com.example.limitr.utils.DateAndTime.getTimer
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
@@ -237,8 +237,8 @@ class ActivityBlocked : AppCompatActivity() {
         unBlockButton.setOnClickListener {
             lifecycleScope.launch(Dispatchers.Main) {
                 val crypto = mainViewModel.getCrypto().first()
-                if (crypto >= REQUIREDCRYPTOFORUNBLOCK) {
-                    val deductCrypto = crypto - REQUIREDCRYPTOFORUNBLOCK
+                if (crypto >= REQUIRED_CRYPTO_FOR_UNBLOCK) {
+                    val deductCrypto = crypto - REQUIRED_CRYPTO_FOR_UNBLOCK
                     mainViewModel.upsertCrypto(deductCrypto)
                     unBlockApp(appName)
                     cancelNotification(this@ActivityBlocked, appName)

@@ -17,6 +17,7 @@ import com.example.limitr.R
 import com.example.limitr.databinding.SignupLayoutBinding
 import com.example.limitr.resource.LimitrResource
 import com.example.limitr.ui.auth.vm.AuthViewModel
+import com.example.limitr.utils.Constants.IS_NEW_USER
 import com.example.limitr.utils.ViewUtils.showToast
 import com.example.limitr.utils.dialogShow
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -85,7 +86,8 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
                 }
 
                 is LimitrResource.Success<*> -> {
-                    showToast(requireContext(), response.result.toString())
+                    IS_NEW_USER = response.result as Boolean
+                    showToast(requireContext(), getString(R.string.welcome))
                     fragmentSignupBinding.progressBar.visibility = View.GONE
                     updateUI()
                 }

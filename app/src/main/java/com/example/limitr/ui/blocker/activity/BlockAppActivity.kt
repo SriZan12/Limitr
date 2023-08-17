@@ -419,8 +419,8 @@ class BlockAppActivity : AppCompatActivity(), EasyPermissions.PermissionCallback
         unBlockButton.setOnClickListener {
             lifecycleScope.launch(Dispatchers.Main) {
                 val crypto = mainViewModel.getCrypto().first()
-                if (crypto >= Constants.REQUIREDCRYPTOFORUNBLOCK) {
-                    val deductCrypto = crypto - Constants.REQUIREDCRYPTOFORUNBLOCK
+                if (crypto >= Constants.REQUIRED_CRYPTO_FOR_UNBLOCK) {
+                    val deductCrypto = crypto - Constants.REQUIRED_CRYPTO_FOR_UNBLOCK
                     mainViewModel.upsertCrypto(deductCrypto)
                     unBlockApp(appName)
                     NotificationUtils.cancelNotification(this@BlockAppActivity, appName)

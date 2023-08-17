@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Limitr</string>
     <string name="limitize">Limitize</string>
+    <string name="welcome">Limitr Welcomes You!</string>
     <string name="Continue"> Continue with Google </string>
     <string name="done">Done</string>
     <string name="name">Name</string>
@@ -64,7 +65,8 @@
     <string name="click_here_for_more_details">Click Here For More Details</string>
     <string name="exit">EXIT</string>
     <string name="icon_image">Icon Image</string>
-    <string name="cancel">cancel</string>
+    <string name="cancel">Cancel</string>
+    <string name="one">1</string>
     <string name="first_login_reward">First Login Reward</string>
     <string name="grant_permission">Grant Permission</string>
     <string name="help_instructions">Help Instructions</string>

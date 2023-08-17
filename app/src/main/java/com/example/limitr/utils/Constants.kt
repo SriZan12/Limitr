@@ -10,14 +10,14 @@ object Constants {
     const val RC_POST_NOTIFICATION_PERMISSION: Int = 2
 
     //   Rewards
-    const val REQUIREDCRYPTOFORUNBLOCK: Int = 2
-    const val DAILYCRYPTOREWARD: Int = 1
+    const val REQUIRED_CRYPTO_FOR_UNBLOCK: Int = 2
+    const val DAILY_CRYPTO_REWARD: Int = 1
     const val FIRST_LOGIN_REWARD: Int = 15
 
 
     //   DataStore Keys
     val CRYPTO = intPreferencesKey("Crypto")
-    val LASTLOGGEDDATE = stringPreferencesKey("last_logged_date")
+    val LAST_LOGGED_DATE = stringPreferencesKey("last_logged_date")
 
     var OVERLAY_DISPLAYED = false
 

@@ -27,7 +27,7 @@ import com.example.limitr.utils.dialogShow
 import com.example.limitr.databinding.FragmentHomeBinding
 import com.example.limitr.ui.home.main_fragment.adapter.AppListViewPagerAdapter
 import com.example.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
-import com.example.limitr.utils.Constants.DAILYCRYPTOREWARD
+import com.example.limitr.utils.Constants.DAILY_CRYPTO_REWARD
 import com.example.limitr.utils.Constants.FIRST_LOGIN_REWARD
 import com.example.limitr.utils.Constants.IS_NEW_USER
 import com.example.limitr.utils.DateAndTime.getTodayDate
@@ -112,6 +112,14 @@ class FragmentHome :
             ) || !isUsageStateManagerEnabled(requireContext())
         ) {
             showPermissionDialog()
+        } else if (IS_NEW_USER) {
+
+            if (dialog?.isShowing == true) {
+                dialog?.dismiss()
+            }
+
+            showFirstLoginRewardDialog()
+
         } else {
             if (dialog?.isShowing == true) {
                 dialog?.dismiss()
@@ -265,19 +273,35 @@ class FragmentHome :
 
         claimRewardButton.setOnClickListener {
 
-            if (status == Status.CryptoStatus.INSERT) {
-                mainViewModel.upsertEverydayDate(getTodayDate())
-                mainViewModel.upsertCrypto(DAILYCRYPTOREWARD)
-                rewardDialog.dismiss()
+         /*   if (status == Status.CryptoStatus.INSERT) {
+                lifecycleScope.launch {
+                    val currentCrypto = mainViewModel.getCrypto().first()
+                    if (currentCrypto >= 0) {
+                        mainViewModel.upsertEverydayDate(getTodayDate())
+                        mainViewModel.upsertCrypto(DAILY_CRYPTO_REWARD + currentCrypto)
+                    } else {
+                        mainViewModel.upsertEverydayDate(getTodayDate())
+                        mainViewModel.upsertCrypto(DAILY_CRYPTO_REWARD)
+                    }
+
+                    rewardDialog.dismiss()
+                }
 
             } else {
 
                 lifecycleScope.launch(Dispatchers.Main) {
                     val currentCrypto = mainViewModel.getCrypto().first()
                     mainViewModel.upsertEverydayDate(getTodayDate())
-                    mainViewModel.upsertCrypto(currentCrypto + DAILYCRYPTOREWARD)
+                    mainViewModel.upsertCrypto(currentCrypto + DAILY_CRYPTO_REWARD)
                     rewardDialog.dismiss()
                 }
+            }*/
+
+            lifecycleScope.launch(Dispatchers.Main) {
+                val currentCrypto = mainViewModel.getCrypto().first()
+                mainViewModel.upsertEverydayDate(getTodayDate())
+                mainViewModel.upsertCrypto(currentCrypto + DAILY_CRYPTO_REWARD)
+                rewardDialog.dismiss()
             }
 
         }
@@ -285,33 +309,38 @@ class FragmentHome :
         rewardDialog.show()
     }
 
-    /*
-        private fun showFirstLoginRewardDialog() {
+    @SuppressLint("SetTextI18n")
+    private fun showFirstLoginRewardDialog() {
 
-            val rewardDialog = Dialog(requireContext())
-            rewardDialog.apply {
-                window?.setContentView(R.layout.claim_rewards)
-                window?.setLayout(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-                setCancelable(false)
-            }.create()
+        val rewardDialog = Dialog(requireContext())
+        rewardDialog.apply {
+            window?.setContentView(R.layout.claim_rewards)
+            window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            setCancelable(false)
+        }.create()
 
-            val claimRewardButton: Button = rewardDialog.findViewById(R.id.claimReward)
-            val firsLoginText: TextView = rewardDialog.findViewById(R.id.firstLoginText)
+        val claimRewardButton: Button = rewardDialog.findViewById(R.id.claimReward)
+        val firsLoginText: TextView = rewardDialog.findViewById(R.id.firstLoginText)
+        val cryptoText: TextView = rewardDialog.findViewById(R.id.cryptoText)
 
-            firsLoginText.isVisible = true
+        firsLoginText.isVisible = true
+        firsLoginText.text = getString(R.string.first_login_reward)
+        cryptoText.text = FIRST_LOGIN_REWARD.toString()
 
-            claimRewardButton.setOnClickListener {
-                mainViewModel.upsertCrypto(FIRST_LOGIN_REWARD)
-                firsLoginText.isVisible = false
-                rewardDialog.dismiss()
-            }
+        claimRewardButton.setOnClickListener {
+            mainViewModel.upsertCrypto(FIRST_LOGIN_REWARD)
+            IS_NEW_USER = false
+            rewardDialog.dismiss()
 
-            rewardDialog.show()
+            checkLastLoggedInDate()
         }
-    */
+
+
+        rewardDialog.show()
+    }
 
     private fun showHelpDialog() {
         val helpDialog = Dialog(requireContext())
@@ -333,31 +362,5 @@ class FragmentHome :
 
         helpDialog.show()
     }
-
-    private fun isFirstAuthentication(auth: FirebaseAuth): Boolean {
-        var isFirstTime: Boolean = false
-        val authStateListener = FirebaseAuth.AuthStateListener { listener ->
-            val user: FirebaseUser? = firebaseAuth.currentUser
-
-            if (user != null) {
-                val isFirstTimeSignIn =
-                    user.metadata?.creationTimestamp == user.metadata?.lastSignInTimestamp
-
-                isFirstTime = isFirstTimeSignIn
-            }
-        }
-
-        Timber.d("is first time login = $isFirstTime")
-
-        auth.addAuthStateListener(authStateListener)
-
-        return isFirstTime
-    }
-
-//    override fun onDestroy() {
-//        super.onDestroy()
-//
-//    }
-
 
 }
