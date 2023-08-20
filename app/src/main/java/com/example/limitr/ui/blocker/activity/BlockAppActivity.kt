@@ -239,13 +239,13 @@ class BlockAppActivity : AppCompatActivity(), EasyPermissions.PermissionCallback
             appName,
             startTime.time,
             interval,
-            appIcon.toBitmap()
+            appPackage
         )
         NotificationUtils.endNotification(
             this@BlockAppActivity,
             appName,
             endTime.time,
-            appIcon.toBitmap()
+            appPackage
 
         )
 
@@ -319,13 +319,13 @@ class BlockAppActivity : AppCompatActivity(), EasyPermissions.PermissionCallback
             appName,
             System.currentTimeMillis(),
             interval,
-            appIcon.toBitmap()
+            appPackage
         )
         NotificationUtils.endNotification(
             this@BlockAppActivity,
             appName,
             System.currentTimeMillis() + interval,
-            appIcon.toBitmap()
+            appPackage
         )
 
         dialog.dismiss()

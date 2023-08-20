@@ -6,7 +6,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 object Constants {
 
     //   Permission Codes
-    const val STORAGEPERMISSIONCODE: Int = 1
+    const val STORAGE_PERMISSION_CODE: Int = 1
     const val RC_POST_NOTIFICATION_PERMISSION: Int = 2
 
     //   Rewards
