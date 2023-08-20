@@ -5,20 +5,22 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 
 object Constants {
 
-//   Permission Codes
-   const val STORAGE_PERMISSION_CODE: Int = 1
-   const val RC_POST_NOTIFICATION_PERMISSION: Int = 2
+    //   Permission Codes
+    const val STORAGEPERMISSIONCODE: Int = 1
+    const val RC_POST_NOTIFICATION_PERMISSION: Int = 2
 
-//   Rewards
-   const val REQUIRED_CRYPTO_FOR_UNBLOCK: Int = 2
-   const val DAILY_CRYPTO_REWARD : Int = 100
+    //   Rewards
+    const val REQUIRED_CRYPTO_FOR_UNBLOCK: Int = 2
+    const val DAILY_CRYPTO_REWARD: Int = 1
+    const val FIRST_LOGIN_REWARD: Int = 15
 
-//   DataStore Keys
-   val CRYPTO = intPreferencesKey("Crypto")
-   val LAST_LOGGED_DATE = stringPreferencesKey("last_logged_date")
 
-   var OVERLAY_DISPLAYED = false
+    //   DataStore Keys
+    val CRYPTO = intPreferencesKey("Crypto")
+    val LAST_LOGGED_DATE = stringPreferencesKey("last_logged_date")
 
-   var IS_NEW_USER = false
+    var OVERLAY_DISPLAYED = false
+
+    var IS_NEW_USER: Boolean = false
 
 }

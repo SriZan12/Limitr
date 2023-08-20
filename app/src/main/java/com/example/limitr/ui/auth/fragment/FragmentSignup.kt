@@ -86,7 +86,6 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
                 }
 
                 is LimitrResource.Success<*> -> {
-
                     IS_NEW_USER = response.result as Boolean
                     showToast(requireContext(), getString(R.string.welcome))
                     fragmentSignupBinding.progressBar.visibility = View.GONE
@@ -189,4 +188,6 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
             showToast(requireContext(), task.exception.toString())
         }
     }
+
+
 }
