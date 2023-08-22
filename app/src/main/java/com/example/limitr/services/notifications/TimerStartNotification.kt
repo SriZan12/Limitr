@@ -51,7 +51,7 @@ class TimerStartNotification : BroadcastReceiver() {
                     Manifest.permission.POST_NOTIFICATIONS
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
-                notify(notificationId!!, notificationBuilder)
+                notify(notificationId, notificationBuilder)
             }
 
         }
