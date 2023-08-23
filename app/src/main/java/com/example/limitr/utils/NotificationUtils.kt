@@ -4,10 +4,8 @@ import android.app.*
 import android.content.Context
 import android.content.Context.NOTIFICATION_SERVICE
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Build
-import androidx.core.app.NotificationCompat.NotificationVisibility
 import com.example.limitr.services.notifications.TimerEndNotification
 import com.example.limitr.services.notifications.TimerStartNotification
 import com.example.limitr.utils.DateAndTime.formatTimeInWords
@@ -40,7 +38,7 @@ object NotificationUtils {
         appName: String,
         notificationStartTime: Long,
         blockedTime: Long,
-        appIcon: Bitmap,
+        appPackage: String,
     ) {
 
         createNotificationChannel(context, appName)
@@ -51,7 +49,7 @@ object NotificationUtils {
         startNotificationIntent.putExtra("title", appName)
         startNotificationIntent.putExtra("text", " Blocked For ${formatTimeInWords(blockedTime)}")
         startNotificationIntent.putExtra("notificationId", notificationId)
-        startNotificationIntent.putExtra("appIcon", appIcon)
+        startNotificationIntent.putExtra("appPackage", appPackage)
 
         val pendingIntent =
             PendingIntent.getBroadcast(
@@ -75,7 +73,7 @@ object NotificationUtils {
         context: Context,
         appName: String,
         duration: Long,
-        appIcon: Bitmap,
+        appPackage: String,
     ) {
 
         createNotificationChannel(context, appName)
@@ -85,7 +83,7 @@ object NotificationUtils {
         val endNotificationIntent = Intent(context, TimerEndNotification::class.java)
         endNotificationIntent.putExtra("title", appName)
         endNotificationIntent.putExtra("notificationId", notificationId)
-        endNotificationIntent.putExtra("appIcon", appIcon)
+        endNotificationIntent.putExtra("appPackage", appPackage)
 
         val pendingIntent =
             PendingIntent.getBroadcast(
@@ -115,6 +113,6 @@ object NotificationUtils {
     }
 
     private fun generateUniqueCode(): Int {
-        return Random.nextInt(1000)
+        return Random.nextInt(100)
     }
 }

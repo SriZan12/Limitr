@@ -10,8 +10,10 @@ import android.graphics.Bitmap
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.graphics.drawable.toBitmap
 import com.example.limitr.ui.mainactivity.MainActivity
 import com.example.limitr.R
+import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
 
 class TimerEndNotification : BroadcastReceiver() {
 
@@ -19,6 +21,7 @@ class TimerEndNotification : BroadcastReceiver() {
     private var notificationId: Int = 0
     private lateinit var appIcon: Bitmap
     private lateinit var pendingIntent: PendingIntent
+    private lateinit var appPackage: String
 
     override fun onReceive(context: Context?, intent: Intent?) {
         val tapIntent = Intent(context, MainActivity::class.java).apply {
@@ -27,7 +30,9 @@ class TimerEndNotification : BroadcastReceiver() {
 
         notificationTitle = intent?.getStringExtra("title").toString()
         notificationId = intent?.getIntExtra("notificationId", 0)!!
-        appIcon = intent.getParcelableExtra<Bitmap>("appIcon")!!
+        appPackage = intent.getStringExtra("appPackage").toString()
+
+        appIcon = getAppIconByPackageName(context = context!!, appPackage)?.toBitmap()!!
 
         pendingIntent =
             PendingIntent.getActivity(

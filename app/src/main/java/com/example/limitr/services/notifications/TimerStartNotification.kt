@@ -1,19 +1,18 @@
 package com.example.limitr.services.notifications
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Color
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.example.limitr.ui.mainactivity.MainActivity
+import androidx.core.graphics.drawable.toBitmap
 import com.example.limitr.R
+import com.example.limitr.ui.mainactivity.MainActivity
+import com.example.limitr.utils.ViewUtils
 
 class TimerStartNotification : BroadcastReceiver() {
 
@@ -25,8 +24,9 @@ class TimerStartNotification : BroadcastReceiver() {
         val notificationTitle = intent?.getStringExtra("title")
         val blockedTime = intent?.getStringExtra("text")
         val notificationId = intent?.getIntExtra("notificationId", 0)
-        val appIcon = intent?.getParcelableExtra<Bitmap>("appIcon")
+        val appPackage = intent?.getStringExtra("appPackage").toString()
 
+        val appIcon = ViewUtils.getAppIconByPackageName(context = context, appPackage)?.toBitmap()!!
         val pendingIntent: PendingIntent =
             PendingIntent.getActivity(
                 context,
