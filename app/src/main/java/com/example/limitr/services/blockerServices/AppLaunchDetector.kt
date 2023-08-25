@@ -106,25 +106,28 @@ class AppLaunchDetector : AccessibilityService() {
         if (getAppName(appName) && starTime != null && endTime != null) {
 
             if (currentTime >= starTime && currentTime <= endTime) {
-                performGlobalAction(GLOBAL_ACTION_HOME)
 
                 showOverlayScreen(
                     appName = appName,
                     context = this@AppLaunchDetector,
                     appPackage = appPackage
                 )
+                performGlobalAction(GLOBAL_ACTION_HOME)
             }
+
         } else if (getAppName(appName) &&
             limitrDao.getAppName(appName)?.remainingTime != null &&
             limitrDao.getAppName(appName)?.remainingTime!! > 0
         ) {
-            performGlobalAction(GLOBAL_ACTION_HOME)
 
             showOverlayScreen(
                 appName = appName,
                 context = this@AppLaunchDetector,
                 appPackage = appPackage
             )
+
+            performGlobalAction(GLOBAL_ACTION_HOME)
+
         }
 
     }
@@ -133,6 +136,7 @@ class AppLaunchDetector : AccessibilityService() {
         overlayScreen.showOverlayScreen(
             appName = appName,
             context = context,
+            appPackage = appPackage,
             onButtonClicked = {
 
                 launchBlockingActivity(

@@ -8,8 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import com.example.limitr.R
+import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
 import timber.log.Timber
 
 class OverlayScreen {
@@ -23,7 +25,8 @@ class OverlayScreen {
         appName: String,
         context: Context,
         onButtonClicked: () -> Unit,
-        onExit: () -> Unit
+        onExit: () -> Unit,
+        appPackage: String?
     ) {
         if (!isOverlayShowing) {
             overlayView = LayoutInflater.from(context).inflate(R.layout.overlay, null)
@@ -47,7 +50,12 @@ class OverlayScreen {
             windowManager!!.addView(overlayView, params)
 
             val textView: TextView = overlayView!!.findViewById(R.id.appBlock)
-            textView.text = "$appName is Currently Blocked"
+            textView.text = appName
+            val appImage: ImageView = overlayView!!.findViewById(R.id.appIcon)
+
+            val appIcon = getAppIconByPackageName(context = context, packageName = appPackage!!)
+            appImage.setImageDrawable(appIcon)
+
 
             val button: Button = overlayView!!.findViewById(R.id.goToActivityBlocked)
             val exitButton: Button = overlayView!!.findViewById(R.id.exit)
