@@ -112,7 +112,7 @@ object NotificationUtils {
 
     }
 
-    private fun generateUniqueCode(): Int {
+    fun generateUniqueCode(): Int {
         return Random.nextInt(100)
     }
 }

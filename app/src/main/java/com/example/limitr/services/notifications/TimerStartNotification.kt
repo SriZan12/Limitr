@@ -12,6 +12,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.example.limitr.R
 import com.example.limitr.ui.mainactivity.MainActivity
+import com.example.limitr.utils.NotificationUtils.generateUniqueCode
 import com.example.limitr.utils.ViewUtils
 
 class TimerStartNotification : BroadcastReceiver() {
@@ -51,7 +52,7 @@ class TimerStartNotification : BroadcastReceiver() {
                     Manifest.permission.POST_NOTIFICATIONS
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
-                notify(notificationId, notificationBuilder)
+                notify(generateUniqueCode(), notificationBuilder)
             }
 
         }
