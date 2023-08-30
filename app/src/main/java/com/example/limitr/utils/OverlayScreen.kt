@@ -1,6 +1,7 @@
 package com.example.limitr.utils
 
 import android.annotation.SuppressLint
+import android.app.ProgressDialog
 import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Build
@@ -9,8 +10,12 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.core.view.isVisible
+import androidx.lifecycle.LifecycleOwner
 import com.example.limitr.R
+import com.example.limitr.data.local.appdatabase.LimitrDao
 import com.example.limitr.utils.ViewUtils.getAppIconByPackageName
 import timber.log.Timber
 
@@ -19,6 +24,8 @@ class OverlayScreen {
     private var windowManager: WindowManager? = null
     private var overlayView: View? = null
     private var isOverlayShowing: Boolean = false
+    lateinit var remainingTime: TextView
+
 
     @SuppressLint("SetTextI18n")
     fun showOverlayScreen(
@@ -38,11 +45,7 @@ class OverlayScreen {
                     WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
                 else
                     WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                        or
-                        WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 PixelFormat.TRANSLUCENT
             )
 
@@ -59,6 +62,7 @@ class OverlayScreen {
 
             val button: Button = overlayView!!.findViewById(R.id.goToActivityBlocked)
             val exitButton: Button = overlayView!!.findViewById(R.id.exit)
+            remainingTime = overlayView!!.findViewById(R.id.remainingTime)
 
             button.setOnClickListener {
                 onButtonClicked()

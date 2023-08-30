@@ -72,9 +72,9 @@ object DateAndTime {
         return "$formattedStartTime-$formattedEndTime"
     }
 
-    private fun getRemainingTime(time: Long?, remainingTime: Long?): Long? {
+    fun getRemainingTime(starTime: Long?, remainingTime: Long?): Long? {
         val currentTime = System.currentTimeMillis()
-        val elapsedTime = currentTime - time!! // elapsed time means बितेको time
+        val elapsedTime = currentTime - starTime!! // elapsed time means बितेको time
         return remainingTime?.minus(elapsedTime)
     }
 

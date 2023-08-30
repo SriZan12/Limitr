@@ -9,6 +9,8 @@ import com.example.limitr.R
 import com.example.limitr.data.local.appdatabase.LimitrDao
 import com.example.limitr.ui.blocker.activity.ActivityBlocked
 import com.example.limitr.utils.Constants.OVERLAY_DISPLAYED
+import com.example.limitr.utils.DateAndTime.getRemainingTime
+import com.example.limitr.utils.DateAndTime.getTimer
 import com.example.limitr.utils.OverlayScreen
 import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
 import dagger.hilt.android.AndroidEntryPoint
@@ -70,34 +72,6 @@ class AppLaunchDetector : AccessibilityService() {
         Timber.d("INSIDE CHECK APP")
         Timber.d("REMAINING TIME = ${limitrDao.getAppName(appName)?.remainingTime}")
 
-        /*
-                if (limitrDao.getAppName(appName = appName)?.appName == appName ) {
-
-                    Timber.d("OVERLAY_DISPLAYED = $OVERLAY_DISPLAYED")
-
-                    performGlobalAction(GLOBAL_ACTION_HOME)
-
-
-                    Timber.d("OVERLAY SHOWN")
-
-                    overlayScreen.showOverlayScreen(
-                        appName = appName,
-                        context = context,
-                        onButtonClicked = {
-
-                            launchBlockingActivity(
-                                appName = appName,
-                                appPackage = appPackage,
-                                context = context
-                            )
-
-                            OVERLAY_DISPLAYED = true
-                        }
-                    )
-
-                }
-        */
-
         val currentTime = System.currentTimeMillis()
         val starTime = limitrDao.getAppName(appName)?.starTime
         val endTime = limitrDao.getAppName(appName)?.endTime
@@ -116,23 +90,34 @@ class AppLaunchDetector : AccessibilityService() {
             }
 
         } else if (getAppName(appName) &&
-            limitrDao.getAppName(appName)?.remainingTime != null &&
-            limitrDao.getAppName(appName)?.remainingTime!! > 0
+            limitrDao.getAppName(appName)?.remainingTime != null
         ) {
 
-            showOverlayScreen(
-                appName = appName,
-                context = this@AppLaunchDetector,
-                appPackage = appPackage
+            val currentRemainingTime = getRemainingTime(
+                limitrDao.getAppName(appName)!!.blockedTime,
+                limitrDao.getAppName(appName)!!.remainingTime
             )
 
-            performGlobalAction(GLOBAL_ACTION_HOME)
+            Timber.d("CURRENT REMAINING TIME = $currentRemainingTime")
+
+            if (currentRemainingTime != null) {
+                if (currentRemainingTime > 0L) {
+                    showOverlayScreen(
+                        appName = appName,
+                        context = this@AppLaunchDetector,
+                        appPackage = appPackage
+                    )
+
+                    performGlobalAction(GLOBAL_ACTION_HOME)
+                }
+            }
 
         }
 
     }
 
     private fun showOverlayScreen(appName: String, context: Context, appPackage: String?) {
+
         overlayScreen.showOverlayScreen(
             appName = appName,
             context = context,
@@ -148,12 +133,19 @@ class AppLaunchDetector : AccessibilityService() {
                 overlayScreen.removeOverlayView()
 
                 OVERLAY_DISPLAYED = true
+
             },
             onExit = {
+                limitrDao.getRemainingTime(appName).removeObserver {}
                 overlayScreen.removeOverlayView()
                 exitToHome()
             }
+
         )
+
+        limitrDao.getRemainingTime(appName).observeForever {
+            getTimer(it.blockedTime, it.remainingTime, overlayScreen.remainingTime)
+        }
     }
 
     private fun launchBlockingActivity(appName: String, appPackage: String?, context: Context) {
