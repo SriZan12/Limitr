@@ -31,7 +31,7 @@
     <string name="limited">Limited</string>
     <string name="installed_apps">Installed Apps</string>
     <string name="system_apps">System Apps</string>
-    <string name="remaining_time">Remaining Time:</string>
+    <string name="remaining_time">Remaining Time</string>
     <string name="app_blocked">App Blocked</string>
     <string name="no_apps_are_blocked">No Apps are Blocked!</string>
     <string name="mySharePrefs">My SharePref</string>

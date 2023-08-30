@@ -38,7 +38,6 @@ class AppList : Fragment(R.layout.applist_layout) {
 
     @Inject
     lateinit var appListAdapter: AppListAdapter
-    private lateinit var appInfo: AppInfoModel
 
     override fun onCreateView(
         inflater: LayoutInflater,

@@ -54,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:gravity="center_horizontal"
-            android:text="@string/is_currently_blocked"
+            android:text="@string/remaining_time"
             android:textAllCaps="true"
             android:textColor="@color/white"
             android:textSize="22sp"
@@ -82,6 +82,7 @@
             android:layout_margin="24dp"
             android:text="@string/click_here_for_more_details"
             android:textAllCaps="true"
+            android:visibility="gone"
             android:textColor="@color/black"
             app:layout_constraintBottom_toTopOf="@+id/exit"
             tools:layout_editor_absoluteX="24dp" />

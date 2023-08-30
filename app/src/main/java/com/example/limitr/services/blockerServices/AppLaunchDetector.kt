@@ -89,9 +89,7 @@ class AppLaunchDetector : AccessibilityService() {
                 performGlobalAction(GLOBAL_ACTION_HOME)
             }
 
-        } else if (getAppName(appName) &&
-            limitrDao.getAppName(appName)?.remainingTime != null
-        ) {
+        } else if (getAppName(appName) && limitrDao.getAppName(appName)?.remainingTime != null) {
 
             val currentRemainingTime = getRemainingTime(
                 limitrDao.getAppName(appName)!!.blockedTime,
@@ -102,6 +100,7 @@ class AppLaunchDetector : AccessibilityService() {
 
             if (currentRemainingTime != null) {
                 if (currentRemainingTime > 0L) {
+
                     showOverlayScreen(
                         appName = appName,
                         context = this@AppLaunchDetector,
@@ -136,7 +135,6 @@ class AppLaunchDetector : AccessibilityService() {
 
             },
             onExit = {
-                limitrDao.getRemainingTime(appName).removeObserver {}
                 overlayScreen.removeOverlayView()
                 exitToHome()
             }

@@ -61,11 +61,6 @@ class ActivityBlocked : AppCompatActivity() {
     @Inject
     lateinit var overlayScreen: OverlayScreen
 
-    override fun onResume() {
-        super.onResume()
-
-        overlayScreen.removeOverlayView()
-    }
 
 
     @SuppressLint("SetTextI18n")
@@ -73,9 +68,6 @@ class ActivityBlocked : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         activityBlockedBinding = DataBindingUtil.setContentView(this, R.layout.activity_blocked)
         setContentView(activityBlockedBinding.root)
-
-        overlayScreen.removeOverlayView()
-
 
         dialog =
             dialogShow(
