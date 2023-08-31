@@ -144,7 +144,14 @@ class AppLaunchDetector : AccessibilityService() {
         )
 
         limitrDao.getRemainingTime(appName).observeForever {
-            getTimer(it.blockedTime, it.remainingTime, overlayScreen.remainingTime)
+            try {
+                if (it.blockedTime != null && it.remainingTime != null) {
+                    getTimer(it.blockedTime, it.remainingTime, overlayScreen.remainingTime)
+                }
+            } catch (exception: Exception) {
+                exception.printStackTrace()
+            }
+
         }
     }
 

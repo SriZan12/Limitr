@@ -22,8 +22,7 @@
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
     <uses-permission
-        android:name="android.permission.BIND_ACCESSIBILITY_SERVICE"
-        tools:ignore="ProtectedPermissions" />
+    android:name="Manifest.permission.BIND_ACCESSIBILITY_SERVICE"/>
 
     <application
         android:name=".baseapplication.LimitrApplication"
