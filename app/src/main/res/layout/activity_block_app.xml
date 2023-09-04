@@ -22,14 +22,14 @@
             android:layout_alignParentEnd="true"
             android:orientation="horizontal"
             android:padding="10dp"
-            android:layout_margin="10dp"
-            android:visibility="gone"
+            android:layout_marginBottom="40dp"
+            android:layout_marginEnd="10dp"
             app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
             app:layout_constraintEnd_toEndOf="parent">
 
             <ImageView
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_gravity="center_vertical|center_horizontal"
                 android:layout_margin="20dp"
                 android:src="@drawable/bell" />
@@ -189,10 +189,10 @@
 
             <Button
                 android:id="@+id/unBlockApp"
-                android:layout_width="300dp"
+                android:layout_width="360dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_margin="20dp"
+                android:layout_margin="15dp"
                 android:fontFamily="@font/acme"
                 android:gravity="center"
                 android:padding="8dp"
