@@ -1,8 +1,5 @@
 package com.example.limitr.ui.home.apps.fragment
 
-import android.Manifest
-import android.accessibilityservice.AccessibilityServiceInfo
-import android.app.AppOpsManager
 import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
@@ -14,7 +11,6 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.accessibility.AccessibilityManager
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.example.limitr.R
@@ -23,7 +19,7 @@ import com.example.limitr.ui.blocker.activity.BlockAppActivity
 import com.example.limitr.ui.home.apps.adapter.AppListAdapter
 import com.example.limitr.ui.home.model.App
 import com.example.limitr.utils.OnAppClickListener
-import com.example.limitr.utils.Permissions.checkAccessibilityPermission
+import com.example.limitr.utils.Permissions.isAccessibilityEnabled
 import com.example.limitr.utils.Permissions.isUsageStateManagerEnabled
 import com.example.limitr.utils.ViewUtils
 import dagger.hilt.android.AndroidEntryPoint
@@ -41,6 +37,7 @@ class AppList : Fragment(R.layout.applist_layout) {
     @Inject
     lateinit var appListAdapter: AppListAdapter
 
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -55,10 +52,7 @@ class AppList : Fragment(R.layout.applist_layout) {
         super.onResume()
 
         if (Settings.canDrawOverlays(requireContext()) ||
-            checkAccessibilityPermission(
-                requireContext = requireContext(),
-                requireActivity = requireActivity()
-            ) || isUsageStateManagerEnabled(requireContext = requireContext())
+            requireContext().isAccessibilityEnabled() || isUsageStateManagerEnabled(requireContext = requireContext())
         ) {
             loadStatistics()
         }
