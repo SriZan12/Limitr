@@ -19,15 +19,17 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.example.limitr.R
 import com.example.limitr.databinding.ApplistLayoutBinding
-import com.example.limitr.utils.OnAppClickListener
 import com.example.limitr.ui.blocker.activity.BlockAppActivity
 import com.example.limitr.ui.home.apps.adapter.AppListAdapter
 import com.example.limitr.ui.home.model.App
-import com.example.limitr.ui.home.model.AppInfoModel
+import com.example.limitr.utils.OnAppClickListener
+import com.example.limitr.utils.Permissions.checkAccessibilityPermission
+import com.example.limitr.utils.Permissions.isUsageStateManagerEnabled
 import com.example.limitr.utils.ViewUtils
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
-import java.util.*
+import java.util.Collections
+import java.util.TreeMap
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -53,34 +55,13 @@ class AppList : Fragment(R.layout.applist_layout) {
         super.onResume()
 
         if (Settings.canDrawOverlays(requireContext()) ||
-            checkAccessibilityPermission() || isUsageStateManagerEnabled()
+            checkAccessibilityPermission(
+                requireContext = requireContext(),
+                requireActivity = requireActivity()
+            ) || isUsageStateManagerEnabled(requireContext = requireContext())
         ) {
             loadStatistics()
         }
-    }
-
-    private fun checkAccessibilityPermission(): Boolean {
-        var isAccessibilityEnabled = false
-        (requireContext().getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager).apply {
-            installedAccessibilityServiceList.forEach { installedService ->
-                installedService.resolveInfo.serviceInfo.apply {
-                    if (getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK).any { it.resolveInfo.serviceInfo.packageName == packageName && it.resolveInfo.serviceInfo.name == name && permission == Manifest.permission.BIND_ACCESSIBILITY_SERVICE && it.resolveInfo.serviceInfo.packageName == requireActivity().packageName })
-                        isAccessibilityEnabled = true
-                }
-            }
-        }
-        return isAccessibilityEnabled
-    }
-
-    private fun isUsageStateManagerEnabled(): Boolean {
-        val appOpsManager =
-            requireContext().getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-        val mode = appOpsManager.checkOpNoThrow(
-            AppOpsManager.OPSTR_GET_USAGE_STATS,
-            android.os.Process.myUid(),
-            requireContext().packageName
-        )
-        return mode == AppOpsManager.MODE_ALLOWED
     }
 
     private val onclickListener: OnAppClickListener = object : OnAppClickListener {
@@ -97,12 +78,10 @@ class AppList : Fragment(R.layout.applist_layout) {
 
     }
 
-
     private fun showAppsUsage(mySortedMap: Map<String?, UsageStats>) {
         val appsList = ArrayList<App?>()
         val usageStatsList: List<UsageStats> = ArrayList(mySortedMap.values)
 
-//         sort the applications by time spent in foreground
         Collections.sort(
             usageStatsList
         ) { z1: UsageStats, z2: UsageStats ->
@@ -126,27 +105,27 @@ class AppList : Fragment(R.layout.applist_layout) {
 
                 Timber.d("appName = $appName")
 
-
-                val usageDuration: String = getDurationBreakdown(usageStats.totalTimeInForeground)
-                val usagePercentage = (usageStats.totalTimeInForeground * 100 / totalTime).toInt()
-                val usageStatDTO = App(icon, appName, packageName, usagePercentage, usageDuration)
-                appsList.add(usageStatDTO)
+                if (appName.trim() != context?.getString(R.string.app_name)) {
+                    val usageDuration: String =
+                        getDurationBreakdown(usageStats.totalTimeInForeground)
+                    val usagePercentage =
+                        (usageStats.totalTimeInForeground * 100 / totalTime).toInt()
+                    val usageStatDTO =
+                        App(icon, appName, packageName, usagePercentage, usageDuration)
+                    appsList.add(usageStatDTO)
+                }
             } catch (e: PackageManager.NameNotFoundException) {
                 e.printStackTrace()
             }
         }
 
-
-        // reverse the list to get most usage first
         appsList.reverse()
         appListAdapter.setAppLists(appsList, requireContext(), onclickListener)
         binding.appListRecycler.adapter = appListAdapter
 
     }
 
-    /* @param millis (application time in foreground)
-     * @return string in format hh:mm:ss from milliseconds
-     */
+
     private fun getDurationBreakdown(millis: Long): String {
         var timeInMillis = millis
         require(timeInMillis >= 0) { "Duration must be greater than zero!" }
@@ -158,9 +137,6 @@ class AppList : Fragment(R.layout.applist_layout) {
         return "$hours h $minutes m $seconds s"
     }
 
-    /**
-     * load the usage stats for last 24h
-     */
     private fun loadStatistics() {
         val usageStateManager =
             requireContext().getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
@@ -172,7 +148,6 @@ class AppList : Fragment(R.layout.applist_layout) {
         appList = appList.filter { app -> app.totalTimeInForeground > 0 }
             .toList() // filtering the app which has been used
 
-        // Group the usageStats by application and sort them by total time in foreground
         if (appList.size > 0) {
             val mySortedMap: MutableMap<String?, UsageStats> = TreeMap()
             for (usageStats in appList) {
