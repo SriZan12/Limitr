@@ -81,4 +81,5 @@
     <string name="_4_come_back_to_limitr_and_grant_accessibility_service_permission">4. Come back to Limitr and Grant accessibility service permission</string>
     <string name="_5_find_downloaded_apps_or_service_and_enable_permission">5. Find \'Downloaded Apps\' or \'Service\' and enable permission</string>
     <string name="is_currently_blocked">is Currently Blocked!</string>
+    <string name="watch_a_video">Watch a Video</string>
 </resources>

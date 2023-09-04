@@ -8,7 +8,9 @@ import android.content.Context
 import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
 import androidx.fragment.app.FragmentActivity
+import com.example.limitr.services.blockerServices.AppLaunchDetector
 import com.example.limitr.services.notifications.NotificationListener
+import timber.log.Timber
 
 object Permissions {
 
@@ -23,25 +25,23 @@ object Permissions {
         return mode == AppOpsManager.MODE_ALLOWED
     }
 
-    fun checkAccessibilityPermission(
-        requireContext: Context,
-        requireActivity: FragmentActivity
-    ): Boolean {
-        var isAccessibilityEnabled = false
-        (requireContext.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager).apply {
-            installedAccessibilityServiceList.forEach { installedService ->
-                installedService.resolveInfo.serviceInfo.apply {
-                    if (getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK).any {
-                            it.resolveInfo.serviceInfo.packageName == packageName
-                                    && it.resolveInfo.serviceInfo.name == name && permission ==
-                                    Manifest.permission.BIND_ACCESSIBILITY_SERVICE
-                                    && it.resolveInfo.serviceInfo.packageName == requireActivity.packageName
-                        })
-                        isAccessibilityEnabled = true
-                }
-            }
+
+     fun Context.isAccessibilityEnabled(): Boolean {
+        var enabled = 0
+        try {
+            enabled = Settings.Secure.getInt(contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED)
+        } catch (e: Settings.SettingNotFoundException) {
+            Timber.e(e)
         }
-        return isAccessibilityEnabled
+        if (enabled == 1) {
+            val name = ComponentName(applicationContext, AppLaunchDetector::class.java)
+            val services = Settings.Secure.getString(
+                contentResolver,
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+            )
+            return services?.contains(name.flattenToString()) ?: false
+        }
+        return false
     }
 
     fun isNotificationServiceEnable(context: Context): Boolean {

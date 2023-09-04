@@ -23,4 +23,6 @@ object Constants {
 
     var IS_NEW_USER: Boolean = false
 
+    const val ANDROID_13_PLUS = 1
+
 }

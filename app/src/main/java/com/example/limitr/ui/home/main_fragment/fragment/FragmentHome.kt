@@ -22,9 +22,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.limitr.R
-import com.example.limitr.utils.Status
-import com.example.limitr.utils.dialogShow
 import com.example.limitr.databinding.FragmentHomeBinding
+import com.example.limitr.ui.home.activity.VideoActivity
 import com.example.limitr.ui.home.main_fragment.adapter.AppListViewPagerAdapter
 import com.example.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
 import com.example.limitr.utils.Constants.DAILY_CRYPTO_REWARD
@@ -32,12 +31,13 @@ import com.example.limitr.utils.Constants.FIRST_LOGIN_REWARD
 import com.example.limitr.utils.Constants.IS_NEW_USER
 import com.example.limitr.utils.DateAndTime.getTodayDate
 import com.example.limitr.utils.FirebaseUtils.loadProfilePhoto
-import com.example.limitr.utils.Permissions.checkAccessibilityPermission
+import com.example.limitr.utils.Permissions.isAccessibilityEnabled
 import com.example.limitr.utils.Permissions.isUsageStateManagerEnabled
+import com.example.limitr.utils.Status
 import com.example.limitr.utils.ViewUtils.showToast
+import com.example.limitr.utils.dialogShow
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -77,11 +77,7 @@ class FragmentHome :
         super.onCreate(savedInstanceState)
 
         if (!Settings.canDrawOverlays(requireContext()) ||
-            !checkAccessibilityPermission(
-                requireContext(),
-                requireActivity()
-
-            ) || !isUsageStateManagerEnabled(requireContext())
+            !requireContext().isAccessibilityEnabled() || !isUsageStateManagerEnabled(requireContext())
         ) {
             dialog = dialogShow(requireContext(), R.layout.permission_layout)
         }
@@ -105,11 +101,7 @@ class FragmentHome :
         super.onResume()
 
         if (!Settings.canDrawOverlays(requireContext()) ||
-            !checkAccessibilityPermission(
-                requireContext(),
-                requireActivity()
-
-            ) || !isUsageStateManagerEnabled(requireContext())
+            !requireContext().isAccessibilityEnabled() || !isUsageStateManagerEnabled(requireContext())
         ) {
             showPermissionDialog()
         } else if (IS_NEW_USER) {
@@ -202,13 +194,13 @@ class FragmentHome :
         val grantAccessiblePermission: Button = dialog?.findViewById(R.id.grantAccessiblePerm)!!
         val grantDisplayOverPermission: Button = dialog?.findViewById(R.id.grantDisplayOverPerm)!!
         val grantUsageState: Button = dialog?.findViewById(R.id.grantUsageStateManager)!!
-        val helpText: TextView = dialog?.findViewById(R.id.helpText)!!
+        val helpButton: Button = dialog?.findViewById(R.id.helpButton)!!
 
-        helpText.setOnClickListener {
+        helpButton.setOnClickListener {
             showHelpDialog()
         }
 
-        if (checkAccessibilityPermission(requireContext(), requireActivity())) {
+        if (requireContext().isAccessibilityEnabled()) {
             grantAccessiblePermission.text = getText(R.string.Granted)
             grantAccessiblePermission.isEnabled = false
         }
@@ -272,31 +264,6 @@ class FragmentHome :
         val claimRewardButton: Button = rewardDialog.findViewById(R.id.claimReward)
 
         claimRewardButton.setOnClickListener {
-
-         /*   if (status == Status.CryptoStatus.INSERT) {
-                lifecycleScope.launch {
-                    val currentCrypto = mainViewModel.getCrypto().first()
-                    if (currentCrypto >= 0) {
-                        mainViewModel.upsertEverydayDate(getTodayDate())
-                        mainViewModel.upsertCrypto(DAILY_CRYPTO_REWARD + currentCrypto)
-                    } else {
-                        mainViewModel.upsertEverydayDate(getTodayDate())
-                        mainViewModel.upsertCrypto(DAILY_CRYPTO_REWARD)
-                    }
-
-                    rewardDialog.dismiss()
-                }
-
-            } else {
-
-                lifecycleScope.launch(Dispatchers.Main) {
-                    val currentCrypto = mainViewModel.getCrypto().first()
-                    mainViewModel.upsertEverydayDate(getTodayDate())
-                    mainViewModel.upsertCrypto(currentCrypto + DAILY_CRYPTO_REWARD)
-                    rewardDialog.dismiss()
-                }
-            }*/
-
             lifecycleScope.launch(Dispatchers.Main) {
                 val currentCrypto = mainViewModel.getCrypto().first()
                 mainViewModel.upsertEverydayDate(getTodayDate())
@@ -350,14 +317,30 @@ class FragmentHome :
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
-            setCancelable(false)
+            setCancelable(true)
         }.create()
 
         val grantPermission: Button = helpDialog.findViewById(R.id.grantAccessiblePerm)
+        val watchVideo: Button = helpDialog.findViewById(R.id.watch_video_1)
+        val watchVideo2: Button = helpDialog.findViewById(R.id.watch_video_2)
 
         grantPermission.setOnClickListener {
             goToAccessibilitySettings()
             helpDialog.dismiss()
+        }
+
+        watchVideo.setOnClickListener {
+            val intent = Intent(requireContext(), VideoActivity::class.java)
+            intent.flags = FLAG_ACTIVITY_NEW_TASK
+            intent.putExtra("androidVersion", Status.AndroidVersion.ANDROID_13_LESS)
+            requireContext().startActivity(intent)
+        }
+
+        watchVideo2.setOnClickListener {
+            val intent = Intent(requireContext(), VideoActivity::class.java)
+            intent.flags = FLAG_ACTIVITY_NEW_TASK
+            intent.putExtra("androidVersion", Status.AndroidVersion.ANDROID_13_PLUS)
+            requireContext().startActivity(intent)
         }
 
         helpDialog.show()
