@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/fragmentSignup"
-        android:name="com.example.limitr.ui.auth.fragment.FragmentSignup"
+        android:name="com.khadka.limitr.ui.auth.fragment.FragmentSignup"
         android:label="Signup"
         tools:layout="@layout/signup_layout">
         <action
@@ -17,7 +17,7 @@
     </fragment>
     <fragment
         android:id="@+id/fragmentHome"
-        android:name="com.example.limitr.ui.home.main_fragment.fragment.FragmentHome"
+        android:name="com.khadka.limitr.ui.home.main_fragment.fragment.FragmentHome"
         android:label="FragmentHome"
         tools:layout="@layout/fragment_home">
         <action
@@ -34,18 +34,18 @@
     </fragment>
     <fragment
         android:id="@+id/fragmentEditProfile"
-        android:name="com.example.limitr.ui.profile.fragment.FragmentEditProfile"
+        android:name="com.khadka.limitr.ui.profile.fragment.FragmentEditProfile"
         android:label="Edit Profile"
         tools:layout="@layout/fragment_edit_profile" />
 
     <fragment
         android:id="@+id/appList"
-        android:name="com.example.limitr.ui.home.apps.fragment.AppList"
+        android:name="com.khadka.limitr.ui.home.apps.fragment.AppList"
         android:label="App List"
         tools:layout="@layout/applist_layout" />
     <fragment
         android:id="@+id/hilt_SystemAppFragment"
-        android:name="com.example.limitr.ui.home.blockedApps.fragment.BlockedApps"
+        android:name="com.khadka.limitr.ui.home.blockedApps.fragment.BlockedApps"
         android:label="Blocked Apps"
         tools:layout="@layout/blocked_app_list_layout" />
 </navigation>

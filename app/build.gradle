@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace 'com.example.limitr'
+    namespace 'com.khadka.limitr'
     compileSdk 33
 
     defaultConfig {
