@@ -38,6 +38,8 @@ import com.example.limitr.utils.ViewUtils.showToast
 import com.example.limitr.utils.dialogShow
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -72,6 +74,8 @@ class FragmentHome :
 
         return fragmentHomeBinding.root
     }
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
