@@ -47,7 +47,7 @@
     <string name="blocked_apps">Blocked Apps</string>
     <string name="Granted">Granted</string>
     <string name="my_sharedPref">My SharePref</string>
-    <string name="_1">1</string>
+    <string name="_1">2</string>
     <string name="ask_notification_block">Do You want to Block the notification as well ?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
