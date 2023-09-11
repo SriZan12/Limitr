@@ -40,8 +40,7 @@ class MainActivity : AppCompatActivity() {
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.fragmentSignup,
-                R.id.accessibilityServiceInfo,
-                R.id.fragmentHome
+                 R.id.fragmentHome
             )
         )
 

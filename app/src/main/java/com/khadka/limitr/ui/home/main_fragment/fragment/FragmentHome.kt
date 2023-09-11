@@ -56,7 +56,6 @@ class FragmentHome :
     private var onBackPressed = 0L
     private lateinit var appListViewPagerAdapter: AppListViewPagerAdapter
     private val mainViewModel: MainFragmentViewModel by viewModels()
-    private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 
 
     @Inject

@@ -7,7 +7,7 @@
     <string name="name">Name</string>
     <string name="storage_rationale">This app needs access to your Storage to Upload Picture.</string>
     <string name="DrawOverOtherApps">This app needs permission to display over other apps in order to perform its functions</string>
-    <string name="AccessibilityService">This apps needs Accessibility Service enabled to function properly.</string>
+    <string name="AccessibilityService">This apps needs Accessibility Service enabled for app launch detection.</string>
     <string name="Help">You May need Help! Click Here</string>
     <string name="usageSateManagerSate">This apps needs to read app usage state to give user the proper stats.</string>
     <string name="NotificationBlock">This app needs permission to Listen the Notifications to block the Notifications.</string>
@@ -82,4 +82,22 @@
     <string name="_5_find_downloaded_apps_or_service_and_enable_permission">5. Find \'Downloaded Apps\' or \'Service\' and enable permission</string>
     <string name="is_currently_blocked">is Currently Blocked!</string>
     <string name="watch_a_video">Watch a Video</string>
+
+    <string name="app_accessibility_service_disclosure">App Accessibility Service Disclosure</string>
+    <string name="_1_app_launch_detection">1. App Launch Detection</string>
+    <string name="we_use_the_accessibilityservice_to_detect_when_blocked_apps_are_launched_and_provide_the_functionality_to_block_their_access_temporarily_this_feature_helps_you_stay_focused_and_manage_your_app_usage_effectively">We use the AccessibilityService to detect when blocked apps are launched and provide the functionality to block their access temporarily. This feature helps you stay focused and manage your app usage effectively.</string>
+    <string name="how_do_limitr_use_accessibility_service">How and Why Do Limitr Use Accessibility Service?</string>
+    <string name="_2_your_privacy_and_data_security">2.Your Privacy and Data Security</string>
+    <string name="accept">Accept</string>
+    <string name="we_are_committed_to_providing_a_safe_and_reliable_app_experience_for_our_users_thank_you_for_choosing_limitr_and_we_appreciate_your_trust_in_us">We are committed to providing a safe and reliable app experience for our users. Thank you for choosing Limitr, and we appreciate your trust in us.</string>
+    <string name="i_agree_to_grant_limitr_access_to_the_accessibility_service">I agree to grant Limitr access to the Accessibility Service</string>
+    <string name="if_you_do_not_wish_to_use_the_accessibilityservice_feature_you_can_disable_it_at_any">If you do not wish to use the AccessibilityService feature, you can disable it at any</string>
+    <string name="by_using_limitr_your_consent_to_the_use_of_the_accessibilityservice_for_the_stated_purpose_of_enhancing_your_app_experience">By using Limitr, your consent to the use of the AccessibilityService for the stated purpose of enhancing your app experience.</string>
+    <string name="your_consent_matters">Your Consent Matters</string>
+    <string name="local_processing_all_app_blocking_decisions_are_made_locally_on_your_device_and_no_data_is_sent_to_our_servers">Local Processing: All app blocking decisions are made locally on your device, and no data is sent to our servers.</string>
+    <string name="permission_control_limitr_only_uses_the_accessibilityservice_to_detect_app_launches_and_facilitate_the_app_blocking_feature_we_do_not_use_this_access_for_any_other_purpose">Permission Control: Limitr only uses the AccessibilityService to detect app launches and facilitate the app blocking feature. We do not use this access for any other purpose.</string>
+    <string name="no_sensitive_data_access_limitr_does_not_access_collect_or_transmit_any_of_your_sensitive_data_including_personal_information_passwords_or_financial_details">No Sensitive Data Access: Limitr does not access, collect, or transmit any of your sensitive data, including personal information, passwords, or financial details.</string>
+    <string name="we_want_to_emphasize_that_limitr_takes_your_privacy_and_data_security_seriously">We want to emphasize that Limitr takes your privacy and data security seriously.</string>
+    <string name="AccessibilityServiceInfo">Accessibility Service Info\n</string>
+
 </resources>
