@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/Ui_Color"
+        android:fontFamily="@font/acme"
+        android:gravity="center"
+        android:padding="8dp"
+        android:text="@string/app_accessibility_service_disclosure"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_margin="8dp"
+                android:gravity="center_horizontal"
+                android:text="@string/how_do_limitr_use_accessibility_service"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <!-- App Launch Detection -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="@string/_1_app_launch_detection"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/we_use_the_accessibilityservice_to_detect_when_blocked_apps_are_launched_and_provide_the_functionality_to_block_their_access_temporarily_this_feature_helps_you_stay_focused_and_manage_your_app_usage_effectively"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <!-- Privacy and Data Security -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/_2_your_privacy_and_data_security"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="6dp"
+                android:text="@string/we_want_to_emphasize_that_limitr_takes_your_privacy_and_data_security_seriously"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <!-- No Sensitive Data Access -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="6dp"
+                android:text="@string/no_sensitive_data_access_limitr_does_not_access_collect_or_transmit_any_of_your_sensitive_data_including_personal_information_passwords_or_financial_details"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <!-- Permission Control -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="6dp"
+                android:text="@string/permission_control_limitr_only_uses_the_accessibilityservice_to_detect_app_launches_and_facilitate_the_app_blocking_feature_we_do_not_use_this_access_for_any_other_purpose"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <!-- Local Processing -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="6dp"
+                android:text="@string/local_processing_all_app_blocking_decisions_are_made_locally_on_your_device_and_no_data_is_sent_to_our_servers"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <!-- Your Consent Matters -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:padding="8dp"
+                android:text="@string/your_consent_matters"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/by_using_limitr_your_consent_to_the_use_of_the_accessibilityservice_for_the_stated_purpose_of_enhancing_your_app_experience"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <!-- Disable AccessibilityService -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="6dp"
+                android:text="@string/if_you_do_not_wish_to_use_the_accessibilityservice_feature_you_can_disable_it_at_any"
+                android:textColor="@color/black" />
+
+
+            <!-- Thank You Message -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/we_are_committed_to_providing_a_safe_and_reliable_app_experience_for_our_users_thank_you_for_choosing_limitr_and_we_appreciate_your_trust_in_us"
+                android:textColor="@color/black"
+                android:textSize="16sp" />
+
+            <CheckBox
+                android:id="@+id/acceptCheckbox"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_margin="10dp"
+                android:text="@string/i_agree_to_grant_limitr_access_to_the_accessibility_service"
+                android:textColor="@android:color/black"
+                android:textSize="16sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/acceptButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="10dp"
+                android:background="@color/Ui_Color"
+                android:text="@string/accept"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+
+
+        </LinearLayout>
+    </ScrollView>
+
+
+</LinearLayout>

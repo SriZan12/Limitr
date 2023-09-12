@@ -11,9 +11,8 @@
         android:label="Signup"
         tools:layout="@layout/signup_layout">
         <action
-            android:id="@+id/action_fragmentSignup_to_accessibilityServiceInfo"
-            app:destination="@id/accessibilityServiceInfo"
-            app:enterAnim="@anim/slide_in_right" />
+            android:id="@+id/action_fragmentSignup_to_fragmentHome"
+            app:destination="@id/fragmentHome" />
     </fragment>
     <fragment
         android:id="@+id/fragmentHome"
@@ -37,16 +36,6 @@
         android:name="com.khadka.limitr.ui.profile.fragment.FragmentEditProfile"
         android:label="Edit Profile"
         tools:layout="@layout/fragment_edit_profile" />
-
-    <fragment
-        android:id="@+id/accessibilityServiceInfo"
-        android:name="com.khadka.limitr.ui.home.AccessibilityServiceInfo"
-        android:label="@string/AccessibilityServiceInfo"
-        tools:layout="@layout/accessibility_service_info" >
-        <action
-            android:id="@+id/action_accessibilityServiceInfo_to_fragmentHome"
-            app:destination="@id/fragmentHome" />
-    </fragment>
 
     <fragment
         android:id="@+id/appList"

@@ -131,7 +131,7 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
 
     private fun updateUI() {
         val action =
-            FragmentSignupDirections.actionFragmentSignupToAccessibilityServiceInfo()
+            FragmentSignupDirections.actionFragmentSignupToFragmentHome()
         findNavController().navigate(action)
     }
 

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -11,8 +12,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.TextView
 import androidx.activity.addCallback
+import androidx.appcompat.widget.AppCompatButton
+import androidx.compose.ui.unit.dp
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.datastore.core.DataStore
@@ -56,6 +60,14 @@ class FragmentHome :
     private var onBackPressed = 0L
     private lateinit var appListViewPagerAdapter: AppListViewPagerAdapter
     private val mainViewModel: MainFragmentViewModel by viewModels()
+    private var isDisclosureAccepted = false
+
+
+    @Inject
+    lateinit var sharedPref: SharedPreferences
+
+    @Inject
+    lateinit var editor: SharedPreferences.Editor
 
 
     @Inject
@@ -73,15 +85,17 @@ class FragmentHome :
     }
 
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         if (!Settings.canDrawOverlays(requireContext()) ||
-            !requireContext().isAccessibilityEnabled() || !isUsageStateManagerEnabled(requireContext())
+            !requireContext().isAccessibilityEnabled() || !isUsageStateManagerEnabled(
+                requireContext()
+            )
         ) {
             dialog = dialogShow(requireContext(), R.layout.permission_layout)
         }
+
 
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             if (System.currentTimeMillis() < onBackPressed + 2000) {
@@ -101,24 +115,33 @@ class FragmentHome :
     override fun onResume() {
         super.onResume()
 
-        if (!Settings.canDrawOverlays(requireContext()) ||
-            !requireContext().isAccessibilityEnabled() || !isUsageStateManagerEnabled(requireContext())
-        ) {
-            showPermissionDialog()
-        } else if (IS_NEW_USER) {
+        val isAcceptedConsent = sharedPref.getBoolean("checkboxStatus", false)
 
-            if (dialog?.isShowing == true) {
-                dialog?.dismiss()
-            }
 
-            showFirstLoginRewardDialog()
-
+        if (!isAcceptedConsent) {
+            showAccessibilityServiceInfo()
         } else {
-            if (dialog?.isShowing == true) {
-                dialog?.dismiss()
-            }
+            if (!Settings.canDrawOverlays(requireContext()) ||
+                !requireContext().isAccessibilityEnabled() || !isUsageStateManagerEnabled(
+                    requireContext()
+                )
+            ) {
+                showPermissionDialog()
+            } else if (IS_NEW_USER) {
 
-            checkLastLoggedInDate()
+                if (dialog?.isShowing == true) {
+                    dialog?.dismiss()
+                }
+
+                showFirstLoginRewardDialog()
+
+            } else {
+                if (dialog?.isShowing == true) {
+                    dialog?.dismiss()
+                }
+
+                checkLastLoggedInDate()
+            }
         }
 
     }
@@ -345,6 +368,48 @@ class FragmentHome :
         }
 
         helpDialog.show()
+    }
+
+    private fun showAccessibilityServiceInfo() {
+        val accessibilityServiceInfoDialog = Dialog(requireContext())
+        accessibilityServiceInfoDialog.apply {
+            window?.setContentView(R.layout.accessibility_service_info_dialog)
+            window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+               1000
+
+            )
+            setCancelable(false)
+        }.create()
+
+        val acceptButton: Button =
+            accessibilityServiceInfoDialog.findViewById(R.id.acceptButton)
+        val acceptCheckBox: CheckBox =
+            accessibilityServiceInfoDialog.findViewById(R.id.acceptCheckbox)
+
+        acceptButton.setOnClickListener {
+            if (acceptCheckBox.isChecked) {
+                accessibilityServiceInfoDialog.dismiss()
+                showPermissionDialog()
+            } else {
+                showToast(requireContext(), "First Agree to Grant Limitr Accessibility Service")
+            }
+        }
+
+        acceptCheckBox.setOnClickListener {
+
+            if (acceptCheckBox.isChecked) {
+                editor.putBoolean("checkboxStatus", true)
+                editor.apply()
+                acceptCheckBox.isChecked = true
+            } else {
+                editor.putBoolean("checkboxStatus", false)
+                editor.apply()
+                acceptCheckBox.isChecked = false
+            }
+        }
+
+        accessibilityServiceInfoDialog.show()
     }
 
 }
