@@ -9,14 +9,14 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.activity.addCallback
-import androidx.appcompat.widget.AppCompatButton
-import androidx.compose.ui.unit.dp
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.datastore.core.DataStore
@@ -25,6 +25,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.geokrishifarm.crop_health_query.CropHealthActivity
 import com.khadka.limitr.R
 import com.khadka.limitr.databinding.FragmentHomeBinding
 import com.khadka.limitr.ui.home.activity.VideoActivity
@@ -41,7 +42,6 @@ import com.khadka.limitr.utils.Status
 import com.khadka.limitr.utils.ViewUtils.showToast
 import com.khadka.limitr.utils.dialogShow
 import com.google.android.material.tabs.TabLayoutMediator
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -115,10 +115,7 @@ class FragmentHome :
     override fun onResume() {
         super.onResume()
 
-        val isAcceptedConsent = sharedPref.getBoolean("checkboxStatus", false)
-
-
-        if (!isAcceptedConsent) {
+        if (!getAppConsent()) {
             showAccessibilityServiceInfo()
         } else {
             if (!Settings.canDrawOverlays(requireContext()) ||
@@ -150,6 +147,7 @@ class FragmentHome :
         super.onViewCreated(view, savedInstanceState)
 
         setView()
+        setPopUpMenu()
 
         fragmentHomeBinding.profile.setOnClickListener {
             val action =
@@ -182,6 +180,30 @@ class FragmentHome :
             }
 
         }.attach()
+    }
+
+    private fun setPopUpMenu() {
+        val popupMenu = PopupMenu(requireContext(), fragmentHomeBinding.options)
+        popupMenu.menuInflater.inflate(R.menu.home_menu, popupMenu.menu)
+
+        fragmentHomeBinding.options.setOnClickListener {
+            popupMenu.show()
+        }
+
+        popupMenu.setOnMenuItemClickListener { menuItem: MenuItem ->
+            when (menuItem.itemId) {
+                R.id.action_refer_app -> {
+                    true
+                }
+
+                R.id.action_accessibility_disclosure -> {
+                    showAccessibilityServiceInfo()
+                    true
+                }
+
+                else -> false
+            }
+        }
     }
 
     private fun goToDisplayOverOtherAppsSettings() {
@@ -390,10 +412,22 @@ class FragmentHome :
         val denyButton: Button =
             accessibilityServiceInfoDialog.findViewById(R.id.denyButton)
 
+        acceptCheckBox.isChecked = getAppConsent()
+
         acceptButton.setOnClickListener {
             if (acceptCheckBox.isChecked) {
-                accessibilityServiceInfoDialog.dismiss()
-                showPermissionDialog()
+                if (!Settings.canDrawOverlays(requireContext()) ||
+                    !requireContext().isAccessibilityEnabled() || !isUsageStateManagerEnabled(
+                        requireContext()
+                    )
+                ) {
+                    showPermissionDialog()
+                    accessibilityServiceInfoDialog.dismiss()
+
+                } else {
+                    accessibilityServiceInfoDialog.dismiss()
+                }
+
             } else {
                 showToast(requireContext(), "First Agree to Grant Limitr Accessibility Service")
             }
@@ -418,9 +452,10 @@ class FragmentHome :
             }
         }
 
-
-
         accessibilityServiceInfoDialog.show()
     }
 
+    private fun getAppConsent(): Boolean {
+        return sharedPref.getBoolean("checkboxStatus", false)
+    }
 }

@@ -1,0 +1,9 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_refer_app"
+        android:title="Refer App"
+        android:icon="@drawable/baseline_share_24"/>
+    <item
+        android:id="@+id/action_accessibility_disclosure"
+        android:title="Accessibility Service Disclosure" />
+</menu>

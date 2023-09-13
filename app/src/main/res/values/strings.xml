@@ -84,7 +84,7 @@
     <string name="watch_a_video">Watch a Video</string>
 
     <string name="app_accessibility_service_disclosure">App Accessibility Service Disclosure</string>
-    <string name="_1_app_launch_detection">1. App Launch Detection</string>
+    <string name="_1_app_launch_detection">1. App Functionality</string>
     <string name="we_use_the_accessibilityservice_to_detect_when_blocked_apps_are_launched_and_provide_the_functionality_to_block_their_access_temporarily_this_feature_helps_you_stay_focused_and_manage_your_app_usage_effectively">We use the AccessibilityService to detect when blocked apps are launched and provide the functionality to block their access temporarily. This feature helps you stay focused and manage your app usage effectively.</string>
     <string name="how_do_limitr_use_accessibility_service">How and Why Do Limitr Use Accessibility Service?</string>
     <string name="_2_your_privacy_and_data_security">2.Your Privacy and Data Security</string>
@@ -100,5 +100,9 @@
     <string name="no_sensitive_data_access_limitr_does_not_access_collect_or_transmit_any_of_your_sensitive_data_including_personal_information_passwords_or_financial_details">No Sensitive Data Access: Limitr does not access, collect, or transmit any of your sensitive data, including personal information, passwords, or financial details.</string>
     <string name="we_want_to_emphasize_that_limitr_takes_your_privacy_and_data_security_seriously">We want to emphasize that Limitr takes your privacy and data security seriously.</string>
     <string name="AccessibilityServiceInfo">Accessibility Service Info\n</string>
+    <string name="doesnot_change_user_settings">This Application does not Change user settings or prevent the ability for users to disable or uninstall any app or services.</string>
+    <string name="android_inbuilt">This Application doesn\'t work around Android in-built privacy controls and notifications.</string>
+    <string name="ui_leverage">This application doesn\'t change or leverage the User Interface in a way that is deceptive or otherwise violates play Developer policies.</string>
+    <string name="call_audio_recording">This application doesn not remote call audio recording.</string>
 
 </resources>
