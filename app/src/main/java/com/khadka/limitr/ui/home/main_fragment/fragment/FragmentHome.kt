@@ -376,7 +376,7 @@ class FragmentHome :
             window?.setContentView(R.layout.accessibility_service_info_dialog)
             window?.setLayout(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-               1000
+                1000
 
             )
             setCancelable(false)
@@ -387,6 +387,9 @@ class FragmentHome :
         val acceptCheckBox: CheckBox =
             accessibilityServiceInfoDialog.findViewById(R.id.acceptCheckbox)
 
+        val denyButton: Button =
+            accessibilityServiceInfoDialog.findViewById(R.id.denyButton)
+
         acceptButton.setOnClickListener {
             if (acceptCheckBox.isChecked) {
                 accessibilityServiceInfoDialog.dismiss()
@@ -394,6 +397,12 @@ class FragmentHome :
             } else {
                 showToast(requireContext(), "First Agree to Grant Limitr Accessibility Service")
             }
+        }
+
+        denyButton.setOnClickListener {
+            editor.putBoolean("checkboxStatus", false)
+            editor.apply()
+            requireActivity().finishAffinity()
         }
 
         acceptCheckBox.setOnClickListener {
@@ -408,6 +417,8 @@ class FragmentHome :
                 acceptCheckBox.isChecked = false
             }
         }
+
+
 
         accessibilityServiceInfoDialog.show()
     }
