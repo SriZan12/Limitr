@@ -89,9 +89,10 @@
     <string name="how_do_limitr_use_accessibility_service">How and Why Do Limitr Use Accessibility Service?</string>
     <string name="_2_your_privacy_and_data_security">2.Your Privacy and Data Security</string>
     <string name="accept">Accept</string>
+    <string name="deny">Deny</string>
     <string name="we_are_committed_to_providing_a_safe_and_reliable_app_experience_for_our_users_thank_you_for_choosing_limitr_and_we_appreciate_your_trust_in_us">We are committed to providing a safe and reliable app experience for our users. Thank you for choosing Limitr, and we appreciate your trust in us.</string>
     <string name="i_agree_to_grant_limitr_access_to_the_accessibility_service">I agree to grant Limitr access to the Accessibility Service</string>
-    <string name="if_you_do_not_wish_to_use_the_accessibilityservice_feature_you_can_disable_it_at_any">If you do not wish to use the AccessibilityService feature, you can disable it at any</string>
+    <string name="if_you_do_not_wish_to_use_the_accessibilityservice_feature_you_can_disable_it_at_any">If you do not wish to use the AccessibilityService feature, you can disable it at any time or deny it here.</string>
     <string name="by_using_limitr_your_consent_to_the_use_of_the_accessibilityservice_for_the_stated_purpose_of_enhancing_your_app_experience">By using Limitr, your consent to the use of the AccessibilityService for the stated purpose of enhancing your app experience.</string>
     <string name="your_consent_matters">Your Consent Matters</string>
     <string name="local_processing_all_app_blocking_decisions_are_made_locally_on_your_device_and_no_data_is_sent_to_our_servers">Local Processing: All app blocking decisions are made locally on your device, and no data is sent to our servers.</string>
