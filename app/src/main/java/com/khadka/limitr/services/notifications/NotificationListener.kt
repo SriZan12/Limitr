@@ -65,9 +65,15 @@ class NotificationListener : NotificationListenerService(), LifecycleOwner {
                     val appName = getAppNameByPackageName(this@NotificationListener, packageName!!)
                     val notificationStatus = checkNotificationStatus(appName)
                     if (notificationStatus) {
-                        continuation.resume(notificationStatus)
-                        limitrDao.getBlockedApps()
-                            .removeObserver { } // To prevent the further memory leaks
+                        try {
+                            continuation.resume(true)
+                            limitrDao.getBlockedApps()
+                                .removeObserver { } // To prevent the further memory leaks
+                        } catch (exception: Exception) {
+                            exception.printStackTrace()
+                            Timber.d("EXCEPTION FOR CRASHING = ${exception.message}")
+                        }
+
                     }
                 }
             }
