@@ -11,8 +11,8 @@ object Constants {
 
     //   Rewards
     const val REQUIRED_CRYPTO_FOR_UNBLOCK: Int = 2
-    const val DAILY_CRYPTO_REWARD: Int = 2
-    const val FIRST_LOGIN_REWARD: Int = 15
+    const val DAILY_CRYPTO_REWARD: Int = 1
+    const val FIRST_LOGIN_REWARD: Int = 10
 
 
     //   DataStore Keys

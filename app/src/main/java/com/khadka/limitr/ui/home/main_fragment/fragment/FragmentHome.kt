@@ -25,7 +25,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.geokrishifarm.crop_health_query.CropHealthActivity
 import com.khadka.limitr.R
 import com.khadka.limitr.databinding.FragmentHomeBinding
 import com.khadka.limitr.ui.home.activity.VideoActivity
