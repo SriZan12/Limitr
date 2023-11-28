@@ -1,6 +1,7 @@
 package com.khadka.limitr.di
 
 import android.content.Context
+import com.khadka.limitr.utils.AppReferrer
 import com.khadka.limitr.utils.OverlayScreen
 import dagger.Module
 import dagger.Provides

@@ -104,5 +104,6 @@
     <string name="android_inbuilt">This Application doesn\'t work around Android in-built privacy controls and notifications.</string>
     <string name="ui_leverage">This application doesn\'t change or leverage the User Interface in a way that is deceptive or otherwise violates play Developer policies.</string>
     <string name="call_audio_recording">This application doesn not remote call audio recording.</string>
+    <string name="claim_referral_reward">Claim Referral Reward.</string>
 
 </resources>

@@ -34,4 +34,14 @@ class MainFragmentViewModel @Inject constructor() : ViewModel() {
             mainFragmentRepository.upsertEverydayDate(todayDate)
         }
     }
+
+    suspend fun isReferralCodeStatusChecked(): Flow<Boolean> {
+        return mainFragmentRepository.isReferralCodeChecked()
+    }
+
+    fun upsertReferralCodeStatus(status: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            mainFragmentRepository.upsertReferralCodeStatus(status = status)
+        }
+    }
 }

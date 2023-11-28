@@ -25,22 +25,30 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.tabs.TabLayoutMediator
+import com.google.firebase.database.FirebaseDatabase
 import com.khadka.limitr.R
 import com.khadka.limitr.databinding.FragmentHomeBinding
 import com.khadka.limitr.ui.home.activity.VideoActivity
 import com.khadka.limitr.ui.home.main_fragment.adapter.AppListViewPagerAdapter
 import com.khadka.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
+import com.khadka.limitr.utils.AppReferrer
+import com.khadka.limitr.utils.Constants.APP_REFERRAL_LINK
 import com.khadka.limitr.utils.Constants.DAILY_CRYPTO_REWARD
 import com.khadka.limitr.utils.Constants.FIRST_LOGIN_REWARD
 import com.khadka.limitr.utils.Constants.IS_NEW_USER
+import com.khadka.limitr.utils.Constants.REFERRAL_CRYPTO_REWARD
 import com.khadka.limitr.utils.DateAndTime.getTodayDate
+import com.khadka.limitr.utils.FirebaseUtils.USER_UID
+import com.khadka.limitr.utils.FirebaseUtils.getReferralStatus
 import com.khadka.limitr.utils.FirebaseUtils.loadProfilePhoto
+import com.khadka.limitr.utils.FirebaseUtils.setReferralStatus
+import com.khadka.limitr.utils.FirebaseUtils.updateReferralStatus
 import com.khadka.limitr.utils.Permissions.isAccessibilityEnabled
 import com.khadka.limitr.utils.Permissions.isUsageStateManagerEnabled
 import com.khadka.limitr.utils.Status
 import com.khadka.limitr.utils.ViewUtils.showToast
 import com.khadka.limitr.utils.dialogShow
-import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -59,7 +67,7 @@ class FragmentHome :
     private var onBackPressed = 0L
     private lateinit var appListViewPagerAdapter: AppListViewPagerAdapter
     private val mainViewModel: MainFragmentViewModel by viewModels()
-    private var isDisclosureAccepted = false
+    private var isReferralCodeStatusChecked = false
 
 
     @Inject
@@ -71,6 +79,9 @@ class FragmentHome :
 
     @Inject
     lateinit var dataStore: DataStore<Preferences>
+
+    @Inject
+    lateinit var appReferrer: AppReferrer
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -86,6 +97,9 @@ class FragmentHome :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        isReferralCodeStatusChecked()
+
 
         if (!Settings.canDrawOverlays(requireContext()) ||
             !requireContext().isAccessibilityEnabled() || !isUsageStateManagerEnabled(
@@ -132,6 +146,7 @@ class FragmentHome :
                 showFirstLoginRewardDialog()
 
             } else {
+
                 if (dialog?.isShowing == true) {
                     dialog?.dismiss()
                 }
@@ -161,6 +176,14 @@ class FragmentHome :
         loadProfilePhoto(fragmentHomeBinding.profile, requireContext())
         appListViewPagerAdapter = AppListViewPagerAdapter(requireActivity())
         fragmentHomeBinding.viewPager.adapter = appListViewPagerAdapter
+
+        getReferralStatus { status ->
+            Timber.d("REFERAL STATUS = $status")
+            if (status) {
+//                Show Referral Reward Dialog.
+                showReferralRewardDialog()
+            }
+        }
 
         lifecycleScope.launch(Dispatchers.Main) {
             mainViewModel.getCrypto().collect { crypto ->
@@ -192,6 +215,15 @@ class FragmentHome :
         popupMenu.setOnMenuItemClickListener { menuItem: MenuItem ->
             when (menuItem.itemId) {
                 R.id.action_refer_app -> {
+
+                    setReferralStatus()
+
+                    val shareIntent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, APP_REFERRAL_LINK)
+                        type = "text/plain"
+                    }
+                    startActivity(Intent.createChooser(shareIntent, "Share your referral link"))
                     true
                 }
 
@@ -314,6 +346,10 @@ class FragmentHome :
                 mainViewModel.upsertEverydayDate(getTodayDate())
                 mainViewModel.upsertCrypto(currentCrypto + DAILY_CRYPTO_REWARD)
                 rewardDialog.dismiss()
+
+                if(!isReferralCodeStatusChecked && IS_NEW_USER) {
+                    appReferrer.startReferralClientConnection(context = requireContext())
+                }
             }
 
         }
@@ -456,5 +492,43 @@ class FragmentHome :
 
     private fun getAppConsent(): Boolean {
         return sharedPref.getBoolean("checkboxStatus", false)
+    }
+
+    private fun isReferralCodeStatusChecked() {
+        lifecycleScope.launch(Dispatchers.Main) {
+            mainViewModel.isReferralCodeStatusChecked().collect { status ->
+                Timber.d("INSIDE isReferralCodeStatusChecked = $status")
+                isReferralCodeStatusChecked = status
+            }
+
+        }
+    }
+
+    private fun showReferralRewardDialog() {
+        val rewardDialog = Dialog(requireContext())
+        rewardDialog.apply {
+            window?.setContentView(R.layout.claim_rewards)
+            window?.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            setCancelable(false)
+        }.create()
+
+        val claimRewardButton: Button = rewardDialog.findViewById(R.id.claimReward)
+        claimRewardButton.text = requireContext().getString(R.string.claim_referral_reward)
+
+        claimRewardButton.setOnClickListener {
+            lifecycleScope.launch(Dispatchers.Main) {
+                val currentCrypto = mainViewModel.getCrypto().first()
+                mainViewModel.upsertEverydayDate(getTodayDate())
+                mainViewModel.upsertCrypto(currentCrypto + REFERRAL_CRYPTO_REWARD)
+                updateReferralStatus(userUID = USER_UID, status = false)
+                rewardDialog.dismiss()
+            }
+
+        }
+
+        rewardDialog.show()
     }
 }
