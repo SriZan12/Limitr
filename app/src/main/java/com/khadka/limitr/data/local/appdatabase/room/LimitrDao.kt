@@ -1,4 +1,4 @@
-package com.khadka.limitr.data.local.appdatabase
+package com.khadka.limitr.data.local.appdatabase.room
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao

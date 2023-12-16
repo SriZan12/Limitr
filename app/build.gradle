@@ -15,7 +15,7 @@ android {
         applicationId "com.khadka.Limitr"
         minSdk 23
         targetSdk 33
-        versionCode 8
+        versionCode 9
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -45,6 +45,7 @@ dependencies {
 
     implementation 'com.google.firebase:firebase-auth-ktx:22.0.0'
     implementation 'com.google.firebase:firebase-database-ktx:20.2.2'
+    implementation 'mysql:mysql-connector-java:5.1.49'
     def nav_version = "2.5.3"
     def lifecycle_version = "2.4.0"
     def room_version = "2.4.3"

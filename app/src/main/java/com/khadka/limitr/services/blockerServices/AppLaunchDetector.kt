@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.view.accessibility.AccessibilityEvent
 import com.khadka.limitr.R
-import com.khadka.limitr.data.local.appdatabase.LimitrDao
+import com.khadka.limitr.data.local.appdatabase.room.LimitrDao
 import com.khadka.limitr.ui.blocker.activity.ActivityBlocked
 import com.khadka.limitr.utils.Constants.OVERLAY_DISPLAYED
 import com.khadka.limitr.utils.DateAndTime.getRemainingTime

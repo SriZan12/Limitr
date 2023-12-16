@@ -1,4 +1,4 @@
-package com.khadka.limitr.data.local.appdatabase
+package com.khadka.limitr.data.local.appdatabase.room
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
@@ -8,7 +8,7 @@ import com.khadka.limitr.data.local.appdatabase.model.TimeConverter
 
 @Database(
     entities = [LimitrEntities::class],
-    version = 9
+    version = 10
 )
 @TypeConverters(TimeConverter::class)
 abstract class LimitrDatabase: RoomDatabase() {
