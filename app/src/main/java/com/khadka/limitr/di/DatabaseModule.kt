@@ -7,8 +7,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
 import com.khadka.limitr.R
-import com.khadka.limitr.data.local.appdatabase.room.LimitrDao
-import com.khadka.limitr.data.local.appdatabase.room.LimitrDatabase
+import com.khadka.limitr.data.local.appdatabase.room.appblock.LimitrDao
+import com.khadka.limitr.data.local.appdatabase.room.appblock.LimitrDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

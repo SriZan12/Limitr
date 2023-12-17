@@ -20,9 +20,11 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.lifecycleScope
 import com.khadka.limitr.R
-import com.khadka.limitr.data.local.appdatabase.model.LimitrEntities
+import com.khadka.limitr.data.local.appdatabase.model.historyentities.AppHistoryEntities
+import com.khadka.limitr.data.local.appdatabase.model.limitrentities.LimitrEntities
 import com.khadka.limitr.databinding.ActivityBlockAppBinding
 import com.khadka.limitr.ui.blocker.vm.BlockedAppVM
+import com.khadka.limitr.ui.history.ActivityHistory
 import com.khadka.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
 import com.khadka.limitr.utils.Constants
 import com.khadka.limitr.utils.DateAndTime
@@ -35,11 +37,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import pub.devrel.easypermissions.EasyPermissions
+import java.time.LocalDate
 import java.util.Date
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class BlockAppActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks{
+class BlockAppActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
 
     private lateinit var binding: ActivityBlockAppBinding
     private lateinit var appPackage: String
@@ -115,6 +118,12 @@ class BlockAppActivity : AppCompatActivity(), EasyPermissions.PermissionCallback
             }
         }
 
+        binding.showHistory.setOnClickListener {
+            val intent = Intent(this@BlockAppActivity, ActivityHistory::class.java)
+            intent.putExtra("appName", appName)
+            startActivity(intent)
+        }
+
     }
 
 
@@ -186,7 +195,7 @@ class BlockAppActivity : AppCompatActivity(), EasyPermissions.PermissionCallback
                     removeNotificationStatus()
                 }
 
-                if(unBlockAppStatus){
+                if (unBlockAppStatus) {
                     unBlockApp(appName)
                 }
 
@@ -358,6 +367,18 @@ class BlockAppActivity : AppCompatActivity(), EasyPermissions.PermissionCallback
                 setNotificationStatus(true)
             }
 
+            blockedAppVM.insertAppBlockedHistory(
+                historyEntities = AppHistoryEntities(
+                    appName = appName,
+                    appPackage = appPackage,
+                    blockedDate = System.currentTimeMillis(),
+                    starTime = startTime,
+                    endTime = endTime
+                )
+            ).observe(this) {
+                ViewUtils.showToast(this, "HistorySaved")
+            }
+
         }
     }
 
@@ -426,7 +447,10 @@ class BlockAppActivity : AppCompatActivity(), EasyPermissions.PermissionCallback
                     cryptoDialog.dismiss()
                     finish()
                 } else {
-                    ViewUtils.showToast(this@BlockAppActivity, getString(R.string.not_enough_crypto))
+                    ViewUtils.showToast(
+                        this@BlockAppActivity,
+                        getString(R.string.not_enough_crypto)
+                    )
                     cryptoDialog.dismiss()
                 }
             }

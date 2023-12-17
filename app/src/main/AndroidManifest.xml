@@ -36,6 +36,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Limitr"
         tools:targetApi="31">
+
+        <activity
+            android:name=".ui.history.ActivityHistory"
+            android:exported="false" />
+
         <activity
             android:name=".ui.home.activity.VideoActivity"
             android:exported="false" />

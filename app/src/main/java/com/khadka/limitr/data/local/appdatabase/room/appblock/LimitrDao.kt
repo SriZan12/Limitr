@@ -1,10 +1,11 @@
-package com.khadka.limitr.data.local.appdatabase.room
+package com.khadka.limitr.data.local.appdatabase.room.appblock
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Upsert
-import com.khadka.limitr.data.local.appdatabase.model.LimitrEntities
+import com.khadka.limitr.data.local.appdatabase.model.historyentities.AppHistoryEntities
+import com.khadka.limitr.data.local.appdatabase.model.limitrentities.LimitrEntities
 
 @Dao
 interface LimitrDao {
@@ -26,5 +27,12 @@ interface LimitrDao {
 
     @Query("UPDATE LimitrTable SET notificationStatus = :notificationStatus  WHERE appName = :appName")
     suspend fun updateNotificationStatus(appName: String, notificationStatus: Boolean)
+
+    @Upsert
+    suspend fun insertAppBlockHistory(historyEntities: AppHistoryEntities)
+
+    @Query("SELECT * FROM HISTORYTABLE WHERE appName = :appName")
+    fun getHistory(appName: String): LiveData<List<AppHistoryEntities>>
+
 
 }

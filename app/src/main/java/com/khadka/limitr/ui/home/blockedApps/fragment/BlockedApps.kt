@@ -11,7 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.khadka.limitr.R
 import com.khadka.limitr.utils.OnAppClickListener
-import com.khadka.limitr.data.local.appdatabase.model.LimitrEntities
+import com.khadka.limitr.data.local.appdatabase.model.limitrentities.LimitrEntities
 import com.khadka.limitr.databinding.BlockedAppListLayoutBinding
 import com.khadka.limitr.ui.blocker.activity.BlockAppActivity
 import com.khadka.limitr.ui.home.blockedApps.adapter.BlockedAppListAdapter

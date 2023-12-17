@@ -28,11 +28,20 @@
             app:layout_constraintEnd_toEndOf="parent">
 
             <ImageView
+                android:id="@+id/showHistory"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center_vertical|center_horizontal"
+                android:src="@drawable/baseline_history_24"
+                android:contentDescription="history" />
+
+            <ImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:layout_gravity="center_vertical|center_horizontal"
                 android:layout_margin="20dp"
-                android:src="@drawable/bell" />
+                android:src="@drawable/bell"
+                android:contentDescription="notification_bell" />
 
 
             <androidx.appcompat.widget.SwitchCompat

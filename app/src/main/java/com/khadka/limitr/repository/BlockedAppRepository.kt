@@ -1,8 +1,8 @@
 package com.khadka.limitr.repository
 
 import androidx.lifecycle.LiveData
-import com.khadka.limitr.data.local.appdatabase.room.LimitrDao
-import com.khadka.limitr.data.local.appdatabase.model.LimitrEntities
+import com.khadka.limitr.data.local.appdatabase.room.appblock.LimitrDao
+import com.khadka.limitr.data.local.appdatabase.model.limitrentities.LimitrEntities
 import javax.inject.Inject
 
 

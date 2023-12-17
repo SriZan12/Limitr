@@ -7,7 +7,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.lifecycleScope
-import com.khadka.limitr.data.local.appdatabase.room.LimitrDao
+import com.khadka.limitr.data.local.appdatabase.room.appblock.LimitrDao
 import com.khadka.limitr.utils.ViewUtils.getAppNameByPackageName
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch

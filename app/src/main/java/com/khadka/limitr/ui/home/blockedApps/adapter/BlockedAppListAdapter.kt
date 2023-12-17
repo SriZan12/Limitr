@@ -10,7 +10,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.khadka.limitr.R
 import com.khadka.limitr.utils.OnAppClickListener
-import com.khadka.limitr.data.local.appdatabase.model.LimitrEntities
+import com.khadka.limitr.data.local.appdatabase.model.limitrentities.LimitrEntities
 import com.khadka.limitr.databinding.ItemAppBlockedBinding
 import com.khadka.limitr.utils.DateAndTime.getIntervalForBlocking
 import com.khadka.limitr.utils.DateAndTime.getTimer

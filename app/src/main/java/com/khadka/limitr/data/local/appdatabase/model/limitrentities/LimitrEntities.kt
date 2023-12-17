@@ -1,4 +1,4 @@
-package com.khadka.limitr.data.local.appdatabase.model
+package com.khadka.limitr.data.local.appdatabase.model.limitrentities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

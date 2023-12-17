@@ -1,4 +1,4 @@
-package com.khadka.limitr.data.local.appdatabase.model
+package com.khadka.limitr.data.local.appdatabase.model.limitrentities
 
 import android.os.Build
 import androidx.annotation.RequiresApi

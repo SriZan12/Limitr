@@ -9,6 +9,16 @@ import java.util.Locale
 
 object DateAndTime {
 
+    fun formatDate(date: Long?): String? {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return dateFormat.format(date)
+    }
+
+    fun formatTime(time: Long): String {
+        val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        return timeFormat.format(time)
+    }
+
     fun getTodayDate(): String {
         val calendar = Calendar.getInstance()
         val today = Date(calendar.time.time)
