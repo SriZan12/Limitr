@@ -216,14 +216,19 @@ class FragmentHome :
             when (menuItem.itemId) {
                 R.id.action_refer_app -> {
 
-                    setReferralStatus()
+                    /* setReferralStatus()
 
-                    val shareIntent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_TEXT, APP_REFERRAL_LINK)
-                        type = "text/plain"
-                    }
-                    startActivity(Intent.createChooser(shareIntent, "Share your referral link"))
+                     val shareIntent = Intent().apply {
+                         action = Intent.ACTION_SEND
+                         putExtra(Intent.EXTRA_TEXT, APP_REFERRAL_LINK)
+                         type = "text/plain"
+                     }
+                     startActivity(Intent.createChooser(shareIntent, "Share your referral link"))*/
+
+                    showToast(
+                        context = requireContext(),
+                        message = this.getString(R.string.coming_soon)
+                    )
                     true
                 }
 
@@ -347,7 +352,7 @@ class FragmentHome :
                 mainViewModel.upsertCrypto(currentCrypto + DAILY_CRYPTO_REWARD)
                 rewardDialog.dismiss()
 
-                if(!isReferralCodeStatusChecked && IS_NEW_USER) {
+                if (!isReferralCodeStatusChecked && IS_NEW_USER) {
                     appReferrer.startReferralClientConnection(context = requireContext())
                 }
             }
