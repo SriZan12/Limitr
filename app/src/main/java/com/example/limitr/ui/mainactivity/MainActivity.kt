@@ -31,7 +31,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         overlayScreen.removeOverlayView()
         activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-        setContentView(activityMainBinding.root)
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment

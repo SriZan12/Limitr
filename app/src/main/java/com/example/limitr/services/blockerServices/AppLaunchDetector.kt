@@ -155,8 +155,7 @@ class AppLaunchDetector : AccessibilityService() {
 
     private fun launchBlockingActivity(appName: String, appPackage: String?, context: Context) {
         val blockedIntent = Intent(context, ActivityBlocked::class.java)
-        blockedIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-        blockedIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        blockedIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
         blockedIntent.putExtra(context.getString(R.string.appName), appName)
         blockedIntent.putExtra(context.getString(R.string.packageName), appPackage)
         context.startActivity(blockedIntent)

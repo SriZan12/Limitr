@@ -67,7 +67,6 @@ class BlockAppActivity : AppCompatActivity(), EasyPermissions.PermissionCallback
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_block_app)
-        setContentView(binding.root)
 
         dialog =
             dialogShow(
