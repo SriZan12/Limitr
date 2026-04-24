@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -186,8 +187,9 @@ private fun AppUsageItem(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         app.appIcon?.let {
+            val appIconBitmap = remember(it) { it.toBitmap().asImageBitmap() }
             Image(
-                bitmap = it.toBitmap().asImageBitmap(),
+                bitmap = appIconBitmap,
                 contentDescription = app.appName,
                 modifier = Modifier.size(40.dp),
             )

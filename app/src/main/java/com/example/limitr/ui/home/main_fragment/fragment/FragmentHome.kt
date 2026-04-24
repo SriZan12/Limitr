@@ -37,11 +37,13 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -98,7 +100,6 @@ class FragmentHome : Fragment() {
     private var onBackPressed = 0L
     private val mainViewModel: MainFragmentViewModel by viewModels()
     private val blockedAppViewModel: BlockedAppViewModels by viewModels()
-    private var selectedTabIndex by mutableIntStateOf(0)
     private var usageApps by mutableStateOf(listOf<App>())
 
     override fun onCreateView(
@@ -151,6 +152,7 @@ class FragmentHome : Fragment() {
 
     @Composable
     private fun HomeScreen() {
+        var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
         val crypto by mainViewModel.getCrypto().collectAsState(initial = 0)
         val blockedApps by blockedAppViewModel.getBlockedApps().observeAsState(initial = emptyList())
 
@@ -240,8 +242,9 @@ class FragmentHome : Fragment() {
                     color = androidx.compose.ui.graphics.Color.White,
                     fontSize = 18.sp,
                 )
+                val cryptoIcon = remember { requireContext().getDrawable(R.drawable.crypto)!!.toBitmap().asImageBitmap() }
                 Image(
-                    bitmap = requireContext().getDrawable(R.drawable.crypto)!!.toBitmap().asImageBitmap(),
+                    bitmap = cryptoIcon,
                     contentDescription = null,
                     modifier = Modifier.size(30.dp),
                 )
@@ -328,8 +331,9 @@ class FragmentHome : Fragment() {
                 ) {
                     val icon = app.appPackage?.let { ViewUtils.getAppIconByPackageName(requireContext(), it) }
                     if (icon != null) {
+                        val appIconBitmap = remember(icon) { icon.toBitmap().asImageBitmap() }
                         Image(
-                            bitmap = icon.toBitmap().asImageBitmap(),
+                            bitmap = appIconBitmap,
                             contentDescription = app.appName,
                             modifier = Modifier.size(40.dp),
                         )
