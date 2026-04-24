@@ -86,8 +86,7 @@ class FragmentHome :
             if (System.currentTimeMillis() < onBackPressed + 2000) {
                 val intent = Intent(Intent.ACTION_MAIN)
                 intent.addCategory(Intent.CATEGORY_HOME)
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 startActivity(intent)
                 requireActivity().finish()
             } else {
@@ -164,26 +163,20 @@ class FragmentHome :
         val packageName = requireContext().packageName
         val intent =
             Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
-        intent.apply {
-            FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-        }
+        intent.addFlags(FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
     }
 
     private fun goToUsageStateManagerSettings() {
         val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
-        intent.apply {
-            FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-        }
+        intent.addFlags(FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
     }
 
     private fun goToAccessibilitySettings() {
         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-        intent.apply {
-            FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-        }
+        intent.addFlags(FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
     }
 
     @SuppressLint("SetTextI18n")
