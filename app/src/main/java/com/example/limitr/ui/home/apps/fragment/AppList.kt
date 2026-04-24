@@ -14,28 +14,36 @@ import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Divider
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -47,6 +55,9 @@ import com.example.limitr.utils.Permissions.isAccessibilityEnabled
 import com.example.limitr.utils.Permissions.isUsageStateManagerEnabled
 import com.example.limitr.utils.ViewUtils
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Collections
 import java.util.TreeMap
@@ -63,7 +74,13 @@ class AppList : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 MaterialTheme {
-                    AppListScreen(
+                    AppListContent(
+                        loadApps = { loadStatistics() },
+                        canLoadUsage = {
+                            Settings.canDrawOverlays(requireContext()) &&
+                                requireContext().isAccessibilityEnabled() &&
+                                isUsageStateManagerEnabled(requireContext = requireContext())
+                        },
                         onAppSelected = { appPackageName ->
                             val intent = Intent(requireContext(), BlockAppActivity::class.java).apply {
                                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -71,7 +88,7 @@ class AppList : Fragment() {
                             }
                             startActivity(intent)
                         },
-                        loadApps = { loadStatistics() }
+                        emptyMessage = getString(R.string.no_usage_stats_available)
                     )
                 }
             }
@@ -79,32 +96,28 @@ class AppList : Fragment() {
     }
 
     @Composable
-    private fun AppListScreen(
+    private fun AppListContent(
+        loadApps: suspend () -> List<App>,
+        canLoadUsage: () -> Boolean,
         onAppSelected: (String) -> Unit,
-        loadApps: () -> List<App>
+        emptyMessage: String
     ) {
         var apps by remember { mutableStateOf(emptyList<App>()) }
-
-        val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+        val lifecycleOwner = LocalLifecycleOwner.current
+        val scope = rememberCoroutineScope()
 
         LaunchedEffect(Unit) {
-            if (
-                Settings.canDrawOverlays(requireContext()) &&
-                requireContext().isAccessibilityEnabled() &&
-                isUsageStateManagerEnabled(requireContext = requireContext())
-            ) {
-                apps = loadApps()
+            if (canLoadUsage()) {
+                apps = withContext(Dispatchers.Default) { loadApps() }
             }
         }
 
         DisposableEffect(lifecycleOwner) {
             val observer = LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_RESUME &&
-                    Settings.canDrawOverlays(requireContext()) &&
-                    requireContext().isAccessibilityEnabled() &&
-                    isUsageStateManagerEnabled(requireContext = requireContext())
-                ) {
-                    apps = loadApps()
+                if (event == Lifecycle.Event.ON_RESUME && canLoadUsage()) {
+                    scope.launch {
+                        apps = withContext(Dispatchers.Default) { loadApps() }
+                    }
                 }
             }
             lifecycleOwner.lifecycle.addObserver(observer)
@@ -112,44 +125,65 @@ class AppList : Fragment() {
         }
 
         if (apps.isEmpty()) {
-            Column(
+            EmptyState(message = emptyMessage)
+        } else {
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(text = getString(R.string.no_usage_stats_available))
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 8.dp)
+                contentPadding = PaddingValues(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(apps) { app ->
-                    AppRow(app = app, onClick = {
-                        app.appPackageName?.let(onAppSelected)
-                    })
-                    Divider()
+                    AppCard(app = app, onClick = { app.appPackageName?.let(onAppSelected) })
                 }
             }
         }
     }
 
     @Composable
-    private fun AppRow(app: App, onClick: () -> Unit) {
-        Row(
+    private fun EmptyState(message: String) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = message, style = MaterialTheme.typography.titleMedium)
+        }
+    }
+
+    @Composable
+    private fun AppCard(app: App, onClick: () -> Unit) {
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
-            AndroidIcon(icon = app.appIcon)
-            Column(modifier = Modifier.padding(start = 12.dp)) {
-                Text(text = app.appName.orEmpty(), style = MaterialTheme.typography.titleMedium)
-                Text(text = app.usageDuration.orEmpty(), style = MaterialTheme.typography.bodyMedium)
-                Text(text = "${app.usagePercentage}%", style = MaterialTheme.typography.bodySmall)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AndroidIcon(icon = app.appIcon)
+                Column(modifier = Modifier.padding(start = 12.dp)) {
+                    Text(text = app.appName.orEmpty(), style = MaterialTheme.typography.titleMedium)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = app.usageDuration.orEmpty(), style = MaterialTheme.typography.bodyMedium)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    LinearProgressIndicator(
+                        progress = (app.usagePercentage / 100f).coerceIn(0f, 1f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${app.usagePercentage}% of today",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         }
     }
@@ -162,10 +196,8 @@ class AppList : Fragment() {
                     layoutParams = ViewGroup.LayoutParams(96, 96)
                 }
             },
-            update = { imageView ->
-                imageView.setImageDrawable(icon)
-            },
-            modifier = Modifier.height(40.dp)
+            update = { imageView -> imageView.setImageDrawable(icon) },
+            modifier = Modifier.size(42.dp)
         )
     }
 
@@ -173,7 +205,7 @@ class AppList : Fragment() {
         val appsList = ArrayList<App>()
         val usageStatsList: List<UsageStats> = ArrayList(mySortedMap.values)
 
-        Collections.sort(usageStatsList) { z1: UsageStats, z2: UsageStats ->
+        Collections.sort(usageStatsList) { z1, z2 ->
             z1.totalTimeInForeground.compareTo(z2.totalTimeInForeground)
         }
 
@@ -185,15 +217,13 @@ class AppList : Fragment() {
         for (usageStats in usageStatsList) {
             try {
                 val packageName = usageStats.packageName
-                Timber.d("packageName = $packageName")
                 val icon: Drawable? = ViewUtils.getAppIconByPackageName(requireContext(), packageName)
                 val appName: String = ViewUtils.getAppNameByPackageName(requireContext(), packageName)
 
                 if (appName.trim() != context?.getString(R.string.app_name)) {
-                    val usageDuration: String = getDurationBreakdown(usageStats.totalTimeInForeground)
+                    val usageDuration = getDurationBreakdown(usageStats.totalTimeInForeground)
                     val usagePercentage = if (totalTime == 0L) 0 else (usageStats.totalTimeInForeground * 100 / totalTime).toInt()
-                    val usageStatDTO = App(icon, appName, packageName, usagePercentage, usageDuration)
-                    appsList.add(usageStatDTO)
+                    appsList.add(App(icon, appName, packageName, usagePercentage, usageDuration))
                 }
             } catch (e: PackageManager.NameNotFoundException) {
                 Timber.e(e)
@@ -215,8 +245,7 @@ class AppList : Fragment() {
     }
 
     private fun loadStatistics(): List<App> {
-        val usageStateManager =
-            requireContext().getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val usageStateManager = requireContext().getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         var appList = usageStateManager.queryUsageStats(
             UsageStatsManager.INTERVAL_DAILY,
             System.currentTimeMillis() - 1000 * 3600 * 24,

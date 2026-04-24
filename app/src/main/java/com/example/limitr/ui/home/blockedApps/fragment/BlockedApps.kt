@@ -4,8 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,7 +16,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Divider
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +35,7 @@ import com.example.limitr.data.local.appdatabase.model.LimitrEntities
 import com.example.limitr.ui.blocker.activity.BlockAppActivity
 import com.example.limitr.ui.home.blockedApps.vm.BlockedAppViewModels
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.Date
 
 @AndroidEntryPoint
 class BlockedApps : Fragment() {
@@ -66,37 +71,49 @@ class BlockedApps : Fragment() {
         onAppSelected: (String) -> Unit
     ) {
         if (blockedApps.isEmpty()) {
-            Column(
+            Box(
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                contentAlignment = Alignment.Center
             ) {
-                Text(text = getString(R.string.no_apps_are_blocked))
+                Text(text = getString(R.string.no_apps_are_blocked), style = MaterialTheme.typography.titleMedium)
             }
             return
         }
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 8.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(blockedApps) { app ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { app.appPackage?.let(onAppSelected) }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(text = app.appName, style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            text = app.appPackage.orEmpty(),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
+                BlockedAppCard(
+                    app = app,
+                    onClick = { app.appPackage?.let(onAppSelected) }
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun BlockedAppCard(app: LimitrEntities, onClick: () -> Unit) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(modifier = Modifier.padding(14.dp)) {
+                Text(text = app.appName, style = MaterialTheme.typography.titleMedium)
+                Text(text = app.appPackage.orEmpty(), style = MaterialTheme.typography.bodySmall)
+                Row(modifier = Modifier.padding(top = 8.dp)) {
+                    Text(
+                        text = "Blocked: ${app.blockedTime?.let { Date(it) } ?: "--"}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
-                Divider()
             }
         }
     }
