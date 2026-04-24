@@ -48,7 +48,7 @@ import java.util.Date
 import java.util.Locale
 
 @AndroidEntryPoint
-class BlockedApps : Fragment(R.layout.blocked_app_list_layout) {
+class BlockedApps : Fragment() {
 
     private val viewModel: BlockedAppViewModels by viewModels()
 

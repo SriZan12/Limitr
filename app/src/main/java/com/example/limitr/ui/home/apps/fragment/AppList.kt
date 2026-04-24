@@ -53,7 +53,7 @@ import java.util.TreeMap
 import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
-class AppList : Fragment(R.layout.applist_layout) {
+class AppList : Fragment() {
 
     private var apps by mutableStateOf(listOf<App>())
 

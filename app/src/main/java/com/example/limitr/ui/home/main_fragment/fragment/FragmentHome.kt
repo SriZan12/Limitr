@@ -92,7 +92,7 @@ import java.util.TreeMap
 import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
-class FragmentHome : Fragment(R.layout.fragment_home) {
+class FragmentHome : Fragment() {
 
     private var dialog: Dialog? = null
     private var onBackPressed = 0L

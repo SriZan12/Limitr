@@ -58,7 +58,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
 @AndroidEntryPoint
-class FragmentSignup : Fragment(R.layout.signup_layout) {
+class FragmentSignup : Fragment() {
 
     private val authViewModel: AuthViewModel by viewModels()
     private lateinit var googleSignInClient: GoogleSignInClient
