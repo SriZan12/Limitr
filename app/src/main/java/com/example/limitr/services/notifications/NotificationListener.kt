@@ -7,7 +7,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.lifecycleScope
-import com.example.limitr.R
 import com.example.limitr.data.local.appdatabase.LimitrDao
 import com.example.limitr.utils.ViewUtils.getAppNameByPackageName
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,11 +30,14 @@ class NotificationListener : NotificationListenerService(), LifecycleOwner {
     lateinit var limitrDao: LimitrDao
     private lateinit var lifecycleRegistry: LifecycleRegistry
 
+    override val lifecycle: Lifecycle
+        get() = lifecycleRegistry
+
     override fun onCreate() {
         super.onCreate()
 
         lifecycleRegistry = LifecycleRegistry(this)
-        lifecycleRegistry.markState(Lifecycle.State.CREATED)
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
 
     }
 
@@ -89,13 +91,7 @@ class NotificationListener : NotificationListenerService(), LifecycleOwner {
     override fun onDestroy() {
         super.onDestroy()
 
-        lifecycleRegistry.markState(Lifecycle.State.DESTROYED)
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     }
-
-
-    override fun getLifecycle(): Lifecycle {
-        return lifecycleRegistry
-    }
-
 
 }

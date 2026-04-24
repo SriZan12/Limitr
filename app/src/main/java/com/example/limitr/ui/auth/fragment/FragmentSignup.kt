@@ -41,12 +41,17 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
 
     override fun onStart() {
         super.onStart()
+        // Skip authentication check and go straight to home
+        updateUI()
+        
+        /* 
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
             updateUI()
         } else if (!isOnline()) {
             showNoInternetDialog()
         }
+        */
     }
 
     override fun onCreateView(
@@ -62,8 +67,13 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        fragmentSignupBinding.googleLogin.setOnClickListener {
+        // Automatically navigate to home if the signup screen is reached
+        updateUI()
 
+        fragmentSignupBinding.googleLogin.setOnClickListener {
+            updateUI() // bypass authentication on click as well
+
+            /*
             if (!isOnline()) {
                 showNoInternetDialog()
             } else {
@@ -76,6 +86,7 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
                 googleSignInClient = GoogleSignIn.getClient(requireContext(), gso)
                 signInGoogle()
             }
+            */
         }
     }
 

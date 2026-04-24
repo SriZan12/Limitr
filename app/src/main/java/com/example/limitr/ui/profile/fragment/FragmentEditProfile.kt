@@ -57,16 +57,21 @@ class FragmentEditProfile :
 
 
         fragmentEditProfileBinding.profileName.setText(
-            firebaseAuth.currentUser?.displayName
+            firebaseAuth.currentUser?.displayName ?: "Guest User"
         )
 
         loadProfilePhoto(fragmentEditProfileBinding.profileImage, requireContext())
 
         fragmentEditProfileBinding.profileImage.setOnClickListener {
-            checkStoragePermission()
+            // Authentication disconnected: Skip image picking that requires Firebase
+            showToast(requireContext(), "Profile photo update is disabled in guest mode.")
+            // checkStoragePermission()
         }
 
         fragmentEditProfileBinding.ButtonEditProfile.setOnClickListener {
+            // Authentication disconnected: Skip Firebase name update
+            showToast(requireContext(), "Profile update is disabled in guest mode.")
+            /*
             fragmentEditProfileBinding.progressBar.visibility = View.VISIBLE
             val name = fragmentEditProfileBinding.profileName.text.toString()
             viewModel.updateNameToFirebase(
@@ -74,6 +79,7 @@ class FragmentEditProfile :
                 fragmentEditProfileBinding.progressBar,
                 requireContext()
             )
+            */
         }
     }
 
