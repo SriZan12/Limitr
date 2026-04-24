@@ -1,14 +1,18 @@
 package com.example.limitr.ui.auth.fragment
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.Context
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.ComposeView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -19,7 +23,6 @@ import com.example.limitr.resource.LimitrResource
 import com.example.limitr.ui.auth.vm.AuthViewModel
 import com.example.limitr.utils.Constants.IS_NEW_USER
 import com.example.limitr.utils.ViewUtils.showToast
-import com.example.limitr.utils.dialogShow
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -136,15 +139,27 @@ class FragmentSignup : Fragment(R.layout.signup_layout) {
     }
 
     private fun showNoInternetDialog() {
-        val dialog = dialogShow(requireContext(), R.layout.no_internet_dialog)
-
+        val dialog = Dialog(requireContext())
+        dialog.setCancelable(false)
+        dialog.setContentView(
+            ComposeView(requireContext()).apply {
+                setContent {
+                    AlertDialog(
+                        onDismissRequest = {},
+                        title = { Text(text = getString(R.string.internet_required)) },
+                        text = { Text(text = getString(R.string.turn_on_internet)) },
+                        confirmButton = {
+                            TextButton(
+                                onClick = { dialog.dismiss() },
+                            ) {
+                                Text(text = getString(R.string.ok))
+                            }
+                        },
+                    )
+                }
+            },
+        )
         dialog.show()
-
-        val okButton: Button = dialog.findViewById(R.id.okInternet)
-
-        okButton.setOnClickListener {
-            dialog.dismiss()
-        }
     }
 
     private fun signInGoogle() {

@@ -31,9 +31,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -77,7 +79,6 @@ import com.example.limitr.utils.Permissions.isUsageStateManagerEnabled
 import com.example.limitr.utils.Status
 import com.example.limitr.utils.ViewUtils
 import com.example.limitr.utils.ViewUtils.showToast
-import com.example.limitr.utils.dialogShow
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -117,12 +118,6 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (!Settings.canDrawOverlays(requireContext()) ||
-            !requireContext().isAccessibilityEnabled() || !isUsageStateManagerEnabled(requireContext())
-        ) {
-            dialog = dialogShow(requireContext(), R.layout.permission_layout)
-        }
-
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             if (System.currentTimeMillis() < onBackPressed + 2000) {
                 val intent = Intent(Intent.ACTION_MAIN)
@@ -146,18 +141,9 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
         ) {
             showPermissionDialog()
         } else if (IS_NEW_USER) {
-
-            if (dialog?.isShowing == true) {
-                dialog?.dismiss()
-            }
-
             showFirstLoginRewardDialog()
 
         } else {
-            if (dialog?.isShowing == true) {
-                dialog?.dismiss()
-            }
-
             checkLastLoggedInDate()
             loadStatistics()
         }
@@ -469,44 +455,52 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
 
     @SuppressLint("SetTextI18n")
     private fun showPermissionDialog() {
+        val accessibilityGranted = requireContext().isAccessibilityEnabled()
+        val overlayGranted = Settings.canDrawOverlays(requireContext())
+        val usageGranted = isUsageStateManagerEnabled(requireContext())
 
-        dialog?.show()
-
-        val grantAccessiblePermission: Button = dialog?.findViewById(R.id.grantAccessiblePerm)!!
-        val grantDisplayOverPermission: Button = dialog?.findViewById(R.id.grantDisplayOverPerm)!!
-        val grantUsageState: Button = dialog?.findViewById(R.id.grantUsageStateManager)!!
-        val helpButton: Button = dialog?.findViewById(R.id.helpButton)!!
-
-        helpButton.setOnClickListener {
-            showHelpDialog()
-        }
-
-        if (requireContext().isAccessibilityEnabled()) {
-            grantAccessiblePermission.text = getText(R.string.Granted)
-            grantAccessiblePermission.isEnabled = false
-        }
-        if (Settings.canDrawOverlays(requireContext())) {
-            grantDisplayOverPermission.text = getText(R.string.Granted)
-            grantDisplayOverPermission.isEnabled = false
-        }
-
-        if (isUsageStateManagerEnabled(requireContext())) {
-            grantUsageState.text = getText(R.string.Granted)
-            grantUsageState.isEnabled = false
-        }
-
-        grantAccessiblePermission.setOnClickListener {
-            goToAccessibilitySettings()
-        }
-
-        grantDisplayOverPermission.setOnClickListener {
-            goToDisplayOverOtherAppsSettings()
-        }
-
-        grantUsageState.setOnClickListener {
-            goToUsageStateManagerSettings()
-        }
-
+        val permissionDialog = Dialog(requireContext())
+        permissionDialog.setCancelable(false)
+        permissionDialog.setContentView(
+            ComposeView(requireContext()).apply {
+                setContent {
+                    AlertDialog(
+                        onDismissRequest = {},
+                        title = { Text(text = getString(R.string.permission_required)) },
+                        text = {
+                            Column {
+                                Text(text = getString(R.string.AccessibilityService))
+                                Text(text = getString(R.string.DrawOverOtherApps))
+                                Text(text = getString(R.string.usageSateManagerSate))
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { goToAccessibilitySettings() }, enabled = !accessibilityGranted) {
+                                Text(if (accessibilityGranted) getString(R.string.Granted) else getString(R.string.AccessibilityService))
+                            }
+                        },
+                        dismissButton = {
+                            Column {
+                                TextButton(onClick = { goToDisplayOverOtherAppsSettings() }, enabled = !overlayGranted) {
+                                    Text(if (overlayGranted) getString(R.string.Granted) else getString(R.string.DrawOverOtherApps))
+                                }
+                                TextButton(onClick = { goToUsageStateManagerSettings() }, enabled = !usageGranted) {
+                                    Text(if (usageGranted) getString(R.string.Granted) else getString(R.string.usageSateManagerSate))
+                                }
+                                TextButton(onClick = {
+                                    permissionDialog.dismiss()
+                                    showHelpDialog()
+                                }) {
+                                    Text(getString(R.string.Help))
+                                }
+                            }
+                        },
+                    )
+                }
+            },
+        )
+        dialog = permissionDialog
+        permissionDialog.show()
     }
 
 
@@ -526,99 +520,108 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
     }
 
     private fun showEverydayReward() {
-
         val rewardDialog = Dialog(requireContext())
-        rewardDialog.apply {
-            window?.setContentView(R.layout.claim_rewards)
-            window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-            )
-            setCancelable(false)
-        }.create()
-
-        val claimRewardButton: Button = rewardDialog.findViewById(R.id.claimReward)
-
-        claimRewardButton.setOnClickListener {
-            lifecycleScope.launch(Dispatchers.Main) {
-                val currentCrypto = mainViewModel.getCrypto().first()
-                mainViewModel.upsertEverydayDate(getTodayDate())
-                mainViewModel.upsertCrypto(currentCrypto + DAILY_CRYPTO_REWARD)
-                rewardDialog.dismiss()
-            }
-
-        }
-
+        rewardDialog.setCancelable(false)
+        rewardDialog.setContentView(
+            ComposeView(requireContext()).apply {
+                setContent {
+                    AlertDialog(
+                        onDismissRequest = {},
+                        title = { Text(text = getString(R.string.reward)) },
+                        text = { Text(text = DAILY_CRYPTO_REWARD.toString()) },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    lifecycleScope.launch(Dispatchers.Main) {
+                                        val currentCrypto = mainViewModel.getCrypto().first()
+                                        mainViewModel.upsertEverydayDate(getTodayDate())
+                                        mainViewModel.upsertCrypto(currentCrypto + DAILY_CRYPTO_REWARD)
+                                        rewardDialog.dismiss()
+                                    }
+                                },
+                            ) {
+                                Text(text = getString(R.string.reward))
+                            }
+                        },
+                    )
+                }
+            },
+        )
         rewardDialog.show()
     }
 
     @SuppressLint("SetTextI18n")
     private fun showFirstLoginRewardDialog() {
-
         val rewardDialog = Dialog(requireContext())
-        rewardDialog.apply {
-            window?.setContentView(R.layout.claim_rewards)
-            window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-            )
-            setCancelable(false)
-        }.create()
-
-        val claimRewardButton: Button = rewardDialog.findViewById(R.id.claimReward)
-        val firsLoginText: TextView = rewardDialog.findViewById(R.id.firstLoginText)
-        val cryptoText: TextView = rewardDialog.findViewById(R.id.cryptoText)
-
-        firsLoginText.visibility = View.VISIBLE
-        firsLoginText.text = getString(R.string.first_login_reward)
-        cryptoText.text = FIRST_LOGIN_REWARD.toString()
-
-        claimRewardButton.setOnClickListener {
-            mainViewModel.upsertCrypto(FIRST_LOGIN_REWARD)
-            IS_NEW_USER = false
-            rewardDialog.dismiss()
-
-            checkLastLoggedInDate()
-        }
-
-
+        rewardDialog.setCancelable(false)
+        rewardDialog.setContentView(
+            ComposeView(requireContext()).apply {
+                setContent {
+                    AlertDialog(
+                        onDismissRequest = {},
+                        title = { Text(text = getString(R.string.first_login_reward)) },
+                        text = { Text(text = FIRST_LOGIN_REWARD.toString()) },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    mainViewModel.upsertCrypto(FIRST_LOGIN_REWARD)
+                                    IS_NEW_USER = false
+                                    rewardDialog.dismiss()
+                                    checkLastLoggedInDate()
+                                },
+                            ) {
+                                Text(text = getString(R.string.reward))
+                            }
+                        },
+                    )
+                }
+            },
+        )
         rewardDialog.show()
     }
 
     private fun showHelpDialog() {
         val helpDialog = Dialog(requireContext())
-        helpDialog.apply {
-            window?.setContentView(R.layout.help_dialog)
-            window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-            )
-            setCancelable(true)
-        }.create()
-
-        val grantPermission: Button = helpDialog.findViewById(R.id.grantAccessiblePerm)
-        val watchVideo: Button = helpDialog.findViewById(R.id.watch_video_1)
-        val watchVideo2: Button = helpDialog.findViewById(R.id.watch_video_2)
-
-        grantPermission.setOnClickListener {
-            goToAccessibilitySettings()
-            helpDialog.dismiss()
-        }
-
-        watchVideo.setOnClickListener {
-            val intent = Intent(requireContext(), VideoActivity::class.java)
-            intent.flags = FLAG_ACTIVITY_NEW_TASK
-            intent.putExtra("androidVersion", Status.AndroidVersion.ANDROID_13_LESS)
-            requireContext().startActivity(intent)
-        }
-
-        watchVideo2.setOnClickListener {
-            val intent = Intent(requireContext(), VideoActivity::class.java)
-            intent.flags = FLAG_ACTIVITY_NEW_TASK
-            intent.putExtra("androidVersion", Status.AndroidVersion.ANDROID_13_PLUS)
-            requireContext().startActivity(intent)
-        }
-
+        helpDialog.setCancelable(true)
+        helpDialog.setContentView(
+            ComposeView(requireContext()).apply {
+                setContent {
+                    AlertDialog(
+                        onDismissRequest = { helpDialog.dismiss() },
+                        title = { Text(text = getString(R.string.help_instructions)) },
+                        text = { Text(text = getString(R.string.click_here_for_more_details)) },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    val intent = Intent(requireContext(), VideoActivity::class.java)
+                                    intent.flags = FLAG_ACTIVITY_NEW_TASK
+                                    intent.putExtra("androidVersion", Status.AndroidVersion.ANDROID_13_LESS)
+                                    requireContext().startActivity(intent)
+                                },
+                            ) { Text(getString(R.string.for_android_version_below_13)) }
+                        },
+                        dismissButton = {
+                            Column {
+                                TextButton(
+                                    onClick = {
+                                        val intent = Intent(requireContext(), VideoActivity::class.java)
+                                        intent.flags = FLAG_ACTIVITY_NEW_TASK
+                                        intent.putExtra("androidVersion", Status.AndroidVersion.ANDROID_13_PLUS)
+                                        requireContext().startActivity(intent)
+                                    },
+                                ) { Text(getString(R.string.for_android_version_13_and_above)) }
+                                TextButton(
+                                    onClick = {
+                                        goToAccessibilitySettings()
+                                        helpDialog.dismiss()
+                                    },
+                                ) { Text(getString(R.string.grant_permission)) }
+                            }
+                        },
+                    )
+                }
+            },
+        )
         helpDialog.show()
     }
 }
