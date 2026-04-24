@@ -31,12 +31,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.example.limitr.R
 import com.example.limitr.ui.blocker.activity.BlockAppActivity
 import com.example.limitr.ui.home.model.App
@@ -82,6 +85,8 @@ class AppList : Fragment() {
     ) {
         var apps by remember { mutableStateOf(emptyList<App>()) }
 
+        val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+
         LaunchedEffect(Unit) {
             if (
                 Settings.canDrawOverlays(requireContext()) &&
@@ -92,6 +97,20 @@ class AppList : Fragment() {
             }
         }
 
+        DisposableEffect(lifecycleOwner) {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME &&
+                    Settings.canDrawOverlays(requireContext()) &&
+                    requireContext().isAccessibilityEnabled() &&
+                    isUsageStateManagerEnabled(requireContext = requireContext())
+                ) {
+                    apps = loadApps()
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+        }
+
         if (apps.isEmpty()) {
             Column(
                 modifier = Modifier
@@ -100,7 +119,7 @@ class AppList : Fragment() {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = getString(R.string.no_apps_blocked))
+                Text(text = getString(R.string.no_usage_stats_available))
             }
         } else {
             LazyColumn(

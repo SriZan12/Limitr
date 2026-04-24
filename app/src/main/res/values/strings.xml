@@ -82,4 +82,5 @@
     <string name="_5_find_downloaded_apps_or_service_and_enable_permission">5. Find \'Downloaded Apps\' or \'Service\' and enable permission</string>
     <string name="is_currently_blocked">is Currently Blocked!</string>
     <string name="watch_a_video">Watch a Video</string>
+    <string name="no_usage_stats_available">No app usage found for today.</string>
 </resources>

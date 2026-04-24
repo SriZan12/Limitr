@@ -71,7 +71,7 @@ class BlockedApps : Fragment() {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = getString(R.string.no_apps_blocked))
+                Text(text = getString(R.string.no_apps_are_blocked))
             }
             return
         }
