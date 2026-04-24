@@ -30,6 +30,8 @@ fun LimitrTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
+        typography = LimitrTypography,
+        shapes = LimitrShapes,
         content = content,
     )
 }
