@@ -270,7 +270,7 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
                 .fillMaxSize()
                 .padding(8.dp),
         ) {
-            items(apps) { app ->
+            items(items = apps, key = { it.appPackageName }) { app ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -325,7 +325,7 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
         }
 
         LazyColumn(modifier = Modifier.fillMaxSize().padding(8.dp)) {
-            items(blockedApps) { app ->
+            items(items = blockedApps, key = { it.appName }) { app ->
                 val timerText by produceState(initialValue = "") {
                     while (true) {
                         value = getTimerText(app)
