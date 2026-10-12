@@ -3,15 +3,16 @@ package com.khadka.limitr
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
+import android.view.inspector.WindowInspector
+import android.widget.EditText
+import android.widget.NumberPicker
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.SdkSuppress
 import com.khadka.limitr.blocking.*
 import com.khadka.limitr.ui.blocker.activity.BlockAppActivity
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.After
@@ -27,9 +28,10 @@ class SessionInstrumentedTest {
     private val clock = entry.clock()
     private val target = "com.limitr.instrumented.fixture"
 
-    @After fun cleanup() = runBlocking {
+    @After fun cleanup(): Unit = runBlocking {
         repository.all().filter { it.packageName == target }.forEach { repository.cancel(it) }
         coordinator.refresh()
+        Unit
     }
 
     @Test fun activityRecreationKeepsSessionAndExpiryIsAutomatic() = runBlocking {
@@ -44,6 +46,23 @@ class SessionInstrumentedTest {
             await { coordinator.state.value.sessions.none { it.packageName == target } }
         }
         assertTrue(repository.all().none { it.packageName == target })
+    }
+
+    @Test @SdkSuppress(minSdkVersion = 29)
+    fun keyboardTimerEntryIsCommittedWhenStartIsTapped() = runBlocking {
+        coordinator.refresh()
+        ActivityScenario.launch<BlockAppActivity>(Intent(context, BlockAppActivity::class.java).putExtra("packageName", target)).use { scenario ->
+            scenario.onActivity { activity ->
+                activity.findViewById<android.view.View>(R.id.setTime).performClick()
+                val root = WindowInspector.getGlobalWindowViews().first { it.findViewById<NumberPicker>(R.id.second_picker) != null }
+                val picker = root.findViewById<NumberPicker>(R.id.second_picker)
+                val input = (0 until picker.childCount).map { picker.getChildAt(it) }.filterIsInstance<EditText>().single()
+                input.requestFocus()
+                input.setText("30")
+                root.findViewById<android.view.View>(R.id.buttonStartTime).performClick()
+            }
+            await { coordinator.state.value.sessions.any { it.packageName == target && it.duration == 30000L } }
+        }
     }
 
     @Test fun scheduledStartPublishesTransitionWithoutAWindowEvent() = runBlocking {

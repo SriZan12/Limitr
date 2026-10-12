@@ -106,6 +106,10 @@ class BlockAppActivity : AppCompatActivity() {
         dialog = AlertDialog.Builder(this).setView(view).create()
         view.findViewById<android.view.View>(R.id.cancel).setOnClickListener { dialog?.dismiss() }
         view.findViewById<android.view.View>(R.id.buttonStartTime).setOnClickListener {
+            // NumberPicker commits keyboard edits when its input loses focus.
+            hours.clearFocus()
+            minutes.clearFocus()
+            seconds.clearFocus()
             val duration = (hours.value * 3600L + minutes.value * 60L + seconds.value) * 1000
             if (duration == 0L) { ViewUtils.showToast(this, "Choose a duration greater than zero."); return@setOnClickListener }
             model.act { timer(target, label, duration, current()?.blockNotifications ?: false) }

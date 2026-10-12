@@ -2,7 +2,7 @@
 
 ## Baseline and scope
 
-Work starts on `dev` at `9de86f1`. Existing IDE edits and the Application whitespace edit were preserved; `stash@{0}` is an additional backup. No AGENTS.md was found. The published `master` has application ID `com.khadka.Limitr`, namespace `com.khadka.limitr`, versionCode 9 and Room version 12; dev had a different application ID, versionCode 1 and Room version 9. Restore the published identity, including service component names, for upgrades. Keep minSdk 23. No signing credentials are changed.
+Work starts on `dev` at `9de86f1`. Existing IDE edits and the Application whitespace edit were preserved, with named Git stash backups. No AGENTS.md was found. The published `master` has application ID `com.khadka.Limitr`, namespace `com.khadka.limitr`, versionCode 9 and Room version 12; dev had a different application ID, versionCode 1 and Room version 9. Restore the published identity, including service component names, for upgrades. Keep minSdk 23. No signing credentials are changed. Published master history was merged into dev after implementing its history screen and preserving the already-discontinued referral behavior, allowing a conflict-free PR against master.
 
 Baseline command: `gradlew.bat clean assembleDebug testDebugUnitTest lintDebug`. On dev, Gradle 7.5 fails during configuration on installed JDK 21 (`Unsupported class file major version 65`). The initial master build also failed in kapt with IllegalAccessError. Tests/lint did not complete. No production crash reports or Logcat reproductions were supplied.
 
@@ -20,6 +20,8 @@ Baseline command: `gradlew.bat clean assembleDebug testDebugUnitTest lintDebug`.
 | P1 | OverlayScreen / ActivityBlocked | Global flag and singleton window retain state across lifecycles; repeated background activity navigation; no reliable end boundary. |
 | P2 | FragmentHome / VideoActivity / RecyclerView countdowns | Fragment-scope view collectors, unreleased player, unbounded per-bind countdowns. |
 | P2 | Manifest/accessibility config | Broad package visibility, redundant permissions, content retrieval despite package-only detection. |
+| P2 | BlockAppActivity.timerDialog | Reproduced on API 35: keyboard entry followed immediately by Start reads the previous NumberPicker value. Commit input focus before reading; covered by a device regression test. |
+| P2 | MainActivity / edge-to-edge insets | Observed on API 35: white status icons on a white inset background. Give the inset area the app's dark background and set contrasting system-bar icons. |
 
 ## Decision before replacing enforcement plumbing
 

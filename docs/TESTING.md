@@ -12,7 +12,7 @@ Validation uses Gradle 8.13, AGP 8.11.1, Kotlin 2.2.21, SDK 36 and installed JDK
 - DatabaseMigrationTest: source-derived versions 3/4/6/7/8/9/10/12 and extra-column version 9; real Room 13 validation, legacy archive/history preservation, unknown-version refusal without deletion and reopen without repeated import. These are reconstructed fixtures; shipped historical schema exports are missing.
 - SessionRepositoryTest: Room transactions, replacement/stale cancellation, duplicate labels, expiry deletion, legacy rebase and conditional option edits.
 - PermissionStateTest: null settings, consent, enabled versus connected state, storage errors and revocation.
-- SessionInstrumentedTest: Activity recreation, expiry without a window event, scheduled-start publication, 30 repeated save/replace/cancel cycles and stale reconciliation. Tests use a dedicated fixture package and clean up its sessions; run on an isolated installation.
+- SessionInstrumentedTest: Activity recreation, expiry without a window event, scheduled-start publication, keyboard timer entry without first moving focus, 30 repeated save/replace/cancel cycles and stale reconciliation. The keyboard test uses public WindowInspector (API 29+); other tests support minSdk 23. Tests use a dedicated fixture package and clean up its sessions; run on an isolated installation.
 - check_native_alignment.py: packaged ELF load segments. SDK zipalign checks packaging separately. Neither establishes actual 16 KB device behavior.
 
 ## Before production: manual/device matrix
@@ -40,4 +40,39 @@ With a booted isolated device: `gradlew.bat -g .work/gradle --max-workers=2 conn
 
 SDK tools: `zipalign -c -P 16 -v 4 <release-apk>` and `aapt dump badging <release-apk>`.
 
-Reports are under app/build/reports/tests/testDebugUnitTest, app/build/reports/lint-results-debug.html, and app/build/reports/androidTests/connected. Local logs under .work are untracked. Final executed results follow after validation completes.
+Reports are under app/build/reports/tests/testDebugUnitTest, app/build/reports/lint-results-debug.html, and app/build/reports/androidTests/connected. Local logs under .work are untracked.
+
+## Executed device checks, 12 October 2026
+
+An isolated API 35 Google Play x86_64 emulator was created with 2 GB RAM. No personal emulator data was changed. No API 23 or API 36 runtime, OEM phone, 16 KB runtime or production signed upgrade was tested. Host memory pressure caused slow rendering and an emulator System UI ANR during initial setup; checks resumed after stopping task-owned build/emulator processes and restarting the isolated device. This is not attributed to a LIMITR crash.
+
+- Fresh installation opens directly into local operation without authentication or usage-access permission. App discovery, session details and accessibility disclosure/settings grant were exercised. Android reported TYPE_WINDOW_STATE_CHANGED only and zero screen-content capabilities for the service.
+- Accessibility settings being enabled while the service is disconnected is displayed separately. UIAutomator inspection temporarily suppresses other accessibility services; enforcement checks therefore used screenshots and window dumps, not UIAutomator.
+- Reproduced keyboard timer input remaining uncommitted on Start. After the fix, typing 30 seconds then Start and launching Chrome displayed exactly one accessibility overlay with a decreasing countdown. Chrome stayed foregrounded throughout; the overlay disappeared without interaction after expiry. Window/screenshot samples completed 8.89 s and 16.20 s after the Start command with one window, and at 36.63 s with none. These sparse samples include ADB and host delays and establish neither exact latency nor a worst-case bound.
+- The home screen's dark system-bar inset background and readable light icons were visually confirmed after the contrast fix.
+- Crash-buffer Logcat contained no entries during these short checks. This is not a long-duration stability result.
+
+An initial `connectedDebugAndroidTest` attempt had no connected device after the emulator was stopped for host-memory recovery. A later direct `adb shell am instrument -w com.khadka.Limitr.test/androidx.test.runner.AndroidJUnitRunner` passed the original four tests in 17.685 s. An intermediate test setup failure (`@After` returning nullable Unit instead of JVM void) was fixed before this passing run.
+
+## Final executed build results
+
+The following completed successfully in **7m 34s** on the final application/test sources, including the keyboard and status-bar fixes:
+
+```powershell
+.\gradlew.bat -g .work/gradle --max-workers=1 `
+  '-Dorg.gradle.jvmargs=-Xmx1024m -Dfile.encoding=UTF-8' `
+  '-Pkotlin.compiler.execution.strategy=in-process' `
+  assembleDebug testDebugUnitTest lintDebug assembleRelease bundleRelease connectedDebugAndroidTest --console=plain
+```
+
+| Check | Observed result |
+|---|---|
+| Debug / release APK / release AAB | All built successfully. Release outputs remain unsigned. |
+| Unit tests | 21 passed; zero failures, errors or skips. Migration tests iterate the source-derived historical fixture shapes. |
+| Connected instrumentation | 5 passed on API 35; zero failures or skips, including the keyboard-entry regression. |
+| Lint | Zero errors, 232 warnings. Existing unused resources, typography, dependency-update and style warnings remain visible; no lint baseline was added. |
+| Effective APK identity | `aapt dump badging`: `com.khadka.Limitr`, versionCode 10, versionName 1.1, minSdk 23, targetSdk 36, compileSdk 36. |
+| APK packaging | `zipalign -c -P 16 -v 4`: Verification successful. |
+| Native ELF alignment | Script passed for APK and AAB: DataStore's shared-counter library has 16 KB PT_LOAD alignment on all four packaged ABIs. No other native libraries were present. |
+
+Gradle 9 deprecation warnings and Kotlin annotation-target warnings remain; the pinned Gradle 8.13 build passes. The release manifest contains no Firebase provider, Google sign-in component, Internet permission, broad package-visibility permission, exact-alarm permission or application-overlay permission. Production signing, real release-data upgrades and the untested device scenarios above remain mandatory before rollout.
