@@ -19,7 +19,7 @@
     <string name="sharedPref_status_Update">Update</string>
     <string name="start_timer">Start Timer</string>
     <string name="accessibility_service_label">Accessibility Service</string>
-    <string name="accessibility_service_description">Accessibility Service for App Launch.</string>
+    <string name="accessibility_service_description">LIMITR detects app package names and shows a blocking screen during saved sessions. It does not read screen text. You can turn this service off at any time.</string>
     <string name="permission_required">Permission Required</string>
     <string name="internet_required">Internet Required</string>
     <string name="reward">Claim Crypto</string>
@@ -82,4 +82,17 @@
     <string name="_5_find_downloaded_apps_or_service_and_enable_permission">5. Find \'Downloaded Apps\' or \'Service\' and enable permission</string>
     <string name="is_currently_blocked">is Currently Blocked!</string>
     <string name="watch_a_video">Watch a Video</string>
+    <string name="unblock_crypto">Unblock with 2 Crypto</string>
+    <string name="history">Session history</string>
+    <string name="local_profile">Edit local profile</string>
+    <string name="crypto_balance">%1$d Crypto</string>
+    <string name="blocking_access">Blocking access</string>
+    <string name="usage_access">Usage statistics</string>
+    <string name="privacy_control">Privacy and control</string>
+    <string name="hide_notifications">Hide this app’s notifications during its session</string>
+    <string name="stop_session">Stop session</string>
+    <string name="session_notifications">Enable session notifications</string>
+    <string name="session_active">Your blocking session is active</string>
+    <string name="session_details">Session details and controls</string>
+    <string name="go_home">Go to Home</string>
 </resources>
