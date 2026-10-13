@@ -12,6 +12,7 @@ Validation uses Gradle 8.13, AGP 8.11.1, Kotlin 2.2.21, SDK 36 and installed JDK
 - DatabaseMigrationTest: source-derived versions 3/4/6/7/8/9/10/12 and extra-column version 9; real Room 13 validation, legacy archive/history preservation, unknown-version refusal without deletion and reopen without repeated import. These are reconstructed fixtures; shipped historical schema exports are missing.
 - SessionRepositoryTest: Room transactions, replacement/stale cancellation, duplicate labels, expiry deletion, legacy rebase and conditional option edits.
 - PermissionStateTest: null settings, consent, enabled versus connected state, storage errors and revocation.
+- RewardFlowTest: displaying first/daily reward offers never credits a balance; concurrent and repeated claims credit once; an existing balance is preserved and today's reward is not offered again.
 - SessionInstrumentedTest: Activity recreation, expiry without a window event, scheduled-start publication, keyboard timer entry without first moving focus, 30 repeated save/replace/cancel cycles and stale reconciliation. The keyboard test uses public WindowInspector (API 29+); other tests support minSdk 23. Tests use a dedicated fixture package and clean up its sessions; run on an isolated installation.
 - check_native_alignment.py: packaged ELF load segments. SDK zipalign checks packaging separately. Neither establishes actual 16 KB device behavior.
 
@@ -76,3 +77,14 @@ The following completed successfully in **7m 34s** on the final application/test
 | Native ELF alignment | Script passed for APK and AAB: DataStore's shared-counter library has 16 KB PT_LOAD alignment on all four packaged ABIs. No other native libraries were present. |
 
 Gradle 9 deprecation warnings and Kotlin annotation-target warnings remain; the pinned Gradle 8.13 build passes. The release manifest contains no Firebase provider, Google sign-in component, Internet permission, broad package-visibility permission, exact-alarm permission or application-overlay permission. Production signing, real release-data upgrades and the untested device scenarios above remain mandatory before rollout.
+
+## UI restoration checks, 13 October 2026
+
+The original home/overflow menu and permission/Crypto popup flow were restored without changing the blocking engine or database schema. Validation used the same isolated API 35 emulator; a connected personal phone was not targeted.
+
+- `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` passed in 6m 22s with the one-worker, 1 GB heap and in-process Kotlin flags above. **23 unit tests passed** with zero failures, errors or skips, including two new reward regressions.
+- After adding immediate status refresh to the dialog-result handlers, `assembleDebug lintDebug assembleRelease bundleRelease assembleDebugAndroidTest` passed in **5m 34s**. Lint reports **zero errors and 218 warnings**. Release APK and AAB remain unsigned.
+- Installed the final debug/test APKs using `adb -s emulator-5554 install -r` and ran `adb -s emulator-5554 shell am instrument -w com.khadka.Limitr.test/androidx.test.runner.AndroidJUnitRunner`: **5 tests passed in 15.663s**. An explicit device serial kept the connected personal phone out of the run.
+- Final release APK metadata still reports the published application ID, minSdk 23 and target/compile SDK 36. APK zipalign and APK/AAB native ELF alignment checks passed again.
+- Manual UI checks: fresh-launch disclosure; checkbox retained through rotation; explicit consent followed by the permission popup; Android settings grant followed by the updated Granted button; Continue followed by the 15-Crypto first reward; Claim updating the home balance; no profile icon or horizontal action row; overflow menu opens. With the service connected, the availability message is hidden. After force-stop/relaunch, the balance stays at 15, permission setup reflects unavailable access, and continuing does not offer the already-claimed reward again.
+- At 200% font scale the restored header fitted the emulator screen. Existing app-list usage captions clip at that scale; this check does not establish full-screen large-font support. System UI/Messages ANRs occurred during emulator startup under host build load; they were not attributed to LIMITR. No new API 36, OEM, long-duration or signed-upgrade testing was performed.

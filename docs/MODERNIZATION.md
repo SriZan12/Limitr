@@ -44,3 +44,9 @@ Firebase removal is explicitly requested and overrides the template's contradict
 - [Alarm guarantees](https://developer.android.com/develop/background-work/services/alarms), [16 KB support](https://developer.android.com/guide/practices/page-sizes), [Firebase automatic initialization](https://firebase.google.com/docs/reference/android/com/google/firebase/FirebaseApp).
 
 Implementation, executed validation and release gates are recorded in TESTING.md and RELEASE.md as work completes.
+
+## Original UI flow restored — 13 October 2026
+
+Restore the published home screen's centered Limitr title, Crypto balance/coin, overflow menu and app tabs. Remove the profile icon and the horizontal Blocking access / Usage statistics / Claim Crypto row. Permissions, disclosure, rewards, history and help remain accessible through the overflow menu. A compact status message appears only when enforcement needs attention.
+
+Restore the original styled popup sequence: accessibility disclosure and affirmative consent, permission setup, then an eligible first-login or daily Crypto reward. Usage access stays optional and obsolete application-overlay access is not requested. DialogFragments preserve the flow and consent checkbox through rotation; returning from Android settings refreshes permission state. Showing a reward only reads eligibility; Claim uses the existing atomic DataStore edit. The blocking engine, scheduling, Room schema, saved balances and Firebase removal are unchanged by this UI adjustment.

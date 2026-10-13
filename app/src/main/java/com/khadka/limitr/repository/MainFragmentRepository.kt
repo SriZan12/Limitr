@@ -13,6 +13,14 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 class MainFragmentRepository @Inject constructor(private val dataStore: DataStore<Preferences>) {
+    /** Read the same eligibility used by claimReward without awarding anything on popup display. */
+    fun rewardOffer() = dataStore.data.map {
+        when {
+            it[LAST_LOGGED_DATE] == LocalDate.now().toString() -> null
+            it[CRYPTO] == null -> FIRST_LOGIN_REWARD
+            else -> DAILY_CRYPTO_REWARD
+        }
+    }
     fun getCrypto() = dataStore.data.map { it[CRYPTO] ?: 0 }
     fun getLastLoggedDate() = dataStore.data.map { it[LAST_LOGGED_DATE] ?: "" }
     suspend fun upsertCrypto(crypto: Int) { dataStore.edit { it[CRYPTO] = crypto } }

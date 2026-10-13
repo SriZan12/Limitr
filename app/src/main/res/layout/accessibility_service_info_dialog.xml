@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@color/white">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@color/Ui_Color"
+            android:fontFamily="@font/acme" android:gravity="center" android:padding="16dp" android:text="@string/accessibility_disclosure" android:textColor="@color/white" android:textSize="20sp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="@string/accessibility_disclosure_body" android:textColor="@color/black" android:textSize="16sp" />
+        <CheckBox android:id="@+id/acceptCheckbox" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp"
+            android:layout_marginHorizontal="12dp" android:text="@string/accessibility_consent_label" android:textColor="@color/black" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="12dp">
+            <androidx.appcompat.widget.AppCompatButton android:id="@+id/acceptButton" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp" android:background="@drawable/textview_design" android:fontFamily="@font/acme" android:text="@string/accept" android:textColor="@color/white" />
+            <androidx.appcompat.widget.AppCompatButton android:id="@+id/denyButton" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="6dp" android:background="@drawable/textview_design" android:fontFamily="@font/acme" android:text="@string/not_now" android:textColor="@color/white" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
