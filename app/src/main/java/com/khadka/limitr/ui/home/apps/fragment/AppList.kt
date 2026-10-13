@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.khadka.limitr.R
@@ -27,6 +28,7 @@ class AppList : Fragment(R.layout.applist_layout) {
         val context = requireContext().applicationContext
         job = viewLifecycleOwner.lifecycleScope.launch {
             binding?.appLoadStatus?.text = "Loading installed apps…"
+            binding?.appLoadStatus?.isVisible = true
             val rows = withContext(Dispatchers.IO) {
                 val pm = context.packageManager
                 val essential = EssentialApps.packages(context)
@@ -45,12 +47,13 @@ class AppList : Fragment(R.layout.applist_layout) {
                         val millis = usage[pkg]?.totalTimeInForeground ?: 0
                         App(app.loadIcon(pm), app.loadLabel(pm).toString(), pkg,
                             (millis * 100 / total).toInt().coerceIn(0, 100),
-                            if (usage.isEmpty()) "Usage access is optional" else "${millis / 3_600_000} h ${millis / 60_000 % 60} m")
+                            if (usage.isEmpty()) "—" else "${millis / 3_600_000} h ${millis / 60_000 % 60} m")
                     } catch (_: PackageManager.NameNotFoundException) { null }
                 }.sortedBy { it.appName.orEmpty().lowercase() })
             }
             val ui = binding ?: return@launch
-            ui.appLoadStatus.text = if (rows.isEmpty()) "No launchable apps available." else "Select an app to set a timer or interval."
+            ui.appLoadStatus.isVisible = rows.isEmpty()
+            ui.appLoadStatus.text = "No launchable apps available."
             ui.appListRecycler.adapter = AppListAdapter().apply {
                 setAppLists(rows, context, object : OnAppClickListener {
                     override fun onClick(appPackageName: String) {

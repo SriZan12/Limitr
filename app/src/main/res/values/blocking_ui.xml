@@ -1,0 +1,16 @@
+<resources>
+    <string name="starts_in">Starts in</string>
+    <string name="essential_apps_available">Essential system apps remain accessible.</string>
+    <string name="stop_session_question">Stop this session?</string>
+    <string name="stop_session_description">This will stop the saved timer or interval for %1$s.</string>
+    <string name="app_is_blocked">%1$s is currently blocked!</string>
+    <string name="history_count">Blocked for: %1$d sessions</string>
+    <string name="history_date">At: %1$s</string>
+    <string name="history_interval">From: %1$s</string>
+    <string name="no_history">No sessions in history yet.</string>
+    <string name="hour">Hour</string>
+    <string name="minute">Minute</string>
+    <string name="second">Second</string>
+    <string name="usage_unavailable">Usage unavailable</string>
+    <string name="help_settings_note">Menu names vary by device. Only review restricted settings if Android asks you to for a sideloaded app. Otherwise, go directly to Accessibility settings. The videos show older Android interfaces.</string>
+</resources>

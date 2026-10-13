@@ -74,7 +74,8 @@ class AppListAdapter @Inject constructor() :
                 appNameTv.text = appInfo?.appName
                 iconImg.setImageDrawable(appInfo?.appIcon)
                 usageDurationTv.text = appInfo?.usageDuration
-                usagePercTv.text = appInfo?.usagePercentage.toString() + "%"
+                usageDurationTv.contentDescription = if (appInfo?.usageDuration == "—") context.getString(R.string.usage_unavailable) else null
+                usagePercTv.text = if (appInfo?.usageDuration == "—") "—" else appInfo?.usagePercentage.toString() + "%"
 
 //                slideInAnimation(view = itemView, position = position)
 

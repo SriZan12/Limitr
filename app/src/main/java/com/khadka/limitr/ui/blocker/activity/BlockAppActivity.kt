@@ -7,10 +7,14 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.NumberPicker
+import android.widget.TextView
+import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -25,6 +29,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.ZoneId
+import com.khadka.limitr.utils.Permissions.isAccessibilityEnabled
+import com.khadka.limitr.ui.history.ActivityHistory
 
 @AndroidEntryPoint
 class BlockAppActivity : AppCompatActivity() {
@@ -42,19 +48,18 @@ class BlockAppActivity : AppCompatActivity() {
         binding = ActivityBlockAppBinding.inflate(layoutInflater)
         setContentView(binding.root)
         Insets.apply(binding.root)
+        WindowCompat.getInsetsController(window, binding.root).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
+        }
         label = ViewUtils.getAppNameByPackageName(this, target)
         essential = target in EssentialApps.packages(this)
         binding.appName.text = label
         binding.appIcon.setImageDrawable(ViewUtils.getAppIconByPackageName(this, target))
         binding.setTime.setOnClickListener { timerDialog() }
         binding.setInterval.setOnClickListener { intervalDialog() }
-        binding.unblockCrypto.setOnClickListener { current()?.let(model::unblockWithCrypto) }
-        binding.unBlockApp.setOnClickListener {
-            val session = current() ?: return@setOnClickListener
-            dialog = AlertDialog.Builder(this).setTitle("Stop this session?")
-                .setMessage("This will stop the saved timer or interval for $label.")
-                .setNegativeButton(R.string.cancel, null).setPositiveButton("Stop session") { _, _ -> model.act { cancel(session) } }.show()
-        }
+        binding.unBlockApp.setOnClickListener { unblockDialog() }
+        binding.showHistory.setOnClickListener { startActivity(Intent(this, ActivityHistory::class.java)) }
         binding.blockNotification.setOnClickListener {
             val session = current() ?: return@setOnClickListener
             if (!Permissions.isNotificationServiceEnable(this)) {
@@ -66,7 +71,7 @@ class BlockAppActivity : AppCompatActivity() {
                     }.show()
             } else model.act { notifications(session, binding.blockNotification.isChecked) }
         }
-        binding.permissionSettings.setOnClickListener { PermissionOnboarding.show(this) }
+        binding.enforcementStatus.setOnClickListener { PermissionOnboarding.show(this) }
         binding.sessionNotifications.setOnClickListener {
             if (Build.VERSION.SDK_INT >= 33) notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
             else ViewUtils.showToast(this, "Session notifications are available in Android notification settings.")
@@ -91,12 +96,51 @@ class BlockAppActivity : AppCompatActivity() {
         binding.setTime.isEnabled = canEdit
         binding.setInterval.isEnabled = canEdit
         binding.unBlockApp.isEnabled = session != null && !model.busy.value
-        binding.unblockCrypto.isEnabled = session != null && !model.busy.value
         binding.blockNotification.isEnabled = session != null && !model.busy.value
         binding.blockNotification.isChecked = session?.blockNotifications == true
-        binding.timerText.text = session?.let { SessionText.timing(it, model.clock.now()) } ?: "No saved session"
-        binding.intervalText.text = model.error.value ?: if (essential) "Essential system apps remain accessible." else "Saving a new timer or interval replaces this app’s current session."
+        val now = model.clock.now()
+        val evaluation = session?.let { ScheduleEvaluator.evaluate(it, now) }
+        binding.timerText.isVisible = session != null
+        binding.intervalText.isVisible = session?.kind == "interval"
+        binding.setTimerText.setText(when {
+            session == null -> R.string.set_timer
+            evaluation?.phase == Phase.SCHEDULED -> R.string.starts_in
+            else -> R.string.duration
+        })
+        binding.setIntervalText.setText(if (session?.kind == "interval") R.string.blocked_for else R.string.set_interval)
+        binding.timerText.text = session?.let {
+            DateAndTime.formatTimeInNumbers(if (evaluation?.phase == Phase.SCHEDULED) it.startWall - now.wall else evaluation?.remaining ?: 0)
+        }
+        binding.intervalText.text = session?.takeIf { it.kind == "interval" }?.let { SessionText.intervalRange(it) }
+        binding.sessionError.text = model.error.value ?: if (essential) getString(R.string.essential_apps_available) else null
+        binding.sessionError.isVisible = !binding.sessionError.text.isNullOrEmpty()
+        binding.enforcementStatus.isVisible = state.error || !state.loaded ||
+            !EnforcementStatus.consent(this) || !isAccessibilityEnabled() || EnforcementStatus.state.value != Enforcement.CONNECTED
         binding.enforcementStatus.text = SessionText.availability(this, state)
+        dialog?.findViewById<TextView>(R.id.unblockError)?.let {
+            it.text = model.error.value
+            it.isVisible = model.error.value != null
+            dialog?.findViewById<View>(R.id.unBlockApp)?.isEnabled = session != null && !model.busy.value
+            dialog?.findViewById<View>(R.id.stopSession)?.isEnabled = session != null && !model.busy.value
+            if (session == null) dialog?.dismiss()
+        }
+    }
+    private fun unblockDialog() {
+        if (current() == null) return
+        val view = layoutInflater.inflate(R.layout.unblock_app_layout, null)
+        dialog?.dismiss()
+        dialog = AlertDialog.Builder(this).setView(view).create()
+        view.findViewById<View>(R.id.cancel).setOnClickListener { dialog?.dismiss() }
+        view.findViewById<View>(R.id.unBlockApp).setOnClickListener { current()?.let(model::unblockWithCrypto) }
+        view.findViewById<View>(R.id.stopSession).setOnClickListener {
+            val session = current() ?: return@setOnClickListener
+            dialog?.dismiss()
+            dialog = AlertDialog.Builder(this).setTitle(R.string.stop_session_question)
+                .setMessage(getString(R.string.stop_session_description, label))
+                .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.stop_session) { _, _ -> model.act { cancel(session) } }.show()
+        }
+        dialog?.show()
+        render()
     }
     private fun timerDialog() {
         val view = layoutInflater.inflate(R.layout.select_time_layout, null)

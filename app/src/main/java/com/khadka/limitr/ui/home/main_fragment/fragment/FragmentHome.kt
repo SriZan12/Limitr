@@ -154,10 +154,15 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
     private fun showHelp() {
         fun video(number: Int) = startActivity(Intent(requireContext(), com.khadka.limitr.ui.home.activity.VideoActivity::class.java).putExtra("video", number))
         dialog?.dismiss()
-        dialog = AlertDialog.Builder(requireContext()).setTitle(R.string.help_instructions)
-            .setMessage(R.string.setup_help_body).setNegativeButton(R.string.ok, null)
-            .setNeutralButton(R.string.video_older_android) { _, _ -> video(1) }
-            .setPositiveButton(R.string.video_android_13) { _, _ -> video(2) }.show()
+        val content = layoutInflater.inflate(R.layout.help_dialog, null)
+        content.findViewById<View>(R.id.watch_video_1).setOnClickListener { video(1) }
+        content.findViewById<View>(R.id.watch_video_2).setOnClickListener { video(2) }
+        content.findViewById<View>(R.id.grantAccessiblePerm).setOnClickListener {
+            dialog?.dismiss()
+            if (EnforcementStatus.consent(requireContext())) startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            else PermissionOnboarding.show(childFragmentManager, openSettings = true)
+        }
+        dialog = AlertDialog.Builder(requireContext()).setView(content).setPositiveButton(R.string.ok, null).show()
     }
     private fun showPrivacy() {
         dialog?.dismiss()

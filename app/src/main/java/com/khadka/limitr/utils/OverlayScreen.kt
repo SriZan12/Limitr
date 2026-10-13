@@ -23,7 +23,7 @@ class OverlayScreen {
         if (revision == session.revision && view != null) return true
         removeOverlayView()
         val candidate = LayoutInflater.from(service).inflate(R.layout.overlay, null)
-        candidate.findViewById<TextView>(R.id.appBlock).text = session.appName
+        candidate.findViewById<TextView>(R.id.appBlock).text = service.getString(R.string.app_is_blocked, session.appName)
         candidate.findViewById<ImageView>(R.id.appIcon).setImageDrawable(ViewUtils.getAppIconByPackageName(service, session.packageName))
         candidate.findViewById<Button>(R.id.exit).setOnClickListener { onHome() }
         candidate.findViewById<Button>(R.id.goToActivityBlocked).setOnClickListener { onDetails() }

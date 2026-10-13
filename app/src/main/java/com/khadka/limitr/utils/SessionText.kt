@@ -7,6 +7,10 @@ import java.text.DateFormat
 import java.util.Date
 
 object SessionText {
+    fun intervalRange(session: BlockingSession): String {
+        val format = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
+        return "${format.format(Date(session.startWall))}\n– ${format.format(Date(session.endWall))}"
+    }
     fun timing(session: BlockingSession, now: TimeSnapshot): String {
         val state = ScheduleEvaluator.evaluate(session, now)
         val format = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)

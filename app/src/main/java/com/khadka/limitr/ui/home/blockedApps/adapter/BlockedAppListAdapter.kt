@@ -3,6 +3,7 @@ package com.khadka.limitr.ui.home.blockedApps.adapter
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import androidx.core.view.isVisible
 import com.khadka.limitr.blocking.BlockingSession
 import com.khadka.limitr.blocking.SessionClock
 import com.khadka.limitr.databinding.ItemAppBlockedBinding
@@ -28,7 +29,7 @@ class BlockedAppListAdapter(private val clock: SessionClock, private val click: 
     inner class Holder(val ui: ItemAppBlockedBinding) : RecyclerView.ViewHolder(ui.root) {
         fun time(session: BlockingSession) {
             ui.interval.text = SessionText.timing(session, clock.now())
-            ui.timerText.text = session.packageName
+            ui.timerText.isVisible = false
         }
     }
 }

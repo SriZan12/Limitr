@@ -88,3 +88,23 @@ The original home/overflow menu and permission/Crypto popup flow were restored w
 - Final release APK metadata still reports the published application ID, minSdk 23 and target/compile SDK 36. APK zipalign and APK/AAB native ELF alignment checks passed again.
 - Manual UI checks: fresh-launch disclosure; checkbox retained through rotation; explicit consent followed by the permission popup; Android settings grant followed by the updated Granted button; Continue followed by the 15-Crypto first reward; Claim updating the home balance; no profile icon or horizontal action row; overflow menu opens. With the service connected, the availability message is hidden. After force-stop/relaunch, the balance stays at 15, permission setup reflects unavailable access, and continuing does not offer the already-claimed reward again.
 - At 200% font scale the restored header fitted the emulator screen. Existing app-list usage captions clip at that scale; this check does not establish full-screen large-font support. System UI/Messages ANRs occurred during emulator startup under host build load; they were not attributed to LIMITR. No new API 36, OEM, long-duration or signed-upgrade testing was performed.
+
+## Blocking screen and full UI review, 13 October 2026
+
+Compared active XML screens against published commit `fe69574`; restoration details and original spacing values are in [UI_REVIEW.md](UI_REVIEW.md). This pass restores the two timer/interval cards, notification/history controls, unblock popup, blocking overlay, history rows, list padding and help layout. Scheduling, Room and reward transaction logic are unchanged.
+
+Initial `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` passed in **5m 5s** using the same cache/worker/JVM options above. All **23 unit tests passed**; lint reported zero errors and 200 warnings. Subsequent visual review corrected image scaling for the bell/history controls and the history back-arrow contrast; the help layout was also restored before final packaging.
+
+Executed on the isolated API 35 emulator only:
+
+- Opened Chrome's configuration from All Apps; checked original card assets, fonts, divider, margins, button placement and normal system-bar insets.
+- Used the original three-wheel picker to start a one-minute timer. The Duration card counted down, Chrome showed the restored icon-card/Remaining Time overlay, and Details opened the configuration screen. The unblock popup showed the original coin/cost/button. After expiry, the configuration returned to Set Timer/Set Interval with no stale countdown.
+- Saved a one-shot interval; the cards showed Starts in and the concrete date/time range. The blocked-app row and original styled history list showed the saved session. Stop session confirmation cleared the interval and reset both cards.
+- Checked configuration and app rows at 200% font scale. Checked landscape configuration scrolling and the timer dialog's scroll-to-Start behavior at that scale. The app-list caption clipping observed in the preceding review is fixed by content-height rows and concise unavailable-usage text.
+- The emulator displayed a System UI ANR during cold startup; it recovered after closing that system dialog. LIMITR's crash-buffer check was empty during these UI checks. This does not establish long-running or manufacturer-specific behavior.
+
+Physical devices, API 23/API 36 runtime, tablets/foldables, every locale/font combination and signed production upgrades remain outside this executed UI review.
+
+Final `assembleDebug lintDebug assembleRelease bundleRelease assembleDebugAndroidTest` passed in **5m 16s**. Final lint: **zero errors, 200 warnings**. Installed the final APKs with `adb -s emulator-5554 install -r`; `adb -s emulator-5554 shell am instrument -w com.khadka.Limitr.test/androidx.test.runner.AndroidJUnitRunner` passed **all 5 tests in 15.454s**. The final bell/history image scaling and Help popup were visually checked. Cancellation also remained effective after an explicit app force-stop and relaunch. Release outputs remain unsigned; APK metadata still reports the published ID, minSdk 23 and target/compile SDK 36, and 16 KB zipalign verification passed.
+
+One test interval reappeared after terminating/restarting the virtual device with `emu kill`. Repeated cancellation survived both app force-stop/relaunch and a clean `adb reboot`; a copied test database/WAL contained zero saved sessions after that clean reboot. Abrupt virtual-device shutdown durability is not established by this review; this observation is not attributed to a confirmed application defect.
