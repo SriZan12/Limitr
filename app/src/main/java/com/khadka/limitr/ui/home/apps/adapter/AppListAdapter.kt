@@ -6,6 +6,9 @@ import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AlphaAnimation
+import android.view.animation.Animation
+import android.view.animation.TranslateAnimation
 import android.widget.ProgressBar
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
@@ -37,7 +40,7 @@ class AppListAdapter @Inject constructor() :
     }
 
     override fun getItemViewType(position: Int): Int {
-        return position
+        return 0
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppListViewHolder {
@@ -71,7 +74,8 @@ class AppListAdapter @Inject constructor() :
                 appNameTv.text = appInfo?.appName
                 iconImg.setImageDrawable(appInfo?.appIcon)
                 usageDurationTv.text = appInfo?.usageDuration
-                usagePercTv.text = appInfo?.usagePercentage.toString() + "%"
+                usageDurationTv.contentDescription = if (appInfo?.usageDuration == "—") context.getString(R.string.usage_unavailable) else null
+                usagePercTv.text = if (appInfo?.usageDuration == "—") "—" else appInfo?.usagePercentage.toString() + "%"
 
 //                slideInAnimation(view = itemView, position = position)
 

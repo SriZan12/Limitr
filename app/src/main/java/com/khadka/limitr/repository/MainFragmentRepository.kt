@@ -1,54 +1,45 @@
 package com.khadka.limitr.repository
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import com.khadka.limitr.utils.Constants.CRYPTO
-import com.khadka.limitr.utils.Constants.IS_REFERRAL_CODE_CHECKED
 import com.khadka.limitr.utils.Constants.LAST_LOGGED_DATE
-import kotlinx.coroutines.flow.Flow
+import com.khadka.limitr.utils.Constants.FIRST_LOGIN_REWARD
+import com.khadka.limitr.utils.Constants.DAILY_CRYPTO_REWARD
+import com.khadka.limitr.utils.Constants.REQUIRED_CRYPTO_FOR_UNBLOCK
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
+import java.time.LocalDate
 import javax.inject.Inject
 
-class MainFragmentRepository @Inject constructor() {
-
-    @Inject
-    lateinit var dataStore: DataStore<androidx.datastore.preferences.core.Preferences>
-
-    fun getCrypto(): Flow<Int> {
-        return dataStore.data.map { preferences ->
-            preferences[CRYPTO] ?: 0
+class MainFragmentRepository @Inject constructor(private val dataStore: DataStore<Preferences>) {
+    /** Read the same eligibility used by claimReward without awarding anything on popup display. */
+    fun rewardOffer() = dataStore.data.map {
+        when {
+            it[LAST_LOGGED_DATE] == LocalDate.now().toString() -> null
+            it[CRYPTO] == null -> FIRST_LOGIN_REWARD
+            else -> DAILY_CRYPTO_REWARD
         }
     }
-
-    suspend fun upsertCrypto(crypto: Int) {
-        Timber.d("CRYPTO = $crypto")
-        dataStore.edit { prefrences ->
-            prefrences[CRYPTO] = crypto
+    fun getCrypto() = dataStore.data.map { it[CRYPTO] ?: 0 }
+    fun getLastLoggedDate() = dataStore.data.map { it[LAST_LOGGED_DATE] ?: "" }
+    suspend fun upsertCrypto(crypto: Int) { dataStore.edit { it[CRYPTO] = crypto } }
+    suspend fun upsertEverydayDate(todayDate: String) { dataStore.edit { it[LAST_LOGGED_DATE] = todayDate } }
+    suspend fun claimReward() {
+        val today = LocalDate.now().toString()
+        dataStore.edit {
+            if (it[LAST_LOGGED_DATE] != today) {
+                it[CRYPTO] = (it[CRYPTO] ?: 0) + if (it[CRYPTO] == null) FIRST_LOGIN_REWARD else DAILY_CRYPTO_REWARD
+                it[LAST_LOGGED_DATE] = today
+            }
         }
     }
-
-    fun getLastLoggedDate(): Flow<String> {
-        return dataStore.data.map { date ->
-            date[LAST_LOGGED_DATE] ?: ""
+    suspend fun spendCrypto(): Boolean {
+        var spent = false
+        dataStore.edit {
+            val current = it[CRYPTO] ?: 0
+            if (current >= REQUIRED_CRYPTO_FOR_UNBLOCK) { it[CRYPTO] = current - REQUIRED_CRYPTO_FOR_UNBLOCK; spent = true }
         }
-    }
-
-    suspend fun upsertEverydayDate(todayDate: String) {
-        dataStore.edit { date ->
-            date[LAST_LOGGED_DATE] = todayDate
-        }
-    }
-
-    suspend fun isReferralCodeChecked(): Flow<Boolean> {
-        return dataStore.data.map { referralCodeStatus ->
-            referralCodeStatus[IS_REFERRAL_CODE_CHECKED] ?: false
-        }
-    }
-
-    suspend fun upsertReferralCodeStatus(status: Boolean) {
-        dataStore.edit { referralCodeStatus ->
-            referralCodeStatus[IS_REFERRAL_CODE_CHECKED]
-        }
+        return spent
     }
 }

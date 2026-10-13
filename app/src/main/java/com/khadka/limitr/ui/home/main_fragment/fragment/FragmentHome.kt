@@ -1,539 +1,181 @@
 package com.khadka.limitr.ui.home.main_fragment.fragment
 
-import android.annotation.SuppressLint
-import android.app.Dialog
 import android.content.Intent
-import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
-import android.content.SharedPreferences
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
-import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.CheckBox
 import android.widget.PopupMenu
-import android.widget.TextView
-import androidx.activity.addCallback
+import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.databinding.DataBindingUtil
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.tabs.TabLayoutMediator
-import com.google.firebase.database.FirebaseDatabase
 import com.khadka.limitr.R
+import com.khadka.limitr.blocking.*
 import com.khadka.limitr.databinding.FragmentHomeBinding
-import com.khadka.limitr.ui.home.activity.VideoActivity
+import com.khadka.limitr.repository.MainFragmentRepository
 import com.khadka.limitr.ui.home.main_fragment.adapter.AppListViewPagerAdapter
-import com.khadka.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
-import com.khadka.limitr.utils.AppReferrer
-import com.khadka.limitr.utils.Constants.APP_REFERRAL_LINK
-import com.khadka.limitr.utils.Constants.DAILY_CRYPTO_REWARD
-import com.khadka.limitr.utils.Constants.FIRST_LOGIN_REWARD
-import com.khadka.limitr.utils.Constants.IS_NEW_USER
-import com.khadka.limitr.utils.Constants.REFERRAL_CRYPTO_REWARD
-import com.khadka.limitr.utils.DateAndTime.getTodayDate
-import com.khadka.limitr.utils.FirebaseUtils.USER_UID
-import com.khadka.limitr.utils.FirebaseUtils.getReferralStatus
-import com.khadka.limitr.utils.FirebaseUtils.loadProfilePhoto
-import com.khadka.limitr.utils.FirebaseUtils.setReferralStatus
-import com.khadka.limitr.utils.FirebaseUtils.updateReferralStatus
+import com.khadka.limitr.utils.*
 import com.khadka.limitr.utils.Permissions.isAccessibilityEnabled
-import com.khadka.limitr.utils.Permissions.isUsageStateManagerEnabled
-import com.khadka.limitr.utils.Status
-import com.khadka.limitr.utils.ViewUtils.showToast
-import com.khadka.limitr.utils.dialogShow
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import timber.log.Timber
-import java.util.*
+import java.time.LocalDate
 import javax.inject.Inject
 
-
 @AndroidEntryPoint
-class FragmentHome :
-    Fragment(R.layout.fragment_home) {
-
-    private lateinit var fragmentHomeBinding: FragmentHomeBinding
-    private var dialog: Dialog? = null
-    private var onBackPressed = 0L
-    private lateinit var appListViewPagerAdapter: AppListViewPagerAdapter
-    private val mainViewModel: MainFragmentViewModel by viewModels()
-    private var isReferralCodeStatusChecked = false
-
-
-    @Inject
-    lateinit var sharedPref: SharedPreferences
-
-    @Inject
-    lateinit var editor: SharedPreferences.Editor
-
-
-    @Inject
-    lateinit var dataStore: DataStore<Preferences>
-
-    @Inject
-    lateinit var appReferrer: AppReferrer
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        fragmentHomeBinding =
-            DataBindingUtil.inflate(inflater, R.layout.fragment_home, container, false)
-
-        return fragmentHomeBinding.root
-    }
-
+class FragmentHome : Fragment(R.layout.fragment_home) {
+    @Inject lateinit var coordinator: SessionCoordinator
+    @Inject lateinit var rewards: MainFragmentRepository
+    private var binding: FragmentHomeBinding? = null
+    private var mediator: TabLayoutMediator? = null
+    private var dialog: AlertDialog? = null
+    private var menu: PopupMenu? = null
+    private var rewardJob: Job? = null
+    private var startupStage = "start"
+    private var rewardCheckedDate = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        isReferralCodeStatusChecked()
-
-
-        if (!Settings.canDrawOverlays(requireContext()) ||
-            !requireContext().isAccessibilityEnabled() || !isUsageStateManagerEnabled(
-                requireContext()
-            )
-        ) {
-            dialog = dialogShow(requireContext(), R.layout.permission_layout)
+        startupStage = savedInstanceState?.getString("startupStage") ?: "start"
+        rewardCheckedDate = savedInstanceState?.getString("rewardCheckedDate").orEmpty()
+    }
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("startupStage", startupStage)
+        outState.putString("rewardCheckedDate", rewardCheckedDate)
+    }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val ui = FragmentHomeBinding.bind(view)
+        binding = ui
+        ui.viewPager.adapter = AppListViewPagerAdapter(this)
+        mediator = TabLayoutMediator(ui.tabLayout, ui.viewPager) { tab, position ->
+            tab.text = getString(if (position == 0) R.string.all_apps else R.string.blocked_apps)
+        }.also { it.attach() }
+        menu = PopupMenu(requireContext(), ui.options).apply {
+            inflate(R.menu.home_menu)
+            setOnMenuItemClickListener {
+                when (it.itemId) {
+                    R.id.action_permissions -> showPermissions()
+                    R.id.action_accessibility_disclosure -> PermissionOnboarding.show(childFragmentManager)
+                    R.id.action_reward -> showReward(fromMenu = true)
+                    R.id.action_history -> startActivity(Intent(requireContext(), com.khadka.limitr.ui.history.ActivityHistory::class.java))
+                    R.id.action_help -> showHelp()
+                    R.id.action_privacy -> showPrivacy()
+                    else -> return@setOnMenuItemClickListener false
+                }
+                true
+            }
         }
-
-
-        requireActivity().onBackPressedDispatcher.addCallback(this) {
-            if (System.currentTimeMillis() < onBackPressed + 2000) {
-                val intent = Intent(Intent.ACTION_MAIN)
-                intent.addCategory(Intent.CATEGORY_HOME)
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-                startActivity(intent)
-                requireActivity().finish()
-            } else {
-                showToast(requireContext(), getString(R.string.press_again_to_exit))
-                onBackPressed = System.currentTimeMillis()
+        ui.options.setOnClickListener { menu?.show() }
+        ui.enforcementStatus.setOnClickListener { showPermissions() }
+        childFragmentManager.setFragmentResultListener(PermissionOnboarding.RESULT, viewLifecycleOwner) { _, result ->
+            renderStatus()
+            startupStage = if (result.getBoolean("accepted")) "permissions" else "reward"
+            continueStartup()
+        }
+        childFragmentManager.setFragmentResultListener(PermissionSetupDialog.RESULT, viewLifecycleOwner) { _, _ ->
+            renderStatus()
+            startupStage = "reward"
+            continueStartup()
+        }
+        childFragmentManager.setFragmentResultListener(PermissionSetupDialog.HELP, viewLifecycleOwner) { _, _ -> showHelp() }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { coordinator.state.collect { renderStatus() } }
+                launch { EnforcementStatus.state.collect { renderStatus() } }
+                launch {
+                    try {
+                        rewards.getCrypto().collect {
+                            ui.totalCrypto.text = it.toString()
+                            ui.cryptoBalance.contentDescription = getString(R.string.crypto_balance, it)
+                        }
+                    } catch (_: java.io.IOException) { ui.totalCrypto.text = "—" }
+                }
             }
         }
     }
-
+    private fun renderStatus() {
+        val ui = binding ?: return
+        val state = coordinator.state.value
+        ui.enforcementStatus.isVisible = state.error || !state.loaded ||
+            !EnforcementStatus.consent(requireContext()) || !requireContext().isAccessibilityEnabled() ||
+            EnforcementStatus.state.value != Enforcement.CONNECTED
+        ui.enforcementStatus.text = SessionText.availability(requireContext(), state)
+    }
     override fun onResume() {
         super.onResume()
-
-        if (!getAppConsent()) {
-            showAccessibilityServiceInfo()
-        } else {
-            if (!Settings.canDrawOverlays(requireContext()) ||
-                !requireContext().isAccessibilityEnabled() || !isUsageStateManagerEnabled(
-                    requireContext()
-                )
-            ) {
-                showPermissionDialog()
-            } else if (IS_NEW_USER) {
-
-                if (dialog?.isShowing == true) {
-                    dialog?.dismiss()
-                }
-
-                showFirstLoginRewardDialog()
-
-            } else {
-
-                if (dialog?.isShowing == true) {
-                    dialog?.dismiss()
-                }
-
-                checkLastLoggedInDate()
-            }
-        }
-
+        renderStatus()
+        viewLifecycleOwner.lifecycleScope.launch { coordinator.refresh() }
+        // Fragment reaches RESUMED after this callback returns; cached DataStore reads can be immediate.
+        view?.post { continueStartup() }
     }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        setView()
-        setPopUpMenu()
-
-        fragmentHomeBinding.profile.setOnClickListener {
-            val action =
-                FragmentHomeDirections.actionFragmentHomeToFragmentEditProfile()
-            findNavController().navigate(action)
+    private fun continueStartup() {
+        if (binding == null || childFragmentManager.isStateSaved || !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
+        if (startupStage == "start") {
+            startupStage = when {
+                !EnforcementStatus.consent(requireContext()) -> "disclosure"
+                !requireContext().isAccessibilityEnabled() -> "permissions"
+                else -> "reward"
+            }
         }
-
+        if (startupStage == "done" && rewardCheckedDate != LocalDate.now().toString()) startupStage = "reward"
+        when (startupStage) {
+            "disclosure" -> PermissionOnboarding.show(childFragmentManager)
+            "permissions" -> showPermissions()
+            "reward" -> showReward()
+        }
     }
-
-    private fun setView() {
-
-        loadProfilePhoto(fragmentHomeBinding.profile, requireContext())
-        appListViewPagerAdapter = AppListViewPagerAdapter(requireActivity())
-        fragmentHomeBinding.viewPager.adapter = appListViewPagerAdapter
-
-        getReferralStatus { status ->
-            Timber.d("REFERAL STATUS = $status")
-            if (status) {
-//                Show Referral Reward Dialog.
-                showReferralRewardDialog()
-            }
+    private fun showPermissions() {
+        if (!childFragmentManager.isStateSaved && childFragmentManager.findFragmentByTag(PermissionSetupDialog.TAG) == null) {
+            PermissionSetupDialog().show(childFragmentManager, PermissionSetupDialog.TAG)
         }
-
-        lifecycleScope.launch(Dispatchers.Main) {
-            mainViewModel.getCrypto().collect { crypto ->
-                fragmentHomeBinding.totalCrypto.text = crypto.toString()
-            }
-        }
-
-        TabLayoutMediator(
-            fragmentHomeBinding.tabLayout,
-            fragmentHomeBinding.viewPager
-
-        ) { tab, position ->
-            when (position) {
-                0 -> tab.text = getString(R.string.all_apps)
-                1 -> tab.text = getString(R.string.blocked_apps)
-            }
-
-        }.attach()
     }
-
-    private fun setPopUpMenu() {
-        val popupMenu = PopupMenu(requireContext(), fragmentHomeBinding.options)
-        popupMenu.menuInflater.inflate(R.menu.home_menu, popupMenu.menu)
-
-        fragmentHomeBinding.options.setOnClickListener {
-            popupMenu.show()
-        }
-
-        popupMenu.setOnMenuItemClickListener { menuItem: MenuItem ->
-            when (menuItem.itemId) {
-                R.id.action_refer_app -> {
-
-                    /* setReferralStatus()
-
-                     val shareIntent = Intent().apply {
-                         action = Intent.ACTION_SEND
-                         putExtra(Intent.EXTRA_TEXT, APP_REFERRAL_LINK)
-                         type = "text/plain"
-                     }
-                     startActivity(Intent.createChooser(shareIntent, "Share your referral link"))*/
-
-                    showToast(
-                        context = requireContext(),
-                        message = this.getString(R.string.coming_soon)
-                    )
-                    true
-                }
-
-                R.id.action_accessibility_disclosure -> {
-                    showAccessibilityServiceInfo()
-                    true
-                }
-
-                else -> false
+    private fun showReward(fromMenu: Boolean = false) {
+        if (rewardJob?.isActive == true || childFragmentManager.findFragmentByTag("reward") != null) return
+        rewardJob = viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val offer = rewards.rewardOffer().first()
+                if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) || childFragmentManager.isStateSaved) return@launch
+                startupStage = "done"
+                rewardCheckedDate = LocalDate.now().toString()
+                if (offer != null) RewardDialog().apply { arguments = bundleOf("amount" to offer) }.show(childFragmentManager, "reward")
+                else if (fromMenu) ViewUtils.showToast(requireContext(), getString(R.string.reward_already_claimed))
+            } catch (_: java.io.IOException) {
+                startupStage = "done"
+                rewardCheckedDate = LocalDate.now().toString()
+                ViewUtils.showToast(requireContext(), getString(R.string.reward_storage_error))
             }
         }
     }
-
-    private fun goToDisplayOverOtherAppsSettings() {
-        val packageName = requireContext().packageName
-        val intent =
-            Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
-        intent.apply {
-            FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
+    private fun showHelp() {
+        fun video(number: Int) = startActivity(Intent(requireContext(), com.khadka.limitr.ui.home.activity.VideoActivity::class.java).putExtra("video", number))
+        dialog?.dismiss()
+        val content = layoutInflater.inflate(R.layout.help_dialog, null)
+        content.findViewById<View>(R.id.watch_video_1).setOnClickListener { video(1) }
+        content.findViewById<View>(R.id.watch_video_2).setOnClickListener { video(2) }
+        content.findViewById<View>(R.id.grantAccessiblePerm).setOnClickListener {
+            dialog?.dismiss()
+            if (EnforcementStatus.consent(requireContext())) startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            else PermissionOnboarding.show(childFragmentManager, openSettings = true)
         }
+        dialog = AlertDialog.Builder(requireContext()).setView(content).setPositiveButton(R.string.ok, null).show()
     }
-
-    private fun goToUsageStateManagerSettings() {
-        val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
-        intent.apply {
-            FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-        }
+    private fun showPrivacy() {
+        dialog?.dismiss()
+        dialog = AlertDialog.Builder(requireContext()).setTitle(R.string.privacy_control)
+            .setMessage("LIMITR works offline without sign-in. Schedules, app selections and Crypto rewards stay on this device. Android backup may copy local schedules and settings using your system backup preferences. Accessibility reads app package names only; no screen contents or event history are saved. Usage statistics and notification access are optional. Notification contents are not stored.\n\nDisable accessibility or stop a session at any time. Essential system apps stay accessible. Battery restrictions, force-stop, split screen, picture-in-picture and service disconnection may interrupt blocking.\n\nThis version no longer connects to Firebase. Existing remote accounts or profile data have not been deleted. See the store listing’s privacy policy for the owner’s contact and data deletion process.")
+            .setPositiveButton(R.string.ok, null).show()
     }
-
-    private fun goToAccessibilitySettings() {
-        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-        intent.apply {
-            FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-        }
-    }
-
-    @SuppressLint("SetTextI18n")
-    private fun showPermissionDialog() {
-
-        dialog?.show()
-
-        val grantAccessiblePermission: Button = dialog?.findViewById(R.id.grantAccessiblePerm)!!
-        val grantDisplayOverPermission: Button = dialog?.findViewById(R.id.grantDisplayOverPerm)!!
-        val grantUsageState: Button = dialog?.findViewById(R.id.grantUsageStateManager)!!
-        val helpButton: Button = dialog?.findViewById(R.id.helpButton)!!
-
-        helpButton.setOnClickListener {
-            showHelpDialog()
-        }
-
-        if (requireContext().isAccessibilityEnabled()) {
-            grantAccessiblePermission.text = getText(R.string.Granted)
-            grantAccessiblePermission.isEnabled = false
-        }
-        if (Settings.canDrawOverlays(requireContext())) {
-            grantDisplayOverPermission.text = getText(R.string.Granted)
-            grantDisplayOverPermission.isEnabled = false
-        }
-
-        if (isUsageStateManagerEnabled(requireContext())) {
-            grantUsageState.text = getText(R.string.Granted)
-            grantUsageState.isEnabled = false
-        }
-
-        grantAccessiblePermission.setOnClickListener {
-            goToAccessibilitySettings()
-        }
-
-        grantDisplayOverPermission.setOnClickListener {
-            goToDisplayOverOtherAppsSettings()
-        }
-
-        grantUsageState.setOnClickListener {
-            goToUsageStateManagerSettings()
-        }
-
-    }
-
-
-    private fun checkLastLoggedInDate() {
-        var defaultCryptoStatus = Status.CryptoStatus.INSERT
-
-        lifecycleScope.launch(Dispatchers.Main) {
-            val lastLoggedDate = mainViewModel.getLastLoggedDate().first()
-            if (lastLoggedDate.isEmpty()) {
-                Timber.d("INSIDE CHECKLOGGED IF")
-                showEverydayReward(defaultCryptoStatus)
-            } else if (getTodayDate() != lastLoggedDate) {
-                Timber.d("INSIDE CHECKLOGGED ELSE")
-                defaultCryptoStatus = Status.CryptoStatus.UPDATE
-                showEverydayReward(defaultCryptoStatus)
-            }
-
-        }
-
-    }
-
-    private fun showEverydayReward(
-        status: Status.CryptoStatus,
-    ) {
-
-        val rewardDialog = Dialog(requireContext())
-        rewardDialog.apply {
-            window?.setContentView(R.layout.claim_rewards)
-            window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            setCancelable(false)
-        }.create()
-
-        val claimRewardButton: Button = rewardDialog.findViewById(R.id.claimReward)
-
-        claimRewardButton.setOnClickListener {
-            lifecycleScope.launch(Dispatchers.Main) {
-                val currentCrypto = mainViewModel.getCrypto().first()
-                mainViewModel.upsertEverydayDate(getTodayDate())
-                mainViewModel.upsertCrypto(currentCrypto + DAILY_CRYPTO_REWARD)
-                rewardDialog.dismiss()
-
-                if (!isReferralCodeStatusChecked && IS_NEW_USER) {
-                    appReferrer.startReferralClientConnection(context = requireContext())
-                }
-            }
-
-        }
-
-        rewardDialog.show()
-    }
-
-    @SuppressLint("SetTextI18n")
-    private fun showFirstLoginRewardDialog() {
-
-        val rewardDialog = Dialog(requireContext())
-        rewardDialog.apply {
-            window?.setContentView(R.layout.claim_rewards)
-            window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            setCancelable(false)
-        }.create()
-
-        val claimRewardButton: Button = rewardDialog.findViewById(R.id.claimReward)
-        val firsLoginText: TextView = rewardDialog.findViewById(R.id.firstLoginText)
-        val cryptoText: TextView = rewardDialog.findViewById(R.id.cryptoText)
-
-        firsLoginText.isVisible = true
-        firsLoginText.text = getString(R.string.first_login_reward)
-        cryptoText.text = FIRST_LOGIN_REWARD.toString()
-
-        claimRewardButton.setOnClickListener {
-            mainViewModel.upsertCrypto(FIRST_LOGIN_REWARD)
-            IS_NEW_USER = false
-            rewardDialog.dismiss()
-
-            checkLastLoggedInDate()
-        }
-
-
-        rewardDialog.show()
-    }
-
-    private fun showHelpDialog() {
-        val helpDialog = Dialog(requireContext())
-        helpDialog.apply {
-            window?.setContentView(R.layout.help_dialog)
-            window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            setCancelable(true)
-        }.create()
-
-        val grantPermission: Button = helpDialog.findViewById(R.id.grantAccessiblePerm)
-        val watchVideo: Button = helpDialog.findViewById(R.id.watch_video_1)
-        val watchVideo2: Button = helpDialog.findViewById(R.id.watch_video_2)
-
-        grantPermission.setOnClickListener {
-            goToAccessibilitySettings()
-            helpDialog.dismiss()
-        }
-
-        watchVideo.setOnClickListener {
-            val intent = Intent(requireContext(), VideoActivity::class.java)
-            intent.flags = FLAG_ACTIVITY_NEW_TASK
-            intent.putExtra("androidVersion", Status.AndroidVersion.ANDROID_13_LESS)
-            requireContext().startActivity(intent)
-        }
-
-        watchVideo2.setOnClickListener {
-            val intent = Intent(requireContext(), VideoActivity::class.java)
-            intent.flags = FLAG_ACTIVITY_NEW_TASK
-            intent.putExtra("androidVersion", Status.AndroidVersion.ANDROID_13_PLUS)
-            requireContext().startActivity(intent)
-        }
-
-        helpDialog.show()
-    }
-
-    private fun showAccessibilityServiceInfo() {
-        val accessibilityServiceInfoDialog = Dialog(requireContext())
-        accessibilityServiceInfoDialog.apply {
-            window?.setContentView(R.layout.accessibility_service_info_dialog)
-            window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                1000
-
-            )
-            setCancelable(false)
-        }.create()
-
-        val acceptButton: Button =
-            accessibilityServiceInfoDialog.findViewById(R.id.acceptButton)
-        val acceptCheckBox: CheckBox =
-            accessibilityServiceInfoDialog.findViewById(R.id.acceptCheckbox)
-
-        val denyButton: Button =
-            accessibilityServiceInfoDialog.findViewById(R.id.denyButton)
-
-        acceptCheckBox.isChecked = getAppConsent()
-
-        acceptButton.setOnClickListener {
-            if (acceptCheckBox.isChecked) {
-                if (!Settings.canDrawOverlays(requireContext()) ||
-                    !requireContext().isAccessibilityEnabled() || !isUsageStateManagerEnabled(
-                        requireContext()
-                    )
-                ) {
-                    showPermissionDialog()
-                    accessibilityServiceInfoDialog.dismiss()
-
-                } else {
-                    accessibilityServiceInfoDialog.dismiss()
-                }
-
-            } else {
-                showToast(requireContext(), "First Agree to Grant Limitr Accessibility Service")
-            }
-        }
-
-        denyButton.setOnClickListener {
-            editor.putBoolean("checkboxStatus", false)
-            editor.apply()
-            requireActivity().finishAffinity()
-        }
-
-        acceptCheckBox.setOnClickListener {
-
-            if (acceptCheckBox.isChecked) {
-                editor.putBoolean("checkboxStatus", true)
-                editor.apply()
-                acceptCheckBox.isChecked = true
-            } else {
-                editor.putBoolean("checkboxStatus", false)
-                editor.apply()
-                acceptCheckBox.isChecked = false
-            }
-        }
-
-        accessibilityServiceInfoDialog.show()
-    }
-
-    private fun getAppConsent(): Boolean {
-        return sharedPref.getBoolean("checkboxStatus", false)
-    }
-
-    private fun isReferralCodeStatusChecked() {
-        lifecycleScope.launch(Dispatchers.Main) {
-            mainViewModel.isReferralCodeStatusChecked().collect { status ->
-                Timber.d("INSIDE isReferralCodeStatusChecked = $status")
-                isReferralCodeStatusChecked = status
-            }
-
-        }
-    }
-
-    private fun showReferralRewardDialog() {
-        val rewardDialog = Dialog(requireContext())
-        rewardDialog.apply {
-            window?.setContentView(R.layout.claim_rewards)
-            window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            setCancelable(false)
-        }.create()
-
-        val claimRewardButton: Button = rewardDialog.findViewById(R.id.claimReward)
-        claimRewardButton.text = requireContext().getString(R.string.claim_referral_reward)
-
-        claimRewardButton.setOnClickListener {
-            lifecycleScope.launch(Dispatchers.Main) {
-                val currentCrypto = mainViewModel.getCrypto().first()
-                mainViewModel.upsertEverydayDate(getTodayDate())
-                mainViewModel.upsertCrypto(currentCrypto + REFERRAL_CRYPTO_REWARD)
-                updateReferralStatus(userUID = USER_UID, status = false)
-                rewardDialog.dismiss()
-            }
-
-        }
-
-        rewardDialog.show()
+    override fun onDestroyView() {
+        dialog?.dismiss(); dialog = null
+        menu?.dismiss(); menu = null
+        mediator?.detach(); mediator = null
+        binding?.viewPager?.adapter = null
+        binding = null
+        super.onDestroyView()
     }
 }

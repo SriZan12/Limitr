@@ -1,99 +1,35 @@
 package com.khadka.limitr.ui.home.blockedApps.adapter
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
-import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.khadka.limitr.R
-import com.khadka.limitr.utils.OnAppClickListener
-import com.khadka.limitr.data.local.appdatabase.model.limitrentities.LimitrEntities
+import androidx.core.view.isVisible
+import com.khadka.limitr.blocking.BlockingSession
+import com.khadka.limitr.blocking.SessionClock
 import com.khadka.limitr.databinding.ItemAppBlockedBinding
-import com.khadka.limitr.utils.DateAndTime.getIntervalForBlocking
-import com.khadka.limitr.utils.DateAndTime.getTimer
-import com.khadka.limitr.utils.ViewUtils.getAppIconByPackageName
-import com.khadka.limitr.utils.ViewUtils.setFadeInAnimation
-import javax.inject.Inject
+import com.khadka.limitr.utils.SessionText
+import com.khadka.limitr.utils.ViewUtils
 
-class BlockedAppListAdapter @Inject constructor() :
-    RecyclerView.Adapter<BlockedAppListAdapter.BlockedAppViewHolder>() {
-
-    private var blockedAppsList: MutableList<LimitrEntities> = mutableListOf()
-    private lateinit var context: Context
-    private lateinit var onClickListener: OnAppClickListener
-
-
-    fun setBlockedAppList(
-        context: Context,
-        blockedAppsList: MutableList<LimitrEntities>,
-        onClickListener: OnAppClickListener
-    ) {
-        this.blockedAppsList.clear()
-        this.blockedAppsList.addAll(blockedAppsList)
-        this.context = context
-        this.onClickListener = onClickListener
+class BlockedAppListAdapter(private val clock: SessionClock, private val click: (String) -> Unit) : RecyclerView.Adapter<BlockedAppListAdapter.Holder>() {
+    private var sessions = emptyList<BlockingSession>()
+    fun submit(value: List<BlockingSession>) { sessions = value; notifyDataSetChanged() }
+    fun tick() { if (itemCount > 0) notifyItemRangeChanged(0, itemCount, "time") }
+    override fun getItemCount() = sessions.size
+    override fun onCreateViewHolder(parent: ViewGroup, type: Int) = Holder(ItemAppBlockedBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+    override fun onBindViewHolder(holder: Holder, position: Int) {
+        val session = sessions[position]
+        holder.ui.appNameTv.text = session.appName
+        holder.ui.iconImg.setImageDrawable(ViewUtils.getAppIconByPackageName(holder.itemView.context, session.packageName))
+        holder.ui.root.setOnClickListener { click(session.packageName) }
+        holder.time(session)
     }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BlockedAppViewHolder {
-        val binding: ItemAppBlockedBinding =
-            DataBindingUtil.inflate(
-                LayoutInflater.from(parent.context),
-                R.layout.item_app_blocked,
-                parent,
-                false
-            )
-        return BlockedAppViewHolder(binding)
+    override fun onBindViewHolder(holder: Holder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isEmpty()) onBindViewHolder(holder, position) else holder.time(sessions[position])
     }
-
-    override fun getItemCount(): Int {
-        return blockedAppsList.size
-    }
-
-    override fun onBindViewHolder(holder: BlockedAppViewHolder, position: Int) {
-        holder.bind(
-            appInfo = blockedAppsList[position],
-            view = holder.itemView,
-            position = position
-        )
-    }
-
-    inner class BlockedAppViewHolder(val binding: ItemAppBlockedBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-
-        @SuppressLint("SetTextI18n")
-        fun bind(appInfo: LimitrEntities, view: View, position: Int) {
-            with(binding) {
-                appNameTv.text = appInfo.appName
-                setFadeInAnimation(view = view, position = position)
-
-                if (appInfo.starTime != null && appInfo.endTime != null) {
-                    interval.isVisible = true
-                    timerText.isVisible = true
-                    getIntervalForBlocking(
-                        appInfo.starTime,
-                        appInfo.endTime,
-                        appInfo.remainingTime,
-                        timerText,
-                        interval
-                    )
-                } else {
-                    timerText.isVisible = false
-                    interval.isVisible = true
-                    getTimer(
-                        appInfo.blockedTime,
-                        appInfo.remainingTime,
-                        interval
-                    )
-                }
-                iconImg.setImageDrawable(getAppIconByPackageName(context, appInfo.appPackage!!))
-
-                binding.mainLinearLayout.setOnClickListener {
-                    onClickListener.onClick(appInfo.appPackage!!)
-                }
-            }
+    inner class Holder(val ui: ItemAppBlockedBinding) : RecyclerView.ViewHolder(ui.root) {
+        fun time(session: BlockingSession) {
+            ui.interval.text = SessionText.timing(session, clock.now())
+            ui.timerText.isVisible = false
         }
     }
 }

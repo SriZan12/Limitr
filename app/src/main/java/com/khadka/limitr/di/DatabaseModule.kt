@@ -7,8 +7,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
 import com.khadka.limitr.R
-import com.khadka.limitr.data.local.appdatabase.room.appblock.LimitrDao
-import com.khadka.limitr.data.local.appdatabase.room.appblock.LimitrDatabase
+import com.khadka.limitr.data.local.appdatabase.LimitrDao
+import com.khadka.limitr.data.local.appdatabase.LimitrDatabase
+import com.khadka.limitr.data.local.appdatabase.DatabaseMigrations
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,8 +33,7 @@ object DatabaseModule {
         synchronized(this) {
             return Room.databaseBuilder(
                 application.applicationContext, LimitrDatabase::class.java, "LimitrTable"
-            ).allowMainThreadQueries()
-                .fallbackToDestructiveMigration()
+            ).addMigrations(*DatabaseMigrations.ALL)
                 .build()
         }
     }

@@ -1,154 +1,67 @@
 package com.khadka.limitr.ui.home.apps.fragment
 
-import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.provider.Settings
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.databinding.DataBindingUtil
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.khadka.limitr.R
+import com.khadka.limitr.blocking.EssentialApps
 import com.khadka.limitr.databinding.ApplistLayoutBinding
 import com.khadka.limitr.ui.blocker.activity.BlockAppActivity
 import com.khadka.limitr.ui.home.apps.adapter.AppListAdapter
 import com.khadka.limitr.ui.home.model.App
 import com.khadka.limitr.utils.OnAppClickListener
-import com.khadka.limitr.utils.Permissions.isAccessibilityEnabled
-import com.khadka.limitr.utils.Permissions.isUsageStateManagerEnabled
-import com.khadka.limitr.utils.ViewUtils
-import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
-import java.util.Collections
-import java.util.TreeMap
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
+import com.khadka.limitr.utils.Permissions
+import kotlinx.coroutines.*
 
-@AndroidEntryPoint
 class AppList : Fragment(R.layout.applist_layout) {
-
-    private lateinit var binding: ApplistLayoutBinding
-
-    @Inject
-    lateinit var appListAdapter: AppListAdapter
-
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding =
-            DataBindingUtil.inflate(inflater, R.layout.applist_layout, container, false)
-        return binding.root
-    }
-
+    private var binding: ApplistLayoutBinding? = null
+    private var job: Job? = null
+    override fun onViewCreated(view: View, state: Bundle?) { binding = ApplistLayoutBinding.bind(view) }
     override fun onResume() {
         super.onResume()
-
-        if (Settings.canDrawOverlays(requireContext()) ||
-            requireContext().isAccessibilityEnabled() || isUsageStateManagerEnabled(requireContext = requireContext())
-        ) {
-            loadStatistics()
-        }
-    }
-
-    private val onclickListener: OnAppClickListener = object : OnAppClickListener {
-        override fun onClick(
-            appPackageName: String
-        ) {
-            val intent = Intent(requireContext(), BlockAppActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            intent.putExtra(requireContext().getString(R.string.packageName), appPackageName)
-            startActivity(intent)
-        }
-
-    }
-
-    private fun showAppsUsage(mySortedMap: Map<String?, UsageStats>) {
-        val appsList = ArrayList<App?>()
-        val usageStatsList: List<UsageStats> = ArrayList(mySortedMap.values)
-
-        Collections.sort(
-            usageStatsList
-        ) { z1: UsageStats, z2: UsageStats ->
-            z1.totalTimeInForeground.compareTo(z2.totalTimeInForeground)
-        }
-
-        // get total time of apps usage to calculate the usagePercentage for each app
-        var totalTime = 0L
-        for (usageStats in usageStatsList) {
-            totalTime += usageStats.totalTimeInForeground
-        }
-        //fill the appsList
-        for (usageStats in usageStatsList) {
-            try {
-                val packageName = usageStats.packageName
-                Timber.d("packageName = $packageName")
-                val icon: Drawable? =
-                    ViewUtils.getAppIconByPackageName(requireContext(), packageName)
-                val appName: String =
-                    ViewUtils.getAppNameByPackageName(requireContext(), packageName)
-
-                Timber.d("appName = $appName")
-
-                if (appName.trim() != context?.getString(R.string.app_name)) {
-                    val usageDuration: String =
-                        getDurationBreakdown(usageStats.totalTimeInForeground)
-                    val usagePercentage =
-                        (usageStats.totalTimeInForeground * 100 / totalTime).toInt()
-                    val usageStatDTO =
-                        App(icon, appName, packageName, usagePercentage, usageDuration)
-                    appsList.add(usageStatDTO)
-                }
-            } catch (e: PackageManager.NameNotFoundException) {
-                e.printStackTrace()
+        job?.cancel()
+        val context = requireContext().applicationContext
+        job = viewLifecycleOwner.lifecycleScope.launch {
+            binding?.appLoadStatus?.text = "Loading installed apps…"
+            binding?.appLoadStatus?.isVisible = true
+            val rows = withContext(Dispatchers.IO) {
+                val pm = context.packageManager
+                val essential = EssentialApps.packages(context)
+                val usage = if (Permissions.isUsageStateManagerEnabled(context)) {
+                    val now = System.currentTimeMillis()
+                    try { context.getSystemService(UsageStatsManager::class.java).queryAndAggregateUsageStats(now - 86_400_000, now) }
+                    catch (_: SecurityException) { emptyMap() }
+                } else emptyMap()
+                val total = usage.values.sumOf { it.totalTimeInForeground }.coerceAtLeast(1)
+                val installed = pm.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0)
+                ArrayList<App?>(installed.distinctBy { it.activityInfo.packageName }.filter { it.activityInfo.packageName !in essential }.mapNotNull { info ->
+                    ensureActive()
+                    val pkg = info.activityInfo.packageName
+                    try {
+                        val app = pm.getApplicationInfo(pkg, 0)
+                        val millis = usage[pkg]?.totalTimeInForeground ?: 0
+                        App(app.loadIcon(pm), app.loadLabel(pm).toString(), pkg,
+                            (millis * 100 / total).toInt().coerceIn(0, 100),
+                            if (usage.isEmpty()) "—" else "${millis / 3_600_000} h ${millis / 60_000 % 60} m")
+                    } catch (_: PackageManager.NameNotFoundException) { null }
+                }.sortedBy { it.appName.orEmpty().lowercase() })
+            }
+            val ui = binding ?: return@launch
+            ui.appLoadStatus.isVisible = rows.isEmpty()
+            ui.appLoadStatus.text = "No launchable apps available."
+            ui.appListRecycler.adapter = AppListAdapter().apply {
+                setAppLists(rows, context, object : OnAppClickListener {
+                    override fun onClick(appPackageName: String) {
+                        startActivity(Intent(requireContext(), BlockAppActivity::class.java).putExtra("packageName", appPackageName))
+                    }
+                })
             }
         }
-
-        appsList.reverse()
-        appListAdapter.setAppLists(appsList, requireContext(), onclickListener)
-        binding.appListRecycler.adapter = appListAdapter
-
     }
-
-
-    private fun getDurationBreakdown(millis: Long): String {
-        var timeInMillis = millis
-        require(timeInMillis >= 0) { "Duration must be greater than zero!" }
-        val hours = TimeUnit.MILLISECONDS.toHours(timeInMillis)
-        timeInMillis -= TimeUnit.HOURS.toMillis(hours)
-        val minutes = TimeUnit.MILLISECONDS.toMinutes(timeInMillis)
-        timeInMillis -= TimeUnit.MINUTES.toMillis(minutes)
-        val seconds = TimeUnit.MILLISECONDS.toSeconds(timeInMillis)
-        return "$hours h $minutes m $seconds s"
-    }
-
-    private fun loadStatistics() {
-        val usageStateManager =
-            requireContext().getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        var appList = usageStateManager.queryUsageStats(
-            UsageStatsManager.INTERVAL_DAILY,
-            System.currentTimeMillis() - 1000 * 3600 * 24,
-            System.currentTimeMillis()
-        )
-        appList = appList.filter { app -> app.totalTimeInForeground > 0 }
-            .toList() // filtering the app which has been used
-
-        if (appList.size > 0) {
-            val mySortedMap: MutableMap<String?, UsageStats> = TreeMap()
-            for (usageStats in appList) {
-                mySortedMap[usageStats.packageName] = usageStats
-            }
-            showAppsUsage(mySortedMap)
-        }
-    }
-
+    override fun onDestroyView() { job?.cancel(); binding?.appListRecycler?.adapter = null; binding = null; super.onDestroyView() }
 }

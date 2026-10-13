@@ -1,77 +1,30 @@
 package com.khadka.limitr.ui.home.activity
 
-import android.net.Uri
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.core.view.isVisible
-import androidx.databinding.DataBindingUtil
+import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import com.khadka.limitr.R
 import com.khadka.limitr.databinding.ActivityVideoBinding
-import com.khadka.limitr.utils.Status
-import com.khadka.limitr.utils.ViewUtils.showToast
-import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.StorageReference
+import com.khadka.limitr.utils.Insets
 
 class VideoActivity : AppCompatActivity() {
-
-    private lateinit var activityVideoBinding: ActivityVideoBinding
-    private var resourceId: String = ""
-    private var storage = FirebaseStorage.getInstance()
-    private var storageReference = storage.reference
+    private lateinit var binding: ActivityVideoBinding
+    private var player: ExoPlayer? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        activityVideoBinding = DataBindingUtil.setContentView(this, R.layout.activity_video)
-        setContentView(activityVideoBinding.root)
-
-
-        val androidVersion =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                intent.getSerializableExtra(
-                    "androidVersion",
-                    Status.AndroidVersion::class.java
-                ) as Status.AndroidVersion
-
-            } else {
-                intent.getSerializableExtra("androidVersion") as Status.AndroidVersion
-            }
-
-        resourceId = if (androidVersion == Status.AndroidVersion.ANDROID_13_PLUS) {
-            "instructions_video/instructions_two.mp4"
-        } else {
-            "instructions_video/instruction_one.mp4"
+        binding = ActivityVideoBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        Insets.apply(binding.root)
+    }
+    override fun onStart() {
+        super.onStart()
+        player = ExoPlayer.Builder(this).build().also {
+            binding.playerView.player = it
+            val video = if (intent.getIntExtra("video", 2) == 1) R.raw.instruction_one else R.raw.instructions_two
+            it.setMediaItem(MediaItem.fromUri("android.resource://$packageName/$video"))
+            it.prepare()
         }
-
-        supportActionBar?.hide()
-        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN)
-        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        downloadInstructionsVideo(resourceId)
-
     }
-
-    private fun playInstructionVideo(videoUri: Uri) {
-        val player = ExoPlayer.Builder(this@VideoActivity).build()
-        activityVideoBinding.playerView.player = player
-        val mediaItem = MediaItem.fromUri(videoUri)
-        player.setMediaItem(mediaItem)
-        player.prepare()
-        player.play()
-    }
-
-    private fun downloadInstructionsVideo(childRef: String) {
-        val instruction_oneRed: StorageReference =
-            storageReference.child(childRef)
-        instruction_oneRed.downloadUrl.addOnSuccessListener { uri ->
-            playInstructionVideo(videoUri = uri)
-            activityVideoBinding.progressBar.isVisible = false
-        }.addOnFailureListener {
-            showToast(this@VideoActivity, "Check Internet Connection!")
-            finish()
-        }
-
-    }
-
+    override fun onStop() { binding.playerView.player = null; player?.release(); player = null; super.onStop() }
 }

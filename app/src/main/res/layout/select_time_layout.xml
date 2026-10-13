@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content">
+<RelativeLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/cancel"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_alignParentEnd="true"
         android:src="@drawable/cancel"
+        android:contentDescription="@string/cancel"
         android:padding="4dp"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"/>
@@ -35,12 +37,12 @@
 
             <TextView
                 android:id="@+id/hour_label"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="Hour"
+                android:text="@string/hour"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -48,24 +50,24 @@
 
             <TextView
                 android:id="@+id/minute_label"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="Minute"
+                android:text="@string/minute"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/second_label"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="Second"
+                android:text="@string/second"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -79,21 +81,21 @@
 
             <NumberPicker
                 android:id="@+id/hour_picker"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1" />
 
             <NumberPicker
                 android:id="@+id/minute_picker"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1" />
 
             <NumberPicker
                 android:id="@+id/second_picker"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1" />
@@ -106,7 +108,8 @@
     <TextView
         android:id="@+id/buttonStartTime"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp"
         android:layout_marginStart="30dp"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="30dp"
@@ -122,3 +125,4 @@
         android:textStyle="bold" />
 
 </RelativeLayout>
+</ScrollView>

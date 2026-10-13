@@ -1,488 +1,181 @@
 package com.khadka.limitr.ui.blocker.activity
 
-import android.app.Dialog
+import android.Manifest
+import android.app.TimePickerDialog
 import android.content.Intent
-import android.content.SharedPreferences
-import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.Button
-import android.widget.ImageView
 import android.widget.NumberPicker
 import android.widget.TextView
+import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.databinding.DataBindingUtil
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
+import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.khadka.limitr.R
-import com.khadka.limitr.data.local.appdatabase.model.historyentities.AppHistoryEntities
-import com.khadka.limitr.data.local.appdatabase.model.limitrentities.LimitrEntities
+import com.khadka.limitr.blocking.*
 import com.khadka.limitr.databinding.ActivityBlockAppBinding
-import com.khadka.limitr.ui.blocker.vm.BlockedAppVM
-import com.khadka.limitr.ui.history.ActivityHistory
-import com.khadka.limitr.ui.home.main_fragment.vm.MainFragmentViewModel
-import com.khadka.limitr.utils.Constants
-import com.khadka.limitr.utils.DateAndTime
-import com.khadka.limitr.utils.NotificationUtils
-import com.khadka.limitr.utils.Permissions
-import com.khadka.limitr.utils.ViewUtils
-import com.khadka.limitr.utils.dialogShow
+import com.khadka.limitr.ui.blocker.vm.SessionViewModel
+import com.khadka.limitr.utils.*
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import pub.devrel.easypermissions.EasyPermissions
-import java.time.LocalDate
-import java.util.Date
-import javax.inject.Inject
+import java.time.LocalTime
+import java.time.ZoneId
+import com.khadka.limitr.utils.Permissions.isAccessibilityEnabled
+import com.khadka.limitr.ui.history.ActivityHistory
 
 @AndroidEntryPoint
-class BlockAppActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
-
+class BlockAppActivity : AppCompatActivity() {
     private lateinit var binding: ActivityBlockAppBinding
-    private lateinit var appPackage: String
-    private val blockedAppVM: BlockedAppVM by viewModels()
-    private lateinit var appName: String
-    private lateinit var appIcon: Drawable
-    private var startTime: Date? = null
-    private var endTime: Date? = null
-    private var unBlockAppStatus: Boolean = false
-    private lateinit var dialog: Dialog
-    private val mainViewModel: MainFragmentViewModel by viewModels()
+    private val model: SessionViewModel by viewModels()
+    private lateinit var target: String
+    private lateinit var label: String
+    private var essential = false
+    private var dialog: android.app.Dialog? = null
+    private val notifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { render() }
 
-
-    @Inject
-    lateinit var dataStore: DataStore<Preferences>
-
-    @Inject
-    lateinit var sharedPref: SharedPreferences
-
-    @Inject
-    lateinit var editor: SharedPreferences.Editor
-
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_block_app)
+        target = intent.getStringExtra("packageName")?.takeIf { it.isNotBlank() } ?: run { finish(); return }
+        binding = ActivityBlockAppBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        dialog =
-            dialogShow(
-                this@BlockAppActivity,
-                R.layout.notification_dialog
-            )
-
-        requestPostNotificationPermissionForAlarm()
-        setView()
-
-        binding.setTime.setOnClickListener {
-
-            val dialog = dialogShow(this@BlockAppActivity, R.layout.select_time_layout)
-            setNumberPicker(dialog, appName)
+        Insets.apply(binding.root)
+        WindowCompat.getInsetsController(window, binding.root).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
         }
-
-        binding.unBlockApp.setOnClickListener {
-            unBlockAppByCrypto()
-        }
-
-        binding.setInterval.setOnClickListener {
-
-            ViewUtils.showTimePickerDialog(this@BlockAppActivity) { stTime ->
-                startTime = stTime
-                ViewUtils.showTimePickerDialog(this@BlockAppActivity) { edTime ->
-                    endTime = edTime
-                    val currentTime = System.currentTimeMillis()
-                    checkConditionForTimeInterval(currentTime, startTime!!, endTime!!)
-                }
-            }
-        }
-
-
+        label = ViewUtils.getAppNameByPackageName(this, target)
+        essential = target in EssentialApps.packages(this)
+        binding.appName.text = label
+        binding.appIcon.setImageDrawable(ViewUtils.getAppIconByPackageName(this, target))
+        binding.setTime.setOnClickListener { timerDialog() }
+        binding.setInterval.setOnClickListener { intervalDialog() }
+        binding.unBlockApp.setOnClickListener { unblockDialog() }
+        binding.showHistory.setOnClickListener { startActivity(Intent(this, ActivityHistory::class.java)) }
         binding.blockNotification.setOnClickListener {
-
-            if (!Permissions.isNotificationServiceEnable(this@BlockAppActivity)) {
-                showNotificationDialog()
-            } else {
-
-                if (binding.blockNotification.isChecked) {
-                    setNotificationStatus(true)
-
-                } else if (!binding.blockNotification.isChecked) {
-                    setNotificationStatus(false)
-                }
-            }
+            val session = current() ?: return@setOnClickListener
+            if (!Permissions.isNotificationServiceEnable(this)) {
+                binding.blockNotification.isChecked = false
+                dialog = AlertDialog.Builder(this).setTitle("Hide selected app notifications?")
+                    .setMessage("LIMITR uses notification access to dismiss notifications only from apps with active sessions that you select. It does not save or transmit notification contents. Ongoing and essential system notifications are left available.")
+                    .setNegativeButton("Not now", null).setPositiveButton("Agree and open settings") { _, _ ->
+                        startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                    }.show()
+            } else model.act { notifications(session, binding.blockNotification.isChecked) }
         }
-
-        binding.showHistory.setOnClickListener {
-            val intent = Intent(this@BlockAppActivity, ActivityHistory::class.java)
-            intent.putExtra("appName", appName)
-            startActivity(intent)
+        binding.enforcementStatus.setOnClickListener { PermissionOnboarding.show(this) }
+        binding.sessionNotifications.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= 33) notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+            else ViewUtils.showToast(this, "Session notifications are available in Android notification settings.")
         }
-
-    }
-
-
-    override fun onResume() {
-        super.onResume()
-
-        if (Permissions.isNotificationServiceEnable(this@BlockAppActivity)) {
-            binding.linearLayout2.isVisible = true
-
-            val packageName = intent.getStringExtra(this.getString(R.string.packageName))
-            val app = ViewUtils.getAppNameByPackageName(this@BlockAppActivity, packageName!!)
-            if (dialog.isShowing) {
-                editor.putBoolean(app, true)
-                editor.apply()
-                binding.blockNotification.isChecked = true
-                dialog.dismiss()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { model.coordinator.state.collect { render() } }
+                launch { model.busy.collect { render() } }
+                launch { model.error.collect { render() } }
+                launch { EnforcementStatus.state.collect { render() } }
+                launch { while (isActive) { render(); delay(1000) } }
             }
         }
     }
-
-    private fun setView() {
-        appPackage = intent.getStringExtra(this.getString(R.string.packageName)).toString()
-
-        appIcon = ViewUtils.getAppIconByPackageName(this@BlockAppActivity, appPackage)!!
-
-        appName = ViewUtils.getAppNameByPackageName(this@BlockAppActivity, appPackage)
-
-        binding.appName.text =
-            ViewUtils.getAppNameByPackageName(this@BlockAppActivity, appPackage)
-        binding.appIcon.setImageDrawable(appIcon)
-
-
-        blockedAppVM.getRemainingTime(appName).observe(this) {
-
-            if (it != null) {
-                binding.unBlockApp.isEnabled = true
-                binding.setTime.isEnabled = false
-                binding.setInterval.isEnabled = false
-
-                unBlockAppStatus = if (it.starTime != null && it.endTime != null) {
-                    binding.setTimerText.text = getString(R.string.duration)
-                    binding.setIntervalText.text = getString(R.string.blocked_for)
-                    binding.timerText.isVisible = true
-                    binding.intervalText.isVisible = true
-                    DateAndTime.getIntervalForBlocking(
-                        it.starTime,
-                        it.endTime,
-                        it.remainingTime,
-                        binding.timerText,
-                        binding.intervalText
-                    )
-                } else {
-                    binding.timerText.isVisible = true
-                    binding.setTimerText.text = getString(R.string.duration)
-                    DateAndTime.getTimer(
-                        it.blockedTime!!,
-                        it.remainingTime,
-                        timerText = binding.timerText
-                    )
-                }
-
-                val isNotificationOn = sharedPref.getBoolean(appName, false)
-
-                if (isNotificationOn) {
-                    binding.blockNotification.isChecked = true
-                }
-
-                if (it.blockedTime!! <= 0) {
-                    removeNotificationStatus()
-                }
-
-                if (unBlockAppStatus) {
-                    unBlockApp(appName)
-                }
-
-            }
-
+    override fun onResume() { super.onResume(); lifecycleScope.launch { model.coordinator.refresh() } }
+    private fun current() = model.coordinator.state.value.sessions.firstOrNull { it.packageName == target }
+    private fun render() {
+        if (!::binding.isInitialized) return
+        val state = model.coordinator.state.value
+        val session = current()
+        val canEdit = state.loaded && !state.error && !model.busy.value && !essential
+        binding.setTime.isEnabled = canEdit
+        binding.setInterval.isEnabled = canEdit
+        binding.unBlockApp.isEnabled = session != null && !model.busy.value
+        binding.blockNotification.isEnabled = session != null && !model.busy.value
+        binding.blockNotification.isChecked = session?.blockNotifications == true
+        val now = model.clock.now()
+        val evaluation = session?.let { ScheduleEvaluator.evaluate(it, now) }
+        binding.timerText.isVisible = session != null
+        binding.intervalText.isVisible = session?.kind == "interval"
+        binding.setTimerText.setText(when {
+            session == null -> R.string.set_timer
+            evaluation?.phase == Phase.SCHEDULED -> R.string.starts_in
+            else -> R.string.duration
+        })
+        binding.setIntervalText.setText(if (session?.kind == "interval") R.string.blocked_for else R.string.set_interval)
+        binding.timerText.text = session?.let {
+            DateAndTime.formatTimeInNumbers(if (evaluation?.phase == Phase.SCHEDULED) it.startWall - now.wall else evaluation?.remaining ?: 0)
         }
-
-    }
-
-    private fun unBlockApp(appName: String) {
-
-        blockedAppVM.deleteRemainingTime(appName)
-            .observe(this) {
-                ViewUtils.showToast(this@BlockAppActivity, "$appName is free now!")
-                removeNotificationStatus()
-                binding.setTime.isEnabled = true
-                binding.setInterval.isEnabled = true
-                binding.setTimerText.text = getString(R.string.set_timer)
-                binding.setIntervalText.text = getString(R.string.set_interval)
-            }
-    }
-
-    private fun removeNotificationStatus() {
-        binding.blockNotification.isChecked = false
-        editor.remove(appName)
-        editor.apply()
-    }
-
-    private fun setNotificationStatus(status: Boolean) {
-        editor.putBoolean(appName, status)
-        editor.apply()
-        binding.blockNotification.isChecked = status
-    }
-
-
-    private fun setIntervalForBlocking(startTime: Date?, endTime: Date?) {
-
-        val interval = endTime?.time!! - startTime?.time!!
-
-        saveRemainingTime(
-            interval,
-            appName,
-            startTime.time,
-            endTime.time,
-        )
-
-        NotificationUtils.startNotification(
-            this@BlockAppActivity,
-            appName,
-            startTime.time,
-            interval,
-            appPackage
-        )
-        NotificationUtils.endNotification(
-            this@BlockAppActivity,
-            appName,
-            endTime.time,
-            appPackage
-
-        )
-
-    }
-
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun setNumberPicker(dialog: Dialog, appName: String?) {
-
-        dialog.show()
-
-        var hour: Int
-        var minute: Int
-        var second: Int
-
-        val hourPicker: NumberPicker = dialog.findViewById(R.id.hour_picker)
-        val minutePicker: NumberPicker = dialog.findViewById(R.id.minute_picker)
-        val secondPicker: NumberPicker = dialog.findViewById(R.id.second_picker)
-        val buttonStartTime: TextView = dialog.findViewById(R.id.buttonStartTime)
-        val cancel: ImageView = dialog.findViewById(R.id.cancel)
-
-        hourPicker.minValue = 0
-        hourPicker.maxValue = 23
-        hourPicker.wrapSelectorWheel = true
-
-        minutePicker.minValue = 0
-        minutePicker.maxValue = 59
-        minutePicker.wrapSelectorWheel = true
-
-        secondPicker.minValue = 0
-        secondPicker.maxValue = 59
-        secondPicker.wrapSelectorWheel = true
-
-        hourPicker.setOnValueChangedListener { _, _, newVal ->
-        }
-
-        minutePicker.setOnValueChangedListener { _, _, newVal ->
-        }
-
-        secondPicker.setOnValueChangedListener { _, _, newVal ->
-
-        }
-
-        buttonStartTime.setOnClickListener {
-
-            hour = hourPicker.value
-            minute = minutePicker.value
-            second = secondPicker.value
-
-            setTimer(hour, minute, second)
-            dialog.dismiss()
-
-        }
-
-        cancel.setOnClickListener {
-            dialog.dismiss()
-        }
-
-    }
-
-    private fun setTimer(hour: Int, minute: Int, second: Int) {
-
-        val interval = (hour * 60 * 60 + minute * 60 + second) * 1000L
-
-        ViewUtils.startTimer(binding.timerText, interval)
-
-        saveRemainingTime(interval, appName, null, null)
-
-        NotificationUtils.startNotification(
-            this@BlockAppActivity,
-            appName,
-            System.currentTimeMillis(),
-            interval,
-            appPackage
-        )
-        NotificationUtils.endNotification(
-            this@BlockAppActivity,
-            appName,
-            System.currentTimeMillis() + interval,
-            appPackage
-        )
-
-        dialog.dismiss()
-
-    }
-
-
-    private fun saveRemainingTime(
-        time: Long,
-        appName: String?,
-        startTime: Long?,
-        endTime: Long?,
-    ) {
-
-        val limitrEntities =
-            LimitrEntities(
-                appName!!,
-                System.currentTimeMillis(),
-                time,
-                appPackage,
-                startTime,
-                endTime,
-                false
-            )
-
-        blockedAppVM.insertRemainingTime(limitrEntities).observe(this) {
-            ViewUtils.showToast(this@BlockAppActivity, "$appName is Blocked!")
-            if (!Permissions.isNotificationServiceEnable(this@BlockAppActivity)) {
-                showNotificationDialog()
-            } else {
-                setNotificationStatus(true)
-            }
-
-            blockedAppVM.insertAppBlockedHistory(
-                historyEntities = AppHistoryEntities(
-                    appName = appName,
-                    appPackage = appPackage,
-                    blockedDate = System.currentTimeMillis(),
-                    starTime = startTime,
-                    endTime = endTime
-                )
-            ).observe(this) {
-                ViewUtils.showToast(this, "HistorySaved")
-            }
-
+        binding.intervalText.text = session?.takeIf { it.kind == "interval" }?.let { SessionText.intervalRange(it) }
+        binding.sessionError.text = model.error.value ?: if (essential) getString(R.string.essential_apps_available) else null
+        binding.sessionError.isVisible = !binding.sessionError.text.isNullOrEmpty()
+        binding.enforcementStatus.isVisible = state.error || !state.loaded ||
+            !EnforcementStatus.consent(this) || !isAccessibilityEnabled() || EnforcementStatus.state.value != Enforcement.CONNECTED
+        binding.enforcementStatus.text = SessionText.availability(this, state)
+        dialog?.findViewById<TextView>(R.id.unblockError)?.let {
+            it.text = model.error.value
+            it.isVisible = model.error.value != null
+            dialog?.findViewById<View>(R.id.unBlockApp)?.isEnabled = session != null && !model.busy.value
+            dialog?.findViewById<View>(R.id.stopSession)?.isEnabled = session != null && !model.busy.value
+            if (session == null) dialog?.dismiss()
         }
     }
-
-    private fun checkConditionForTimeInterval(currentTime: Long, startTime: Date, endTime: Date) {
-        if (currentTime > startTime.time) {
-            val newStarTime =
-                Date(startTime.time.plus(86400000L))// 1 day in milliseconds
-            val newEndTime =
-                Date(endTime.time.plus(86400000L)) // 1 day in milliseconds
-            setIntervalForBlocking(newStarTime, newEndTime)
-        } else if (currentTime > endTime.time) {
-            val newEndTime =
-                Date(endTime.time.plus(86400000L))
-            setIntervalForBlocking(startTime, newEndTime)
-        } else {
-            setIntervalForBlocking(startTime, endTime)
+    private fun unblockDialog() {
+        if (current() == null) return
+        val view = layoutInflater.inflate(R.layout.unblock_app_layout, null)
+        dialog?.dismiss()
+        dialog = AlertDialog.Builder(this).setView(view).create()
+        view.findViewById<View>(R.id.cancel).setOnClickListener { dialog?.dismiss() }
+        view.findViewById<View>(R.id.unBlockApp).setOnClickListener { current()?.let(model::unblockWithCrypto) }
+        view.findViewById<View>(R.id.stopSession).setOnClickListener {
+            val session = current() ?: return@setOnClickListener
+            dialog?.dismiss()
+            dialog = AlertDialog.Builder(this).setTitle(R.string.stop_session_question)
+                .setMessage(getString(R.string.stop_session_description, label))
+                .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.stop_session) { _, _ -> model.act { cancel(session) } }.show()
         }
+        dialog?.show()
+        render()
     }
-
-
-    private fun gotoSettings() {
-        val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-        intent.apply {
-            Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
+    private fun timerDialog() {
+        val view = layoutInflater.inflate(R.layout.select_time_layout, null)
+        val hours = view.findViewById<NumberPicker>(R.id.hour_picker).apply { minValue = 0; maxValue = 23 }
+        val minutes = view.findViewById<NumberPicker>(R.id.minute_picker).apply { minValue = 0; maxValue = 59 }
+        val seconds = view.findViewById<NumberPicker>(R.id.second_picker).apply { minValue = 0; maxValue = 59 }
+        dialog = AlertDialog.Builder(this).setView(view).create()
+        view.findViewById<android.view.View>(R.id.cancel).setOnClickListener { dialog?.dismiss() }
+        view.findViewById<android.view.View>(R.id.buttonStartTime).setOnClickListener {
+            // NumberPicker commits keyboard edits when its input loses focus.
+            hours.clearFocus()
+            minutes.clearFocus()
+            seconds.clearFocus()
+            val duration = (hours.value * 3600L + minutes.value * 60L + seconds.value) * 1000
+            if (duration == 0L) { ViewUtils.showToast(this, "Choose a duration greater than zero."); return@setOnClickListener }
+            model.act { timer(target, label, duration, current()?.blockNotifications ?: false) }
+            dialog?.dismiss()
         }
+        dialog?.show()
     }
-
-    private fun showNotificationDialog() {
-
-        val grantPermission: TextView = dialog.findViewById(R.id.grantPermission)
-        val cancel: ImageView = dialog.findViewById(R.id.cancel)
-
-        grantPermission.setOnClickListener {
-            gotoSettings()
-        }
-
-        cancel.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialog.show()
+    private fun intervalDialog() {
+        pickTime("Start time") { start -> pickTime("End time") { end ->
+            val (from, until) = ScheduleEvaluator.interval(model.clock.now().wall, start, end, ZoneId.systemDefault())
+            val format = java.text.DateFormat.getDateTimeInstance()
+            dialog = AlertDialog.Builder(this).setTitle("Save one-time interval?")
+                .setMessage("${format.format(java.util.Date(from))} – ${format.format(java.util.Date(until))}\nThe chosen instants stay fixed if the time zone changes.")
+                .setNegativeButton(R.string.cancel, null).setPositiveButton("Save") { _, _ ->
+                    model.act { interval(target, label, from, until, current()?.blockNotifications ?: false) }
+                }.show()
+        } }
     }
-
-    private fun unBlockAppByCrypto() {
-
-        val cryptoDialog = dialogShow(this@BlockAppActivity, R.layout.unblock_app_layout)
-
-        cryptoDialog.show()
-
-        val unBlockButton: Button = cryptoDialog.findViewById(R.id.unBlockApp)
-        val cancel: ImageView = cryptoDialog.findViewById(R.id.cancel)
-
-        cancel.setOnClickListener {
-            cryptoDialog.dismiss()
-        }
-
-        unBlockButton.setOnClickListener {
-            lifecycleScope.launch(Dispatchers.Main) {
-                val crypto = mainViewModel.getCrypto().first()
-                if (crypto >= Constants.REQUIRED_CRYPTO_FOR_UNBLOCK) {
-                    val deductCrypto = crypto - Constants.REQUIRED_CRYPTO_FOR_UNBLOCK
-                    mainViewModel.upsertCrypto(deductCrypto)
-                    unBlockApp(appName)
-                    NotificationUtils.cancelNotification(this@BlockAppActivity, appName)
-                    cryptoDialog.dismiss()
-                    finish()
-                } else {
-                    ViewUtils.showToast(
-                        this@BlockAppActivity,
-                        getString(R.string.not_enough_crypto)
-                    )
-                    cryptoDialog.dismiss()
-                }
-            }
-        }
-
+    private fun pickTime(title: String, selected: (LocalTime) -> Unit) {
+        val now = LocalTime.now()
+        dialog = TimePickerDialog(this, { _, hour, minute -> selected(LocalTime.of(hour, minute)) }, now.hour, now.minute,
+            android.text.format.DateFormat.is24HourFormat(this)).apply { setTitle(title); show() }
     }
-
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    private fun hasPostNotification(): Boolean {
-        return EasyPermissions.hasPermissions(
-            this@BlockAppActivity,
-            android.Manifest.permission.POST_NOTIFICATIONS
-        )
-    }
-
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    private fun requestPostNotificationPermissionForAlarm() {
-        if (!hasPostNotification()) {
-            EasyPermissions.requestPermissions(
-                this,
-                "This app needs permission to post alarm notifications.",
-                Constants.RC_POST_NOTIFICATION_PERMISSION,
-                android.Manifest.permission.POST_NOTIFICATIONS
-            )
-        }
-    }
-
-    override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
-        TODO("Not yet implemented")
-    }
+    override fun onDestroy() { dialog?.dismiss(); super.onDestroy() }
 }

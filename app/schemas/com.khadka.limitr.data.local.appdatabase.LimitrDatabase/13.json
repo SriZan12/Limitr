@@ -1,0 +1,175 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 13,
+    "identityHash": "4c316dfd7cbe2bbcfc1e8b8d15bc9bb7",
+    "entities": [
+      {
+        "tableName": "LimitrTable",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`appName` TEXT NOT NULL, `blockedTime` INTEGER, `remainingTime` INTEGER, `appPackage` TEXT, `starTime` INTEGER, `endTime` INTEGER, `notificationStatus` INTEGER, PRIMARY KEY(`appName`))",
+        "fields": [
+          {
+            "fieldPath": "appName",
+            "columnName": "appName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blockedTime",
+            "columnName": "blockedTime",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "remainingTime",
+            "columnName": "remainingTime",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "appPackage",
+            "columnName": "appPackage",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "starTime",
+            "columnName": "starTime",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "endTime",
+            "columnName": "endTime",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "notificationStatus",
+            "columnName": "notificationStatus",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "appName"
+          ]
+        }
+      },
+      {
+        "tableName": "HistoryTable",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`appName` TEXT NOT NULL, `noOfTimesBlocked` INTEGER, `appPackage` TEXT NOT NULL, `blockedDate` INTEGER, `starTime` INTEGER, `endTime` INTEGER, PRIMARY KEY(`appName`))",
+        "fields": [
+          {
+            "fieldPath": "appName",
+            "columnName": "appName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "noOfTimesBlocked",
+            "columnName": "noOfTimesBlocked",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "appPackage",
+            "columnName": "appPackage",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blockedDate",
+            "columnName": "blockedDate",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "starTime",
+            "columnName": "starTime",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "endTime",
+            "columnName": "endTime",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "appName"
+          ]
+        }
+      },
+      {
+        "tableName": "BlockingSession",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`packageName` TEXT NOT NULL, `appName` TEXT NOT NULL, `revision` TEXT NOT NULL, `kind` TEXT NOT NULL, `startWall` INTEGER NOT NULL, `endWall` INTEGER NOT NULL, `startElapsed` INTEGER, `duration` INTEGER NOT NULL, `bootId` TEXT, `blockNotifications` INTEGER NOT NULL, PRIMARY KEY(`packageName`))",
+        "fields": [
+          {
+            "fieldPath": "packageName",
+            "columnName": "packageName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "appName",
+            "columnName": "appName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "revision",
+            "columnName": "revision",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startWall",
+            "columnName": "startWall",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endWall",
+            "columnName": "endWall",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startElapsed",
+            "columnName": "startElapsed",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "duration",
+            "columnName": "duration",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bootId",
+            "columnName": "bootId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "blockNotifications",
+            "columnName": "blockNotifications",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "packageName"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4c316dfd7cbe2bbcfc1e8b8d15bc9bb7')"
+    ]
+  }
+}

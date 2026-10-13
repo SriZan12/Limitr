@@ -2,10 +2,8 @@
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:description="@string/accessibility_service_description"
     android:accessibilityEventTypes="typeWindowStateChanged"
-    android:accessibilityFlags="flagDefault"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:notificationTimeout="100"
-    android:canRetrieveWindowContent="true"
-    android:settingsActivity="com.example.android.accessibility.ServiceSettingsActivity"
-    />
-
+    android:canRetrieveWindowContent="false"
+    android:isAccessibilityTool="false"
+    android:settingsActivity="com.khadka.limitr.ui.mainactivity.MainActivity" />

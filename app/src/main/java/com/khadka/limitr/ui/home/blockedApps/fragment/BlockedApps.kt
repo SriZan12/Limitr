@@ -2,80 +2,44 @@ package com.khadka.limitr.ui.home.blockedApps.fragment
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.khadka.limitr.R
-import com.khadka.limitr.utils.OnAppClickListener
-import com.khadka.limitr.data.local.appdatabase.model.limitrentities.LimitrEntities
+import com.khadka.limitr.blocking.SessionClock
+import com.khadka.limitr.blocking.SessionCoordinator
 import com.khadka.limitr.databinding.BlockedAppListLayoutBinding
 import com.khadka.limitr.ui.blocker.activity.BlockAppActivity
 import com.khadka.limitr.ui.home.blockedApps.adapter.BlockedAppListAdapter
-import com.khadka.limitr.ui.home.blockedApps.vm.BlockedAppViewModels
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
+import kotlinx.coroutines.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class BlockedApps : Fragment(R.layout.blocked_app_list_layout) {
-
-    private lateinit var binding: BlockedAppListLayoutBinding
-    private val viewModel: BlockedAppViewModels by viewModels()
-    private var blockedAppsList: MutableList<LimitrEntities> = mutableListOf()
-
-    @Inject
-    lateinit var blockedAppListAdapter: BlockedAppListAdapter
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding =
-            DataBindingUtil.inflate(inflater, R.layout.blocked_app_list_layout, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        viewModel.getBlockedApps().observe(viewLifecycleOwner) {
-
-            if (it != null) {
-                blockedAppsList.clear()
-                for (apps in it) {
-                    blockedAppsList.add(apps)
-                    Timber.d("BLOCKEDAPPS = ${apps.appName}")
-                }
-
-                blockedAppListAdapter.setBlockedAppList(
-                    requireContext(),
-                    blockedAppsList,
-                    onclickListener
-                )
-                binding.blockedAppRecycler.adapter = blockedAppListAdapter
-            } else {
-                binding.noApps.isVisible = true
+    @Inject lateinit var coordinator: SessionCoordinator
+    @Inject lateinit var clock: SessionClock
+    private var binding: BlockedAppListLayoutBinding? = null
+    override fun onViewCreated(view: View, state: Bundle?) {
+        val ui = BlockedAppListLayoutBinding.bind(view)
+        binding = ui
+        val adapter = BlockedAppListAdapter(clock) { pkg ->
+            startActivity(Intent(requireContext(), BlockAppActivity::class.java).putExtra("packageName", pkg))
+        }
+        ui.blockedAppRecycler.adapter = adapter
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { coordinator.state.collect { value ->
+                    adapter.submit(value.sessions)
+                    ui.noApps.isVisible = value.sessions.isEmpty()
+                    ui.noApps.text = if (value.error) "Saved sessions unavailable. Data has been kept." else if (!value.loaded) "Loading…" else getString(R.string.no_apps_are_blocked)
+                } }
+                launch { while (isActive) { adapter.tick(); delay(1000) } }
             }
         }
     }
-
-    private val onclickListener: OnAppClickListener = object : OnAppClickListener {
-        override fun onClick(
-            appPackageName: String
-        ) {
-            val intent = Intent(requireContext(), BlockAppActivity::class.java)
-            intent.putExtra(requireContext().getString(R.string.packageName), appPackageName)
-
-            startActivity(intent)
-
-
-        }
-
-    }
-
+    override fun onDestroyView() { binding?.blockedAppRecycler?.adapter = null; binding = null; super.onDestroyView() }
 }
