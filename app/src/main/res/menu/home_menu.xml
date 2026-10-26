@@ -3,6 +3,5 @@
     <item android:id="@+id/action_accessibility_disclosure" android:title="@string/accessibility_disclosure" />
     <item android:id="@+id/action_reward" android:title="@string/reward" />
     <item android:id="@+id/action_history" android:title="@string/history" />
-    <item android:id="@+id/action_help" android:title="@string/help_instructions" />
     <item android:id="@+id/action_privacy" android:title="@string/privacy_control" />
 </menu>

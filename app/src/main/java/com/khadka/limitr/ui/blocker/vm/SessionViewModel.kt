@@ -23,9 +23,14 @@ class SessionViewModel @Inject constructor(
     private val mutableBusy = MutableStateFlow(false)
     val busy = mutableBusy.asStateFlow()
     val error = MutableStateFlow<String?>(null)
+    private val mutableUnblocked = MutableStateFlow(false)
+    val unblocked = mutableUnblocked.asStateFlow()
     fun unblockWithCrypto(session: BlockingSession) = act {
         if (rewards.getCrypto().first() < 2) error.value = "Not enough Crypto. Unblocking requires 2 Crypto."
-        else if (cancel(session)) rewards.spendCrypto()
+        else if (cancel(session)) {
+            rewards.spendCrypto()
+            mutableUnblocked.value = true
+        }
     }
     fun act(operation: suspend SessionRepository.() -> Unit) {
         if (mutableBusy.value) return

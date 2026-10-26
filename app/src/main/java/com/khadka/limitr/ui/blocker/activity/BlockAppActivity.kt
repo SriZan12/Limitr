@@ -73,6 +73,7 @@ class BlockAppActivity : AppCompatActivity() {
                 launch { model.coordinator.state.collect { render() } }
                 launch { model.busy.collect { render() } }
                 launch { model.error.collect { render() } }
+                launch { model.unblocked.collect { render() } }
                 launch { EnforcementStatus.state.collect { render() } }
                 launch { while (isActive) { render(); delay(1000) } }
             }
@@ -82,6 +83,12 @@ class BlockAppActivity : AppCompatActivity() {
     private fun current() = model.coordinator.state.value.sessions.firstOrNull { it.packageName == target }
     private fun render() {
         if (!::binding.isInitialized) return
+        // Wait for persistence/reconciliation to finish before destroying the ViewModel.
+        if (model.unblocked.value && !model.busy.value && model.error.value == null) {
+            dialog?.dismiss()
+            finish()
+            return
+        }
         val state = model.coordinator.state.value
         val session = current()
         val canEdit = state.loaded && !state.error && !model.busy.value && !essential

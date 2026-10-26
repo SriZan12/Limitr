@@ -1,5 +1,6 @@
 package com.khadka.limitr
 
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
@@ -11,8 +12,13 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SdkSuppress
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.ViewModelProvider
 import com.khadka.limitr.blocking.*
 import com.khadka.limitr.ui.blocker.activity.BlockAppActivity
+import com.khadka.limitr.ui.blocker.vm.SessionViewModel
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
@@ -20,6 +26,7 @@ import org.junit.Assert.*
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.atomic.AtomicBoolean
 
 @RunWith(AndroidJUnit4::class)
 class SessionInstrumentedTest {
@@ -97,7 +104,7 @@ class SessionInstrumentedTest {
     }
 
     @Test @SdkSuppress(minSdkVersion = 29)
-    fun cryptoUnblockKeepsUnaffordableTimersAndIntervalsThenDebitsOnce() = runBlocking {
+    fun cryptoUnblockKeepsUnaffordableTimersAndIntervalsThenDebitsOnceAndFinishes() = runBlocking {
         val rewards = entry.rewards()
         val originalBalance = rewards.getCrypto().first()
         try {
@@ -112,9 +119,13 @@ class SessionInstrumentedTest {
                 val saved = repository.all().single { it.packageName == target }
                 ActivityScenario.launch<BlockAppActivity>(Intent(context, BlockAppActivity::class.java)
                     .putExtra("packageName", target)).use { scenario ->
+                    val destroyed = AtomicBoolean(false)
                     fun dialogRoot() = WindowInspector.getGlobalWindowViews()
                         .single { it.findViewById<TextView>(R.id.unblockError) != null }
                     scenario.onActivity { activity ->
+                        activity.lifecycle.addObserver(LifecycleEventObserver { _, event ->
+                            if (event == Lifecycle.Event.ON_DESTROY) destroyed.set(true)
+                        })
                         activity.findViewById<android.view.View>(R.id.unBlockApp).performClick()
                         dialogRoot().findViewById<android.view.View>(R.id.unBlockApp).performClick()
                     }
@@ -125,6 +136,7 @@ class SessionInstrumentedTest {
                     }
                     assertEquals(saved, repository.all().single { it.packageName == target })
                     assertEquals(1, rewards.getCrypto().first())
+                    assertEquals(Lifecycle.State.RESUMED, scenario.state)
 
                     rewards.upsertCrypto(2)
                     await {
@@ -138,9 +150,52 @@ class SessionInstrumentedTest {
                         button.performClick()
                     }
                     await { coordinator.state.value.sessions.none { it.packageName == target } }
+                    // Room publishes removal before the asynchronous Crypto debit completes.
+                    await { destroyed.get() }
+                    InstrumentationRegistry.getInstrumentation().waitForIdleSync()
                     assertTrue(repository.all().none { it.packageName == target })
                     assertEquals(0, rewards.getCrypto().first())
                 }
+            }
+        } finally { rewards.upsertCrypto(originalBalance) }
+    }
+
+    @Test @SdkSuppress(minSdkVersion = 29)
+    fun completedUnblockFinishesWhenStoppedDetailsResume() = runBlocking {
+        val rewards = entry.rewards()
+        val originalBalance = rewards.getCrypto().first()
+        try {
+            rewards.upsertCrypto(2)
+            repository.timer(target, "Test app", 60000, false)
+            coordinator.refresh()
+            ActivityScenario.launch<BlockAppActivity>(Intent(context, BlockAppActivity::class.java)
+                .putExtra("packageName", target)).use { scenario ->
+                lateinit var model: SessionViewModel
+                var taskId = -1
+                val stopped = AtomicBoolean(false)
+                val destroyed = AtomicBoolean(false)
+                scenario.onActivity {
+                    model = ViewModelProvider(it)[SessionViewModel::class.java]
+                    taskId = it.taskId
+                    it.lifecycle.addObserver(LifecycleEventObserver { _, event ->
+                        if (event == Lifecycle.Event.ON_STOP) stopped.set(true)
+                        if (event == Lifecycle.Event.ON_DESTROY) destroyed.set(true)
+                    })
+                }
+                context.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                await { stopped.get() }
+                val saved = repository.all().single { it.packageName == target }
+                InstrumentationRegistry.getInstrumentation().runOnMainSync { model.unblockWithCrypto(saved) }
+                await { model.unblocked.value && !model.busy.value }
+                assertEquals(0, rewards.getCrypto().first())
+                assertTrue(repository.all().none { it.packageName == target })
+                assertFalse(destroyed.get())
+                // Returning may finish during onStart, so do not require a stable RESUMED state.
+                context.getSystemService(ActivityManager::class.java).appTasks
+                    .single { it.taskInfo.taskId == taskId }.moveToFront()
+                await { destroyed.get() }
+                InstrumentationRegistry.getInstrumentation().waitForIdleSync()
             }
         } finally { rewards.upsertCrypto(originalBalance) }
     }

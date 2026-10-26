@@ -27,6 +27,7 @@ Release APK/AAB builds require the existing private upload key through gitignore
 - [Build/test results, known gaps and manual test matrix](docs/TESTING.md)
 - [Required owner actions before production rollout](docs/RELEASE.md)
 - [Removal of session controls/alerts, with timers and intervals retained](docs/FOLLOWUP_REMOVE_SESSIONS.md)
+- [Help removal and closing details after unblock](docs/FOLLOWUP_HELP_UNBLOCK.md)
 - Phase records: [API 36](docs/PHASE_1_API_36.md), [offline cleanup](docs/PHASE_2_OFFLINE.md), [accessibility evaluation](docs/PHASE_3_ACCESSIBILITY.md), [audit and migrations](docs/PHASE_4_AUDIT.md), [signed R8 validation](docs/PHASE_5_RELEASE.md)
 
 Accessibility detects package-window changes and displays a voluntary blocking overlay. It does not suspend other packages. Android can interrupt enforcement; force-stop, multi-window and manufacturer restrictions limit guarantees. The UI distinguishes saved timers and intervals from service availability. System settings, emergency interactions and service-disabling controls remain accessible.

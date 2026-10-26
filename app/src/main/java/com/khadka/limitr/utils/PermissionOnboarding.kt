@@ -73,7 +73,6 @@ class PermissionSetupDialog : LimitrDialogFragment(R.layout.permission_layout) {
     companion object {
         const val TAG = "permission_setup"
         const val RESULT = "permission_setup_finished"
-        const val HELP = "permission_setup_help"
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         view.findViewById<Button>(R.id.grantAccessiblePerm).setOnClickListener {
@@ -83,9 +82,6 @@ class PermissionSetupDialog : LimitrDialogFragment(R.layout.permission_layout) {
         view.findViewById<Button>(R.id.grantUsageStateManager).setOnClickListener {
             // The disclosure is visible directly above this affirmative button.
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-        }
-        view.findViewById<Button>(R.id.helpButton).setOnClickListener {
-            parentFragmentManager.setFragmentResult(HELP, Bundle())
         }
         view.findViewById<Button>(R.id.continueSetup).setOnClickListener {
             parentFragmentManager.setFragmentResult(RESULT, Bundle())

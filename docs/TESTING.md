@@ -1,3 +1,5 @@
+> Latest follow-up removes Help Instructions and closes details after successful Crypto unblock; see [validation and manual checks](FOLLOWUP_HELP_UNBLOCK.md).
+
 > Current behavior: session controls and start/end alerts were removed after the historical runs below. Timers, intervals, history and 2-Crypto unblock remain. See [removal validation](FOLLOWUP_REMOVE_SESSIONS.md).
 
 # Validation and manual test matrix

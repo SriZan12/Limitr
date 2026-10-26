@@ -63,7 +63,6 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
                     R.id.action_accessibility_disclosure -> PermissionOnboarding.show(childFragmentManager)
                     R.id.action_reward -> showReward(fromMenu = true)
                     R.id.action_history -> startActivity(Intent(requireContext(), com.khadka.limitr.ui.history.ActivityHistory::class.java))
-                    R.id.action_help -> showHelp()
                     R.id.action_privacy -> showPrivacy()
                     else -> return@setOnMenuItemClickListener false
                 }
@@ -82,7 +81,6 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
             startupStage = "reward"
             continueStartup()
         }
-        childFragmentManager.setFragmentResultListener(PermissionSetupDialog.HELP, viewLifecycleOwner) { _, _ -> showHelp() }
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { coordinator.state.collect { renderStatus() } }
@@ -150,19 +148,6 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
                 ViewUtils.showToast(requireContext(), getString(R.string.reward_storage_error))
             }
         }
-    }
-    private fun showHelp() {
-        fun video(number: Int) = startActivity(Intent(requireContext(), com.khadka.limitr.ui.home.activity.VideoActivity::class.java).putExtra("video", number))
-        dialog?.dismiss()
-        val content = layoutInflater.inflate(R.layout.help_dialog, null)
-        content.findViewById<View>(R.id.watch_video_1).setOnClickListener { video(1) }
-        content.findViewById<View>(R.id.watch_video_2).setOnClickListener { video(2) }
-        content.findViewById<View>(R.id.grantAccessiblePerm).setOnClickListener {
-            dialog?.dismiss()
-            if (EnforcementStatus.consent(requireContext())) startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
-            else PermissionOnboarding.show(childFragmentManager, openSettings = true)
-        }
-        dialog = AlertDialog.Builder(requireContext()).setView(content).setPositiveButton(R.string.ok, null).show()
     }
     private fun showPrivacy() {
         dialog?.dismiss()
