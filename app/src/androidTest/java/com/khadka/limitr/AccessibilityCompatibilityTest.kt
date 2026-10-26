@@ -26,7 +26,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @SdkSuppress(minSdkVersion = 29)
 class AccessibilityCompatibilityTest {
-    @Test fun externalLaunchShowsOneOverlayAndExpiresWithoutAnotherWindowEvent() = runBlocking {
+    @Test fun externalLaunchAndReconnectKeepOneOverlayAndExpireWithoutAnotherWindowEvent() = runBlocking {
         assumeTrue(InstrumentationRegistry.getArguments().getString("accessibilityChecks") == "true")
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         // Default UiAutomation suppresses other accessibility services, invalidating this test.
@@ -71,7 +71,7 @@ class AccessibilityCompatibilityTest {
                 EnforcementStatus.state.value == Enforcement.WAITING_FOR_APP || EnforcementStatus.state.value == Enforcement.CONNECTED
             }
             // Leave enough time for a cold external Activity launch on a slow emulator.
-            entry.repository().timer(target, "Launch fixture", 60_000, false)
+            entry.repository().timer(target, "Launch fixture", 180_000, false)
             entry.coordinator().refresh()
             context.startActivity(Intent().setComponent(ComponentName(target, LaunchFixtureActivity::class.java.name))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
@@ -79,6 +79,20 @@ class AccessibilityCompatibilityTest {
             assertEquals("Only one accessibility window should be attached", 1, overlays().size)
             val initial = overlays().single()
             await("Overlay countdown did not advance") { overlays().singleOrNull()?.let { it != initial } == true }
+            val otherServices = services.orEmpty().split(':').filter {
+                it.isNotBlank() && ComponentName.unflattenFromString(it) != ComponentName.unflattenFromString(component)
+            }.joinToString(":")
+            configure(otherServices, if (otherServices.isEmpty()) "0" else "1")
+            await("Disconnect did not remove the accessibility window") {
+                EnforcementStatus.state.value == Enforcement.DISCONNECTED && overlays().isEmpty()
+            }
+            configure((services.orEmpty().split(':').filter(String::isNotBlank) + component).distinct().joinToString(":"), "1")
+            await("Accessibility service did not reconnect") {
+                EnforcementStatus.state.value == Enforcement.WAITING_FOR_APP || EnforcementStatus.state.value == Enforcement.CONNECTED
+            }
+            context.startActivity(Intent().setComponent(ComponentName(target, LaunchFixtureActivity::class.java.name))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK))
+            await("Persisted session was not enforced after reconnect") { overlays().size == 1 }
             // Shorten the persisted session while the same external window stays foregrounded.
             entry.repository().timer(target, "Launch fixture", 1_000, false)
             entry.coordinator().refresh()

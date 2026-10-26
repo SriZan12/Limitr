@@ -7,6 +7,7 @@ import android.content.Intent
 import android.database.sqlite.SQLiteException
 import android.os.SystemClock
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -46,7 +47,8 @@ class SessionCoordinator @Inject constructor(
         scope.launch {
             try {
                 repository.changes.collect { refresh() }
-            } catch (error: SQLiteException) { storageFailure(error) }
+            } catch (cancelled: CancellationException) { throw cancelled }
+              catch (error: SQLiteException) { storageFailure(error) }
               catch (error: IllegalStateException) { storageFailure(error) }
         }
         scope.launch {
@@ -71,7 +73,8 @@ class SessionCoordinator @Inject constructor(
                 // Inexact wakeup is a recovery hint, never the source of session correctness.
                 alarms.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + delay, pending)
             }
-        } catch (error: SQLiteException) { storageFailure(error) }
+        } catch (cancelled: CancellationException) { throw cancelled }
+          catch (error: SQLiteException) { storageFailure(error) }
           catch (error: IllegalStateException) { storageFailure(error) }
     }
 

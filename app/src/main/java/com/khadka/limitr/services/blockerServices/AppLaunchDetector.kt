@@ -46,7 +46,11 @@ class AppLaunchDetector : AccessibilityService() {
             IntentFilter().apply { addAction(Intent.ACTION_SCREEN_OFF); addAction(Intent.ACTION_USER_PRESENT)
                 addAction(Intent.ACTION_TIME_CHANGED); addAction(Intent.ACTION_TIMEZONE_CHANGED) }, ContextCompat.RECEIVER_NOT_EXPORTED)
         EnforcementStatus.set(if (EnforcementStatus.consent(this)) Enforcement.WAITING_FOR_APP else Enforcement.NEEDS_CONSENT)
-        stateJob = scope.launch { coordinator.state.collect { reconcile() } }
+        stateJob = scope.launch {
+            // A system rebind can follow a suspended process or a delayed inexact alarm.
+            coordinator.refresh()
+            coordinator.state.collect { reconcile() }
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -59,7 +63,9 @@ class AppLaunchDetector : AccessibilityService() {
         val target = event.packageName?.toString()?.takeIf { it.isNotBlank() } ?: return
         // Our own overlay emits a window event. Do not mistake it for opening LIMITR.
         if (target == packageName && overlay.isShowing) return
-        if (target == foreground && renderJob?.isActive == true) return
+        // Session changes are observed separately; repeated unblocked-window events need no
+        // power/keyguard queries either. Retry a failed window attachment on the next event.
+        if (target == foreground && EnforcementStatus.state.value != Enforcement.WINDOW_UNAVAILABLE) return
         foreground = target
         EnforcementStatus.set(Enforcement.CONNECTED)
         reconcile()
