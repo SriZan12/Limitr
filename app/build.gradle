@@ -5,6 +5,19 @@ plugins {
     id 'com.google.dagger.hilt.android'
 }
 
+// Private values stay in the environment or the gitignored root properties file.
+def releaseProperties = new Properties()
+def releasePropertiesFile = rootProject.file('keystore.properties')
+if (releasePropertiesFile.exists()) {
+    releasePropertiesFile.withInputStream { releaseProperties.load(it) }
+}
+def releaseSigningValues = [
+    storeFile: System.getenv('LIMITR_KEYSTORE_FILE') ?: releaseProperties.getProperty('storeFile'),
+    storePassword: System.getenv('LIMITR_KEYSTORE_PASSWORD') ?: releaseProperties.getProperty('storePassword'),
+    keyAlias: System.getenv('LIMITR_KEY_ALIAS') ?: releaseProperties.getProperty('keyAlias'),
+    keyPassword: System.getenv('LIMITR_KEY_PASSWORD') ?: releaseProperties.getProperty('keyPassword')
+]
+
 android {
     namespace 'com.khadka.limitr'
     compileSdk 36
@@ -12,14 +25,24 @@ android {
         applicationId "com.khadka.Limitr"
         minSdk 23
         targetSdk 36
-        versionCode 10
-        versionName "1.1"
+        versionCode 11
+        versionName "1.2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { dataBinding true; buildConfig true }
+    signingConfigs {
+        release {
+            if (releaseSigningValues.storeFile) storeFile rootProject.file(releaseSigningValues.storeFile)
+            storePassword releaseSigningValues.storePassword
+            keyAlias releaseSigningValues.keyAlias
+            keyPassword releaseSigningValues.keyPassword
+        }
+    }
     buildTypes {
         release {
-            minifyEnabled false
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -40,6 +63,23 @@ android {
     sourceSets { androidTest.assets.srcDirs += files("$projectDir/schemas") }
 }
 kapt { arguments { arg('room.schemaLocation', "$projectDir/schemas") } }
+
+def validateReleaseSigning = tasks.register('validateReleaseSigning') {
+    group = 'verification'
+    description = 'Require private release signing configuration; never fall back to a debug key.'
+    doLast {
+        def missing = releaseSigningValues.findAll { key, value -> !value }.keySet()
+        if (!missing.isEmpty()) {
+            throw new GradleException("Missing release signing fields: ${missing.join(', ')}. Configure keystore.properties or LIMITR_KEYSTORE_FILE/LIMITR_KEYSTORE_PASSWORD/LIMITR_KEY_ALIAS/LIMITR_KEY_PASSWORD. See docs/RELEASE.md.")
+        }
+        if (!rootProject.file(releaseSigningValues.storeFile).isFile()) {
+            throw new GradleException('The configured release keystore file does not exist. See docs/RELEASE.md.')
+        }
+    }
+}
+tasks.matching { it.name in ['assembleRelease', 'bundleRelease', 'packageRelease', 'packageReleaseBundle', 'signReleaseBundle', 'validateSigningRelease'] }.configureEach {
+    dependsOn validateReleaseSigning
+}
 
 dependencies {
     implementation 'androidx.core:core-ktx:1.16.0'

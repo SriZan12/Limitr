@@ -1,6 +1,6 @@
 """Inspect ELF LOAD alignment in an APK/AAB; run zipalign separately on APKs.
 
-Usage: python tools/check_native_alignment.py app/build/outputs/apk/release/app-release-unsigned.apk
+Usage: python tools/check_native_alignment.py app/build/outputs/apk/release/app-release.apk
 This checks packaged binaries, not actual execution on a 16 KB device.
 """
 import json

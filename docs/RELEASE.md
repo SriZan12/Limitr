@@ -2,11 +2,57 @@
 
 Repository readiness is not Play approval. This work does not upload or publish anything and does not claim the Console warning is cleared.
 
-1. Confirm in Play Console that `com.khadka.Limitr` is the published listing and that proposed versionCode **10** exceeds every uploaded code (Git establishes 9 only). Keep versionName `1.1` or adjust according to the owner's release naming. The development `com.example.limitr` installation is a different Android sandbox; it cannot automatically transfer into the published app ID.
+## Configure signing locally
+
+Use the existing upload key registered for this app. Keep it outside Git and keep credentials on your machine or in your CI secret store. No keystore needs to be sent to a reviewer.
+
+```powershell
+Copy-Item .\keystore.properties.example .\keystore.properties
+```
+
+Edit the copied file locally with `storeFile`, `storePassword`, `keyAlias`, and `keyPassword`. Use forward slashes for Windows paths. The properties file and common keystore extensions are gitignored. Alternatively set these environment variables in your shell/CI secret configuration; nonempty environment values take precedence over the file:
+
+| Property | Environment variable |
+|---|---|
+| storeFile | LIMITR_KEYSTORE_FILE |
+| storePassword | LIMITR_KEYSTORE_PASSWORD |
+| keyAlias | LIMITR_KEY_ALIAS |
+| keyPassword | LIMITR_KEY_PASSWORD |
+
+Debug builds need no release credentials. Release packaging fails if credentials or the keystore file are missing; it never falls back to the debug key. Check configuration without packaging with `./gradlew :app:validateReleaseSigning` (`.\gradlew.bat` on Windows).
+
+## Exact build commands
+
+From the repository root with JDK 17+ and Android SDK 36 configured:
+
+```powershell
+# Signed AAB for Google Play
+.\gradlew.bat :app:bundleRelease
+# Signed APK for direct testing
+.\gradlew.bat :app:assembleRelease
+# Build, lint and unit-test gate
+.\gradlew.bat :app:assembleDebug :app:lintDebug :app:lintRelease :app:testDebugUnitTest
+```
+
+On macOS/Linux use `./gradlew`. Outputs:
+
+- AAB: `app/build/outputs/bundle/release/app-release.aab`
+- APK: `app/build/outputs/apk/release/app-release.apk`
+- R8 mapping: `app/build/outputs/mapping/release/mapping.txt` (retain with the release for crash deobfuscation).
+
+R8 code shrinking/optimization/obfuscation and resource shrinking are enabled. The standard optimized Android rules and dependency consumer rules apply; no blanket keep-all or ignore-warnings rule is added.
+
+For direct testing on a compatible test installation: `adb -s YOUR_TEST_DEVICE install -r app/build/outputs/apk/release/app-release.apk`. A locally upload-key-signed APK may have a different certificate from the Play-installed app. Use a fresh isolated test installation for that APK, and Play internal testing for upgrades using the actual Play app-signing lineage.
+
+References: [Android signing](https://developer.android.com/studio/publish/app-signing) and [R8 configuration](https://developer.android.com/topic/performance/app-optimization/enable-app-optimization). Validation performed with a disposable test key does not make those local artifacts suitable for Play upload.
+
+## Before rollout
+
+1. Confirm in Play Console that `com.khadka.Limitr` is the published listing and that proposed versionCode **11**, versionName **1.2.0**, exceeds every uploaded code (the branch previously used 10). The development `com.example.limitr` installation is a different Android sandbox; it cannot automatically transfer into the published app ID.
 2. Obtain shipped database samples and the signed previous APK from the release owner. Back up test devices; perform an in-place signed upgrade using the same signing lineage. Check timers, intervals, old history, Crypto, notification preferences and local settings. Never clear app data to make an upgrade pass. Do not roll out while any known shipped schema lacks a tested migration. Unknown schemas deliberately retain data and pause enforcement.
 3. Run `gradlew.bat assembleDebug testDebugUnitTest lintDebug`, then `gradlew.bat connectedDebugAndroidTest` with a booted test device and `gradlew.bat assembleRelease bundleRelease`. JDK 17+ and Android SDK 36 are required. This workspace used `-g .work/gradle` because the user's global Gradle registry was unwritable. Run emulator testing separately if host memory is constrained.
-4. Inspect the release APK with SDK `aapt dump badging`: expected application ID `com.khadka.Limitr`, minSdk 23, targetSdk 36, versionCode 10. Run `python tools/check_native_alignment.py <apk-or-aab>` and `zipalign -c -P 16 -v 4 <apk>`. DataStore introduces a native library even though application code is Kotlin/XML. Static alignment checks do not replace execution on a 16 KB device.
-5. Use the existing private upload key/Play App Signing process to sign the release AAB. This repository originally had no release signing configuration; release outputs remain unsigned. No debug key is substituted and no private key is committed. Verify certificate lineage against the previous release. Check bundle-generated APKs in Play internal testing.
+4. Inspect the release APK with SDK `aapt dump badging`: expected application ID `com.khadka.Limitr`, minSdk 23, targetSdk 36, versionCode 11. Run `python tools/check_native_alignment.py <apk-or-aab>` and `zipalign -c -P 16 -v 4 <apk>`. DataStore introduces a native library even though application code is Kotlin/XML. Static alignment checks do not replace execution on a 16 KB device.
+5. Build the signed release AAB with the configuration above. Verify the APK with `apksigner verify --verbose <apk>`, the AAB with `jarsigner -verify <aab>` and `java -jar bundletool.jar validate --bundle=<aab>`. Verify certificate lineage against the previous release. Check bundle-generated APKs in Play internal testing.
 6. Complete accessibility declaration/review in Play Console with `isAccessibilityTool=false`. Record an updated video demonstrating the disclosure, affirmative consent, manual settings grant, selected-app blocking, expiry/cancellation and disabling the service. Explain package-window events only, no screen contents, and voluntary consumer blocking. Remove requests/declarations for broad package visibility, exact alarms, overlay and storage access if they no longer apply. Notification access and usage access are optional features with separate disclosures.
 7. Update the store listing, privacy policy and Data Safety answers to match offline operation and Firebase removal. Keep an owner-accessible process for deletion of historic Firebase accounts/profile data; removing the SDK does not delete that remote data. Verify no Firebase SDK/provider or obsolete permissions are in the final merged manifest. Review the backup/restore disclosures and re-consent on restored installations.
 8. Execute the manual matrix in TESTING.md, especially minimum API 23, API 36, production upgrade, service revocation/restoration, alarm delays/Doze, reboot, force-stop, split screen/PiP, font scaling and larger displays. The app cannot guarantee continuous service execution or prevent bypasses.

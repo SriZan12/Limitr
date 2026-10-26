@@ -18,7 +18,7 @@ Install Android SDK 36 and set its path in your untracked `local.properties` or 
 
 On macOS/Linux use `./gradlew`. See [executed validation and the device matrix](docs/TESTING.md) for this workspace's Gradle-cache override, constrained-memory options and observed results.
 
-Release APK/AAB outputs are unsigned until configured with the existing private upload key. Never replace the signing lineage or clear app data to work around an upgrade failure.
+Release APK/AAB builds require the existing private upload key through gitignored `keystore.properties` or environment variables; missing credentials fail the release task. R8 and resource shrinking are enabled. Version 1.2.0 uses versionCode 11. See [exact signing/build commands](docs/RELEASE.md). Never replace the signing lineage or clear app data to work around an upgrade failure.
 
 ## Design and release notes
 
@@ -26,7 +26,8 @@ Release APK/AAB outputs are unsigned until configured with the existing private 
 - [Blocking, timing, migration and offline-data contracts](docs/ARCHITECTURE.md)
 - [Build/test results, known gaps and manual test matrix](docs/TESTING.md)
 - [Required owner actions before production rollout](docs/RELEASE.md)
+- Phase records: [API 36](docs/PHASE_1_API_36.md), [offline cleanup](docs/PHASE_2_OFFLINE.md), [accessibility evaluation](docs/PHASE_3_ACCESSIBILITY.md), [audit and migrations](docs/PHASE_4_AUDIT.md), [signed R8 validation](docs/PHASE_5_RELEASE.md)
 
 Accessibility detects package-window changes and displays a voluntary blocking overlay. It does not suspend other packages. Android can interrupt enforcement; force-stop, multi-window and manufacturer restrictions limit guarantees. The UI distinguishes saved sessions from service availability. System settings, emergency interactions and service-disabling controls remain accessible.
 
-Known historical Room schemas migrate without destructive fallback. Actual signed release upgrades, missing historical schemas, API 36 runtime and OEM/long-duration validation remain release gates. Building this repository does not publish an update or clear a Play Console warning.
+Known historical Room schemas migrate without destructive fallback. API 36 emulator accessibility and Room migration tests pass; actual production-signed upgrades, missing historical schemas and physical OEM/long-duration validation remain release gates. Building this repository does not publish an update or clear a Play Console warning.

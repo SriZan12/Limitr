@@ -1,5 +1,15 @@
 # Validation and manual test matrix
 
+## Current five-phase validation, 26 October 2026
+
+Each phase passed its build/lint/unit-test gate before the next branch began. Detailed commands, results, failures corrected before passing, and limits are in [Phase 1](PHASE_1_API_36.md), [Phase 2](PHASE_2_OFFLINE.md), [Phase 3](PHASE_3_ACCESSIBILITY.md), [Phase 4](PHASE_4_AUDIT.md) and [Phase 5](PHASE_5_RELEASE.md).
+
+The final build passes debug/release lint (0 errors, 112 warnings), all 25 unit tests, signed R8 APK/AAB packaging and bundle/signature/alignment checks. All seven device tests pass on API 36. The optimized release passed a fresh-install Home/disclosure/Settings grant/reward/Chrome blocking/countdown/expiry/history/help-video smoke. Signing used a disposable local validation key, not a production key. A debug in-place Room 13→14 upgrade preserved existing history; actual production signing-lineage upgrades, physical OEM/16 KB devices and long-duration testing remain outstanding.
+
+The baseline and dated records below describe the earlier modernization before `dev` commit `e2097ee`; their unsigned-release/API 35 results are historical, not the current phase results.
+
+## Historical baseline and environment
+
 No production crash reports, signed previous release, physical phone, manufacturer-specific device or Play Console access was available. Source findings are not production crash reproductions. No long-duration stability guarantee is made.
 
 Baseline on unmodified dev: `gradlew.bat clean assembleDebug testDebugUnitTest lintDebug` failed before checks ran because Gradle 7.5 cannot run on installed JDK 21 (Unsupported class file major version 65). An initial master attempt also hit kapt/JDK IllegalAccessError. The baseline interval test copied its own implementation; it was replaced with tests of actual scheduling code.
@@ -9,7 +19,7 @@ Validation uses Gradle 8.13, AGP 8.11.1, Kotlin 2.2.21, SDK 36 and installed JDK
 ## Automated coverage
 
 - ScheduleEvaluatorTest: monotonic timers, exact end, reboot fallback/cap, interval endpoints, independent overlap, replacement/cancellation snapshots, malformed windows, overnight/next-day intervals, spring/autumn DST and equal local times.
-- DatabaseMigrationTest: source-derived versions 3/4/6/7/8/9/10/12 and extra-column version 9; real Room 13 validation, legacy archive/history preservation, unknown-version refusal without deletion and reopen without repeated import. These are reconstructed fixtures; shipped historical schema exports are missing.
+- DatabaseMigrationTest: source-derived versions 3/4/6/7/8/9/10/12 and extra-column version 9; real Room 14 validation, legacy archive/history preservation, unknown-version refusal without deletion and reopen without repeated import. These are reconstructed fixtures; shipped historical schema exports are missing. HistoryMigrationTest also validates the exported 13→14 schema on device, preserving nonempty tables/null fields and checking the new index.
 - SessionRepositoryTest: Room transactions, replacement/stale cancellation, duplicate labels, expiry deletion, legacy rebase and conditional option edits.
 - PermissionStateTest: null settings, consent, enabled versus connected state, storage errors and revocation.
 - RewardFlowTest: displaying first/daily reward offers never credits a balance; concurrent and repeated claims credit once; an existing balance is preserved and today's reward is not offered again.
@@ -28,7 +38,7 @@ Validation uses Gradle 8.13, AGP 8.11.1, Kotlin 2.2.21, SDK 36 and installed JDK
 | Permissions | Decline disclosure, deny/revoke/restore all optional permissions, accessibility interruption/disconnection. Saved sessions must not claim operational enforcement when unavailable. Only selected non-ongoing notifications are dismissed. |
 | Recovery/power | Reboot/update/restore, stale alarms, Doze, battery saver and OEM restrictions; measure memory/CPU/wakeups. Force-stop prevents self-recovery until launch. API 23 force-stop plus reboot needs particular attention. |
 | XML UI | Rotation, tablet/foldable resizing, 200% fonts, keyboard, cutouts, gesture/three-button navigation, predictive back, split-screen/PiP exposure. |
-| Offline/profile | No sign-in/network gate; balances retained; reward taps award once; local photo access revocation; owner handles old remote-account deletion. |
+| Offline | No sign-in/network gate; balances retained; reward taps award once; owner handles old remote-account deletion. |
 | Soak | Repeated multi-hour sessions across OEMs, memory/CPU sampling and redacted Logcat/Android vitals; not established by short automated tests. |
 
 ## Commands
@@ -37,7 +47,7 @@ Validation uses Gradle 8.13, AGP 8.11.1, Kotlin 2.2.21, SDK 36 and installed JDK
 
 With a booted isolated device: `gradlew.bat -g .work/gradle --max-workers=2 connectedDebugAndroidTest`. Run after build checks if host memory is constrained.
 
-`python tools/check_native_alignment.py app/build/outputs/apk/release/app-release-unsigned.apk` and the same command for app/build/outputs/bundle/release/app-release.aab.
+`python tools/check_native_alignment.py app/build/outputs/apk/release/app-release.apk` and the same command for app/build/outputs/bundle/release/app-release.aab. Release packaging now requires the local signing configuration in [RELEASE.md](RELEASE.md).
 
 SDK tools: `zipalign -c -P 16 -v 4 <release-apk>` and `aapt dump badging <release-apk>`.
 
@@ -55,7 +65,7 @@ An isolated API 35 Google Play x86_64 emulator was created with 2 GB RAM. No per
 
 An initial `connectedDebugAndroidTest` attempt had no connected device after the emulator was stopped for host-memory recovery. A later direct `adb shell am instrument -w com.khadka.Limitr.test/androidx.test.runner.AndroidJUnitRunner` passed the original four tests in 17.685 s. An intermediate test setup failure (`@After` returning nullable Unit instead of JVM void) was fixed before this passing run.
 
-## Final executed build results
+## Historical executed build results, 12 October 2026
 
 The following completed successfully in **7m 34s** on the final application/test sources, including the keyboard and status-bar fixes:
 
