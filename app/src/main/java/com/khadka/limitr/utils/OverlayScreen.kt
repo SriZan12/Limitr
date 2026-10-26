@@ -2,6 +2,8 @@ package com.khadka.limitr.utils
 
 import android.accessibilityservice.AccessibilityService
 import android.graphics.PixelFormat
+import android.os.Build
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
@@ -30,14 +32,24 @@ class OverlayScreen {
         val windowManager = service.getSystemService(WindowManager::class.java)
         val params = WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, PixelFormat.TRANSLUCENT)
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            PixelFormat.TRANSLUCENT).apply {
+            gravity = Gravity.TOP or Gravity.START
+            if (Build.VERSION.SDK_INT >= 30) {
+                // The window background covers system bars; Insets.apply keeps controls clear.
+                setFitInsetsTypes(0)
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+            } else if (Build.VERSION.SDK_INT >= 28) {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+        }
+        Insets.apply(candidate)
         try { windowManager.addView(candidate, params) }
         catch (error: WindowManager.BadTokenException) { Timber.w("Accessibility window token unavailable"); return false }
         catch (error: SecurityException) { Timber.w("Accessibility window access revoked"); return false }
         manager = windowManager
         view = candidate
         revision = session.revision
-        Insets.apply(candidate)
         return true
     }
 

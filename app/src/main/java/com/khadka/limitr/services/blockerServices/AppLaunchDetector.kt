@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.PowerManager
 import android.view.accessibility.AccessibilityEvent
 import androidx.core.content.ContextCompat
@@ -14,6 +15,7 @@ import com.khadka.limitr.ui.blocker.activity.BlockAppActivity
 import com.khadka.limitr.utils.OverlayScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -25,12 +27,18 @@ class AppLaunchDetector : AccessibilityService() {
     private var renderJob: Job? = null
     private var stateJob: Job? = null
     private var foreground: String? = null
+    private var foregroundWindow: Int? = null
+    private var foregroundClass: String? = null
+    // The blocked app is no longer foreground after Home; retain its session for the notice.
+    private var blockedTarget: String? = null
+    private var homePackage: String? = null
     private var essential = emptySet<String>()
     private var connected = false
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_SCREEN_OFF) {
                 foreground = null
+                blockedTarget = null
                 renderJob?.cancel()
                 overlay.removeOverlayView()
             } else scope.launch { coordinator.refresh(); reconcile() }
@@ -57,16 +65,24 @@ class AppLaunchDetector : AccessibilityService() {
         if (!connected || event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         if (!EnforcementStatus.consent(this)) {
             EnforcementStatus.set(Enforcement.NEEDS_CONSENT)
+            blockedTarget = null
+            renderJob?.cancel()
             overlay.removeOverlayView()
             return
         }
         val target = event.packageName?.toString()?.takeIf { it.isNotBlank() } ?: return
         // Our own overlay emits a window event. Do not mistake it for opening LIMITR.
         if (target == packageName && overlay.isShowing) return
-        // Session changes are observed separately; repeated unblocked-window events need no
-        // power/keyguard queries either. Retry a failed window attachment on the next event.
-        if (target == foreground && EnforcementStatus.state.value != Enforcement.WINDOW_UNAVAILABLE) return
+        // A launch can open another Activity after Home was requested. Only suppress the same
+        // window/class, not every event from that package, or that Activity can stay foreground.
+        val windowClass = event.className?.toString()
+        if (target == foreground && event.windowId == foregroundWindow && windowClass == foregroundClass &&
+            EnforcementStatus.state.value != Enforcement.WINDOW_UNAVAILABLE) return
         foreground = target
+        foregroundWindow = event.windowId
+        foregroundClass = windowClass
+        // Keep the notice over Home, but never over a newly opened app or system screen.
+        if (target != homePackage) blockedTarget = null
         EnforcementStatus.set(Enforcement.CONNECTED)
         reconcile()
     }
@@ -74,19 +90,32 @@ class AppLaunchDetector : AccessibilityService() {
     private fun reconcile() {
         renderJob?.cancel()
         renderJob = null
-        val target = foreground
+        val target = blockedTarget ?: foreground
         val state = coordinator.state.value
         val visible = getSystemService(PowerManager::class.java).isInteractive && !getSystemService(KeyguardManager::class.java).isKeyguardLocked
         val session = if (visible && !state.error && EnforcementStatus.consent(this) && target !in essential)
             ScheduleEvaluator.activeFor(state.sessions, target, clock.now()) else null
-        if (session == null) { overlay.removeOverlayView(); return }
+        if (session == null) { blockedTarget = null; overlay.removeOverlayView(); return }
+        if (blockedTarget == null) {
+            blockedTarget = session.packageName
+            // Resolve the active launcher. Querying every Home handler also includes Settings'
+            // boot fallback, which must never keep the notice over a real Settings screen.
+            homePackage = packageManager.resolveActivity(
+                Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), PackageManager.MATCH_DEFAULT_ONLY
+            )?.activityInfo?.packageName
+            // Send the selected app to the background before attaching the blocking notice.
+            // Do this once per launch, not on every countdown tick or Room publication.
+            if (!performGlobalAction(GLOBAL_ACTION_HOME)) Timber.w("Home action unavailable while blocking")
+        }
         val shown = overlay.show(this, session, onHome = {
             foreground = null
+            blockedTarget = null
             overlay.removeOverlayView()
             renderJob?.cancel()
             performGlobalAction(GLOBAL_ACTION_HOME)
         }, onDetails = {
             foreground = packageName
+            blockedTarget = null
             overlay.removeOverlayView()
             renderJob?.cancel()
             // Direct response to a user tap, never an automatic background activity launch.
@@ -100,6 +129,7 @@ class AppLaunchDetector : AccessibilityService() {
             while (isActive) {
                 val current = ScheduleEvaluator.evaluate(session, clock.now())
                 if (current.phase != Phase.ACTIVE) {
+                    blockedTarget = null
                     overlay.removeOverlayView()
                     coordinator.refresh()
                     break
@@ -112,6 +142,7 @@ class AppLaunchDetector : AccessibilityService() {
 
     override fun onInterrupt() {
         foreground = null
+        blockedTarget = null
         renderJob?.cancel()
         overlay.removeOverlayView()
         EnforcementStatus.set(Enforcement.WAITING_FOR_APP)
@@ -125,6 +156,7 @@ class AppLaunchDetector : AccessibilityService() {
         renderJob?.cancel()
         overlay.removeOverlayView()
         foreground = null
+        blockedTarget = null
         EnforcementStatus.set(Enforcement.DISCONNECTED)
     }
 }

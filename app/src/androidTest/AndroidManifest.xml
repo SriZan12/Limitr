@@ -3,5 +3,6 @@
     <application>
         <!-- Separate test-APK package gives the real service an external launch to detect. -->
         <activity android:name="com.khadka.limitr.LaunchFixtureActivity" android:exported="true" />
+        <activity android:name="com.khadka.limitr.NextLaunchFixtureActivity" android:exported="true" />
     </application>
 </manifest>

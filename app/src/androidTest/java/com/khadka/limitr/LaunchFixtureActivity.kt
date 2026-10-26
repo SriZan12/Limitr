@@ -11,3 +11,10 @@ class LaunchFixtureActivity : Activity() {
         setContentView(TextView(this).apply { text = "LIMITR launch detection fixture" })
     }
 }
+
+class NextLaunchFixtureActivity : Activity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(TextView(this).apply { text = "Second window from the same blocked package" })
+    }
+}

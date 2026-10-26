@@ -5,10 +5,15 @@ import android.app.UiAutomation
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Rect
+import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.provider.Settings
 import android.view.inspector.WindowInspector
 import android.widget.TextView
+import android.widget.Button
+import androidx.core.content.ContextCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SdkSuppress
 import androidx.test.platform.app.InstrumentationRegistry
@@ -26,7 +31,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 @SdkSuppress(minSdkVersion = 29)
 class AccessibilityCompatibilityTest {
-    @Test fun externalLaunchAndReconnectKeepOneOverlayAndExpireWithoutAnotherWindowEvent() = runBlocking {
+    @Test fun blockedLaunchGoesHomeWithFullDisplayOverlayAndSupportsExitReconnectAndExpiry() = runBlocking {
         assumeTrue(InstrumentationRegistry.getArguments().getString("accessibilityChecks") == "true")
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         // Default UiAutomation suppresses other accessibility services, invalidating this test.
@@ -41,6 +46,9 @@ class AccessibilityCompatibilityTest {
         val entry = EntryPointAccessors.fromApplication(context, TestSessions::class.java)
         val target = instrumentation.context.packageName
         val component = ComponentName(context, AppLaunchDetector::class.java).flattenToString()
+        val homePackage = checkNotNull(context.packageManager.resolveActivity(
+            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), PackageManager.MATCH_DEFAULT_ONLY
+        )?.activityInfo?.packageName)
 
         fun configure(components: String?, value: String?) {
             automation.adoptShellPermissionIdentity(Manifest.permission.WRITE_SECURE_SETTINGS)
@@ -63,6 +71,31 @@ class AccessibilityCompatibilityTest {
             while (!condition() && SystemClock.elapsedRealtime() < deadline) SystemClock.sleep(100)
             assertTrue(message, condition())
         }
+        fun activities(): String = ParcelFileDescriptor.AutoCloseInputStream(
+                automation.executeShellCommand("dumpsys activity activities")
+            ).bufferedReader().use { it.readText() }
+        fun homeIsResumed(): Boolean {
+            return activities().lineSequence().filter {
+                it.contains("topResumedActivity") || it.contains("mResumedActivity")
+            }.any { line -> line.contains("$homePackage/") }
+        }
+        fun launchFixture(activity: String = LaunchFixtureActivity::class.java.name) {
+            context.startActivity(Intent().setComponent(ComponentName(target, activity))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK))
+        }
+        fun overlayBounds(): Rect? {
+            var bounds: Rect? = null
+            instrumentation.runOnMainSync {
+                WindowInspector.getGlobalWindowViews().singleOrNull {
+                    it.findViewById<TextView>(R.id.remainingTime) != null
+                }?.let {
+                    val location = IntArray(2)
+                    it.getLocationOnScreen(location)
+                    bounds = Rect(location[0], location[1], location[0] + it.width, location[1] + it.height)
+                }
+            }
+            return bounds
+        }
 
         try {
             assertTrue(preferences.edit().putBoolean("package_events_v1", true).commit())
@@ -73,12 +106,34 @@ class AccessibilityCompatibilityTest {
             // Leave enough time for a cold external Activity launch on a slow emulator.
             entry.repository().timer(target, "Launch fixture", 180_000, false)
             entry.coordinator().refresh()
-            context.startActivity(Intent().setComponent(ComponentName(target, LaunchFixtureActivity::class.java.name))
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            launchFixture()
             await("External app launch was not blocked") { overlays().isNotEmpty() }
+            await("Blocked app remained foreground instead of returning Home") { homeIsResumed() }
             assertEquals("Only one accessibility window should be attached", 1, overlays().size)
+            val screenshot = checkNotNull(automation.takeScreenshot())
+            try {
+                await("Overlay must cover the full display, including the status bar") {
+                    overlayBounds() == Rect(0, 0, screenshot.width, screenshot.height)
+                }
+                assertEquals("Overlay background must cover the top of the display",
+                    ContextCompat.getColor(context, R.color.Ui_Color), screenshot.getPixel(8, 8))
+            } finally { screenshot.recycle() }
             val initial = overlays().single()
             await("Overlay countdown did not advance") { overlays().singleOrNull()?.let { it != initial } == true }
+            launchFixture(NextLaunchFixtureActivity::class.java.name)
+            await("The second Activity was not launched") { activities().contains(NextLaunchFixtureActivity::class.java.name) }
+            await("A second window from the blocked package must also return Home") { overlays().size == 1 && homeIsResumed() }
+            context.startActivity(Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            await("Settings must not be covered as though it were a Home fallback") { overlays().isEmpty() }
+            launchFixture()
+            await("Returning from Settings must still enforce the session") { overlays().size == 1 && homeIsResumed() }
+            instrumentation.runOnMainSync {
+                WindowInspector.getGlobalWindowViews().single { it.findViewById<TextView>(R.id.remainingTime) != null }
+                    .findViewById<Button>(R.id.exit).performClick()
+            }
+            await("Exit must dismiss the notice and leave the launcher foreground") { overlays().isEmpty() && homeIsResumed() }
+            launchFixture()
+            await("Reopening the blocked app must return Home with one notice") { overlays().size == 1 && homeIsResumed() }
             val otherServices = services.orEmpty().split(':').filter {
                 it.isNotBlank() && ComponentName.unflattenFromString(it) != ComponentName.unflattenFromString(component)
             }.joinToString(":")
@@ -90,16 +145,16 @@ class AccessibilityCompatibilityTest {
             await("Accessibility service did not reconnect") {
                 EnforcementStatus.state.value == Enforcement.WAITING_FOR_APP || EnforcementStatus.state.value == Enforcement.CONNECTED
             }
-            context.startActivity(Intent().setComponent(ComponentName(target, LaunchFixtureActivity::class.java.name))
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK))
-            await("Persisted session was not enforced after reconnect") { overlays().size == 1 }
-            // Shorten the persisted session while the same external window stays foregrounded.
+            launchFixture()
+            await("Persisted session was not enforced after reconnect") { overlays().size == 1 && homeIsResumed() }
+            // Shorten the persisted session while its notice remains over the launcher.
             entry.repository().timer(target, "Launch fixture", 1_000, false)
             entry.coordinator().refresh()
             await("Overlay/session remained after expiry") {
                 overlays().isEmpty() && entry.coordinator().state.value.sessions.none { it.packageName == target }
             }
             assertTrue(entry.repository().all().none { it.packageName == target })
+            assertTrue("Expiry must leave Home visible, not reopen the blocked app", homeIsResumed())
         } finally {
             entry.repository().all().filter { it.packageName == target }.forEach { entry.repository().cancel(it) }
             entry.coordinator().refresh()
