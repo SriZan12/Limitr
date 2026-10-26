@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.khadka.limitr.blocking.*
 import com.khadka.limitr.data.local.appdatabase.LimitrDatabase
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Test
@@ -38,6 +39,11 @@ class SessionRepositoryTest {
         repository.timer("a", "Same", 10000, false)
         repository.timer("b", "Same", 10000, true)
         assertEquals(2, repository.all().size)
+        repository.timer("a", "Same", 20000, false)
+        val history = db.getLimitrDao().history().first().associateBy { it.appPackage }
+        assertEquals(2, history.size)
+        assertEquals(2, history.getValue("a").noOfTimesBlocked)
+        assertEquals(1, history.getValue("b").noOfTimesBlocked)
     }
     @Test fun expiredRowsAreRemovedAndClockRollbackCannotReviveThem() = runBlocking {
         repository.interval("a", "App", 1000, 2000, false)

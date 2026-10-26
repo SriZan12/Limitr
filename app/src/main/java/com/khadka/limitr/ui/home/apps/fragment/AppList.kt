@@ -34,7 +34,7 @@ class AppList : Fragment(R.layout.applist_layout) {
                 val essential = EssentialApps.packages(context)
                 val usage = if (Permissions.isUsageStateManagerEnabled(context)) {
                     val now = System.currentTimeMillis()
-                    try { context.getSystemService(UsageStatsManager::class.java).queryAndAggregateUsageStats(now - 86_400_000, now) }
+                    try { context.getSystemService(UsageStatsManager::class.java).queryAndAggregateUsageStats(now - 86_400_000, now).orEmpty() }
                     catch (_: SecurityException) { emptyMap() }
                 } else emptyMap()
                 val total = usage.values.sumOf { it.totalTimeInForeground }.coerceAtLeast(1)

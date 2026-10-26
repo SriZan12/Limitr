@@ -13,9 +13,6 @@
     <string name="usage_agree">Agree and open settings</string>
     <string name="reward_already_claimed">Today’s Crypto has already been claimed.</string>
     <string name="reward_storage_error">Rewards storage is unavailable. Please try again.</string>
-    <string name="setup_help_body">In Android Accessibility settings, find LIMITR under downloaded apps or services and enable it. Usage statistics and notification access are optional.\n\nFor a sideloaded app, Android may ask you to review restricted settings first. Follow the system guidance. The videos show older Android interfaces and may differ from your device.</string>
-    <string name="video_older_android">Older Android video</string>
-    <string name="video_android_13">Android 13+ video</string>
     <style name="Theme.Limitr.Dialog" parent="Theme.AppCompat.Light.Dialog">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowMinWidthMajor">0dp</item>

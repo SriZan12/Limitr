@@ -29,8 +29,8 @@ class SessionRepository @Inject constructor(private val database: LimitrDatabase
         database.sessions().save(session)
         database.openHelper.writableDatabase.execSQL("""
             INSERT OR REPLACE INTO HistoryTable (appName, noOfTimesBlocked, appPackage, blockedDate, starTime, endTime)
-            VALUES (?, COALESCE((SELECT noOfTimesBlocked FROM HistoryTable WHERE appName = ?), 0) + 1, ?, ?, ?, ?)
-        """.trimIndent(), arrayOf<Any>(session.appName, session.appName, session.packageName, clock.now().wall, session.startWall, session.endWall))
+            VALUES (?, COALESCE((SELECT noOfTimesBlocked FROM HistoryTable WHERE appName = ? AND appPackage = ?), 0) + 1, ?, ?, ?, ?)
+        """.trimIndent(), arrayOf<Any>(session.appName, session.appName, session.packageName, session.packageName, clock.now().wall, session.startWall, session.endWall))
     }
 
     suspend fun cancel(session: BlockingSession): Boolean =

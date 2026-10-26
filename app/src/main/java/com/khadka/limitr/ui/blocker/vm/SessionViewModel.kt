@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.khadka.limitr.blocking.*
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -32,6 +33,7 @@ class SessionViewModel @Inject constructor(
         error.value = null
         viewModelScope.launch {
             try { repository.operation(); coordinator.refresh() }
+            catch (cancelled: CancellationException) { throw cancelled }
             catch (failure: SQLiteException) { error.value = "Could not save the session. Existing data has been kept." }
             catch (failure: java.io.IOException) { error.value = "Could not read or save your local settings. Please try again." }
             catch (failure: IllegalStateException) { error.value = "Storage could not be opened. Existing data has been kept; contact support before clearing app data." }

@@ -18,7 +18,7 @@ import org.robolectric.annotation.Config
 class DatabaseMigrationTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
 
-    @Test fun allEstablishedSchemasPreserveRowsAndValidateAgainstRoom13() {
+    @Test fun allEstablishedSchemasPreserveRowsAndValidateAgainstRoom14() {
         (DatabaseMigrations.supportedVersions.map { it to false } + (9 to true)).forEach { (version, extra) ->
             val name = "migration-$version-$extra"
             context.deleteDatabase(name)

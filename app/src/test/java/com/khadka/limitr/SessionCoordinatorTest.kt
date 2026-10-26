@@ -19,10 +19,41 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.util.ArrayDeque
 import java.util.concurrent.Executor
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
+import com.khadka.limitr.repository.MainFragmentRepository
+import com.khadka.limitr.ui.blocker.vm.SessionViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
 
 @RunWith(RobolectricTestRunner::class)
 @Config(application = Application::class, sdk = [28])
 class SessionCoordinatorTest {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test fun cancelledViewModelOperationDoesNotDisplayStorageFailure() {
+        Dispatchers.setMain(UnconfinedTestDispatcher())
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val database = Room.inMemoryDatabaseBuilder(context, LimitrDatabase::class.java).build()
+        val clock = SessionClock(context)
+        val repository = SessionRepository(database, clock, context.getSharedPreferences("test", Context.MODE_PRIVATE))
+        val rewards = MainFragmentRepository(object : DataStore<Preferences> {
+            override val data = flowOf(emptyPreferences())
+            override suspend fun updateData(transform: suspend (Preferences) -> Preferences) = transform(emptyPreferences())
+        })
+        try {
+            val model = SessionViewModel(repository, SessionCoordinator(context, repository, clock), clock, rewards)
+            model.act { throw CancellationException("ViewModel cleared") }
+            assertNull(model.error.value)
+            assertFalse(model.busy.value)
+        } finally { database.close(); Dispatchers.resetMain() }
+    }
+
     @Test fun disconnectWhileWaitingForRoomDoesNotPublishStorageFailure() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val queued = ArrayDeque<Runnable>()

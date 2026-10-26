@@ -13,6 +13,7 @@ import com.khadka.limitr.databinding.ActivityHistoryBinding
 import com.khadka.limitr.utils.Insets
 import com.khadka.limitr.R
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -44,7 +45,8 @@ class ActivityHistory : AppCompatActivity() {
                             else getString(R.string.no_history)
                         adapter.submit(rows)
                     }
-                } catch (_: SQLiteException) { binding.historyStatus.isVisible = true; binding.historyStatus.text = "History storage unavailable. Data has been kept." }
+                } catch (cancelled: CancellationException) { throw cancelled }
+                  catch (_: SQLiteException) { binding.historyStatus.isVisible = true; binding.historyStatus.text = "History storage unavailable. Data has been kept." }
                   catch (_: IllegalStateException) { binding.historyStatus.isVisible = true; binding.historyStatus.text = "History storage unavailable. Data has been kept." }
             }
         }
