@@ -2,7 +2,7 @@
     <string name="more_options">More options</string>
     <string name="permissions">Permissions</string>
     <string name="accessibility_disclosure">Accessibility Service Disclosure</string>
-    <string name="accessibility_disclosure_body">LIMITR uses Android AccessibilityService to detect the package name of the app window you open and display a blocking screen during your saved sessions.\n\nAll processing stays on this device. LIMITR does not read screen text, collect screen contents, or send app-window events to a server.\n\nThis access is optional. You can disable it in Android Accessibility settings at any time. Timers remain saved while access is off, but blocking is unavailable. Android may interrupt enforcement; LIMITR cannot suspend other apps.</string>
+    <string name="accessibility_disclosure_body">LIMITR uses Android AccessibilityService to detect the package name of the app window you open and display a blocking screen while your timers or intervals are active.\n\nAll processing stays on this device. LIMITR does not read screen text, collect screen contents, or send app-window events to a server.\n\nThis access is optional. You can disable it in Android Accessibility settings at any time. Timers remain saved while access is off, but blocking is unavailable. Android may interrupt enforcement; LIMITR cannot suspend other apps.</string>
     <string name="accessibility_consent_label">I agree to LIMITR using accessibility access for app blocking.</string>
     <string name="accept">Accept</string>
     <string name="not_now">Not now</string>

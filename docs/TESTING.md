@@ -1,3 +1,5 @@
+> Current behavior: session controls and start/end alerts were removed after the historical runs below. Timers, intervals, history and 2-Crypto unblock remain. See [removal validation](FOLLOWUP_REMOVE_SESSIONS.md).
+
 # Validation and manual test matrix
 
 ## Current five-phase validation, 26 October 2026

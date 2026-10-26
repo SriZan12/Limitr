@@ -1,15 +1,12 @@
 package com.khadka.limitr.ui.blocker.activity
 
-import android.Manifest
 import android.app.TimePickerDialog
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.NumberPicker
 import android.widget.TextView
 import android.view.View
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -40,7 +37,6 @@ class BlockAppActivity : AppCompatActivity() {
     private lateinit var label: String
     private var essential = false
     private var dialog: android.app.Dialog? = null
-    private val notifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { render() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,17 +61,13 @@ class BlockAppActivity : AppCompatActivity() {
             if (!Permissions.isNotificationServiceEnable(this)) {
                 binding.blockNotification.isChecked = false
                 dialog = AlertDialog.Builder(this).setTitle("Hide selected app notifications?")
-                    .setMessage("LIMITR uses notification access to dismiss notifications only from apps with active sessions that you select. It does not save or transmit notification contents. Ongoing and essential system notifications are left available.")
+                    .setMessage("LIMITR uses notification access to dismiss notifications only from apps you have blocked and selected for notification hiding. It does not save or transmit notification contents. Ongoing and essential system notifications are left available.")
                     .setNegativeButton("Not now", null).setPositiveButton("Agree and open settings") { _, _ ->
                         startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
                     }.show()
             } else model.act { notifications(session, binding.blockNotification.isChecked) }
         }
         binding.enforcementStatus.setOnClickListener { PermissionOnboarding.show(this) }
-        binding.sessionNotifications.setOnClickListener {
-            if (Build.VERSION.SDK_INT >= 33) notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
-            else ViewUtils.showToast(this, "Session notifications are available in Android notification settings.")
-        }
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { model.coordinator.state.collect { render() } }
@@ -121,7 +113,6 @@ class BlockAppActivity : AppCompatActivity() {
             it.text = model.error.value
             it.isVisible = model.error.value != null
             dialog?.findViewById<View>(R.id.unBlockApp)?.isEnabled = session != null && !model.busy.value
-            dialog?.findViewById<View>(R.id.stopSession)?.isEnabled = session != null && !model.busy.value
             if (session == null) dialog?.dismiss()
         }
     }
@@ -132,13 +123,6 @@ class BlockAppActivity : AppCompatActivity() {
         dialog = AlertDialog.Builder(this).setView(view).create()
         view.findViewById<View>(R.id.cancel).setOnClickListener { dialog?.dismiss() }
         view.findViewById<View>(R.id.unBlockApp).setOnClickListener { current()?.let(model::unblockWithCrypto) }
-        view.findViewById<View>(R.id.stopSession).setOnClickListener {
-            val session = current() ?: return@setOnClickListener
-            dialog?.dismiss()
-            dialog = AlertDialog.Builder(this).setTitle(R.string.stop_session_question)
-                .setMessage(getString(R.string.stop_session_description, label))
-                .setNegativeButton(R.string.cancel, null).setPositiveButton(R.string.stop_session) { _, _ -> model.act { cancel(session) } }.show()
-        }
         dialog?.show()
         render()
     }

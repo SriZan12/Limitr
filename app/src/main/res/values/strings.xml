@@ -4,7 +4,7 @@
     <string name="set_timer">Set Timer</string>
     <string name="start_timer">Start Timer</string>
     <string name="accessibility_service_label">Accessibility Service</string>
-    <string name="accessibility_service_description">LIMITR detects app package names and shows a blocking screen during saved sessions. It does not read screen text. You can turn this service off at any time.</string>
+    <string name="accessibility_service_description">LIMITR detects app package names and shows a blocking screen while saved timers or intervals are active. It does not read screen text. You can turn this service off at any time.</string>
     <string name="permission_required">Permission Required</string>
     <string name="reward">Claim Crypto</string>
     <string name="duration">Duration</string>
@@ -41,10 +41,8 @@
     <string name="_4_come_back_to_limitr_and_grant_accessibility_service_permission">4. Come back to Limitr and Grant accessibility service permission</string>
     <string name="_5_find_downloaded_apps_or_service_and_enable_permission">5. Find \'Downloaded Apps\' or \'Service\' and enable permission</string>
     <string name="watch_a_video">Watch a Video</string>
-    <string name="history">Session history</string>
+    <string name="history">Blocking history</string>
     <string name="crypto_balance">%1$d Crypto</string>
     <string name="privacy_control">Privacy and control</string>
-    <string name="hide_notifications">Hide this app’s notifications during its session</string>
-    <string name="stop_session">Stop session</string>
-    <string name="session_notifications">Enable session notifications</string>
+    <string name="hide_notifications">Hide this app’s notifications while blocked</string>
 </resources>

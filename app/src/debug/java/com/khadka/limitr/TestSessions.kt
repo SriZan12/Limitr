@@ -3,6 +3,7 @@ package com.khadka.limitr
 import com.khadka.limitr.blocking.SessionRepository
 import com.khadka.limitr.blocking.SessionCoordinator
 import com.khadka.limitr.blocking.SessionClock
+import com.khadka.limitr.repository.MainFragmentRepository
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
@@ -14,4 +15,5 @@ interface TestSessions {
     fun repository(): SessionRepository
     fun coordinator(): SessionCoordinator
     fun clock(): SessionClock
+    fun rewards(): MainFragmentRepository
 }

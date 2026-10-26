@@ -65,9 +65,7 @@ class SessionCoordinator @Inject constructor(
         try {
             val now = clock.now()
             val sessions = repository.reconcile(now)
-            val previous = state.value
             mutableState.value = SessionState(sessions, loaded = true, sampledAt = now)
-            if (previous.loaded && !previous.error) SessionNotifications.transitions(context, previous.sessions, sessions, now)
             alarms.cancel(pending)
             ScheduleEvaluator.nextBoundary(sessions, now)?.let { delay ->
                 // Inexact wakeup is a recovery hint, never the source of session correctness.

@@ -13,6 +13,7 @@ class LimitrApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
+        LegacyNotificationCleanup.removeBlockingAlerts(this)
         coordinator.start()
     }
 }

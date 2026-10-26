@@ -6,6 +6,7 @@ import android.os.SystemClock
 import android.view.inspector.WindowInspector
 import android.widget.EditText
 import android.widget.NumberPicker
+import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -14,6 +15,7 @@ import com.khadka.limitr.blocking.*
 import com.khadka.limitr.ui.blocker.activity.BlockAppActivity
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
 import org.junit.Assert.*
 import org.junit.After
 import org.junit.Test
@@ -92,6 +94,55 @@ class SessionInstrumentedTest {
         context.sendBroadcast(Intent(context, ReconcileReceiver::class.java).setAction("com.khadka.limitr.RECONCILE"))
         SystemClock.sleep(200)
         assertTrue(repository.all().none { it.packageName == target })
+    }
+
+    @Test @SdkSuppress(minSdkVersion = 29)
+    fun cryptoUnblockKeepsUnaffordableTimersAndIntervalsThenDebitsOnce() = runBlocking {
+        val rewards = entry.rewards()
+        val originalBalance = rewards.getCrypto().first()
+        try {
+            for (kind in listOf("timer", "interval")) {
+                rewards.upsertCrypto(1)
+                if (kind == "timer") repository.timer(target, "Test app", 60000, false)
+                else {
+                    val now = clock.now().wall
+                    repository.interval(target, "Test app", now + 60000, now + 120000, false)
+                }
+                coordinator.refresh()
+                val saved = repository.all().single { it.packageName == target }
+                ActivityScenario.launch<BlockAppActivity>(Intent(context, BlockAppActivity::class.java)
+                    .putExtra("packageName", target)).use { scenario ->
+                    fun dialogRoot() = WindowInspector.getGlobalWindowViews()
+                        .single { it.findViewById<TextView>(R.id.unblockError) != null }
+                    scenario.onActivity { activity ->
+                        activity.findViewById<android.view.View>(R.id.unBlockApp).performClick()
+                        dialogRoot().findViewById<android.view.View>(R.id.unBlockApp).performClick()
+                    }
+                    await {
+                        var message = ""
+                        scenario.onActivity { message = dialogRoot().findViewById<TextView>(R.id.unblockError).text.toString() }
+                        message == "Not enough Crypto. Unblocking requires 2 Crypto."
+                    }
+                    assertEquals(saved, repository.all().single { it.packageName == target })
+                    assertEquals(1, rewards.getCrypto().first())
+
+                    rewards.upsertCrypto(2)
+                    await {
+                        var enabled = false
+                        scenario.onActivity { enabled = dialogRoot().findViewById<android.view.View>(R.id.unBlockApp).isEnabled }
+                        enabled
+                    }
+                    scenario.onActivity {
+                        val button = dialogRoot().findViewById<android.view.View>(R.id.unBlockApp)
+                        button.performClick()
+                        button.performClick()
+                    }
+                    await { coordinator.state.value.sessions.none { it.packageName == target } }
+                    assertTrue(repository.all().none { it.packageName == target })
+                    assertEquals(0, rewards.getCrypto().first())
+                }
+            }
+        } finally { rewards.upsertCrypto(originalBalance) }
     }
 
     private fun await(predicate: () -> Boolean) {

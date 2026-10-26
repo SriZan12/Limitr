@@ -24,7 +24,7 @@ class SessionViewModel @Inject constructor(
     val busy = mutableBusy.asStateFlow()
     val error = MutableStateFlow<String?>(null)
     fun unblockWithCrypto(session: BlockingSession) = act {
-        if (rewards.getCrypto().first() < 2) error.value = "Not enough Crypto. You can still stop the session using Stop session."
+        if (rewards.getCrypto().first() < 2) error.value = "Not enough Crypto. Unblocking requires 2 Crypto."
         else if (cancel(session)) rewards.spendCrypto()
     }
     fun act(operation: suspend SessionRepository.() -> Unit) {
@@ -34,7 +34,7 @@ class SessionViewModel @Inject constructor(
         viewModelScope.launch {
             try { repository.operation(); coordinator.refresh() }
             catch (cancelled: CancellationException) { throw cancelled }
-            catch (failure: SQLiteException) { error.value = "Could not save the session. Existing data has been kept." }
+            catch (failure: SQLiteException) { error.value = "Could not save your blocking changes. Existing data has been kept." }
             catch (failure: java.io.IOException) { error.value = "Could not read or save your local settings. Please try again." }
             catch (failure: IllegalStateException) { error.value = "Storage could not be opened. Existing data has been kept; contact support before clearing app data." }
             finally { mutableBusy.value = false }

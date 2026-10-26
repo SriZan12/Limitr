@@ -1,6 +1,6 @@
 # LIMITR
 
-Android app blocker built with Kotlin, XML, Room and an opt-in accessibility service. Select a launchable app and save an immediate duration timer or a one-time calendar interval. Local sessions, history and rewards work offline; this version removes Firebase and Google sign-in.
+Android app blocker built with Kotlin, XML, Room and an opt-in accessibility service. Select a launchable app and save an immediate duration timer or a one-time calendar interval. Timers, intervals, history and rewards work offline; this version removes Firebase and Google sign-in.
 
 - Published application ID: `com.khadka.Limitr`
 - Minimum Android: API 23; compile/target SDK: API 36
@@ -26,8 +26,9 @@ Release APK/AAB builds require the existing private upload key through gitignore
 - [Blocking, timing, migration and offline-data contracts](docs/ARCHITECTURE.md)
 - [Build/test results, known gaps and manual test matrix](docs/TESTING.md)
 - [Required owner actions before production rollout](docs/RELEASE.md)
+- [Removal of session controls/alerts, with timers and intervals retained](docs/FOLLOWUP_REMOVE_SESSIONS.md)
 - Phase records: [API 36](docs/PHASE_1_API_36.md), [offline cleanup](docs/PHASE_2_OFFLINE.md), [accessibility evaluation](docs/PHASE_3_ACCESSIBILITY.md), [audit and migrations](docs/PHASE_4_AUDIT.md), [signed R8 validation](docs/PHASE_5_RELEASE.md)
 
-Accessibility detects package-window changes and displays a voluntary blocking overlay. It does not suspend other packages. Android can interrupt enforcement; force-stop, multi-window and manufacturer restrictions limit guarantees. The UI distinguishes saved sessions from service availability. System settings, emergency interactions and service-disabling controls remain accessible.
+Accessibility detects package-window changes and displays a voluntary blocking overlay. It does not suspend other packages. Android can interrupt enforcement; force-stop, multi-window and manufacturer restrictions limit guarantees. The UI distinguishes saved timers and intervals from service availability. System settings, emergency interactions and service-disabling controls remain accessible.
 
 Known historical Room schemas migrate without destructive fallback. API 36 emulator accessibility and Room migration tests pass; actual production-signed upgrades, missing historical schemas and physical OEM/long-duration validation remain release gates. Building this repository does not publish an update or clear a Play Console warning.
