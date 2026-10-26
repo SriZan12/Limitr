@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Separate test-APK package gives the real service an external launch to detect. -->
+        <activity android:name="com.khadka.limitr.LaunchFixtureActivity" android:exported="true" />
+    </application>
+</manifest>

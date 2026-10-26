@@ -67,7 +67,8 @@ class SessionInstrumentedTest {
 
     @Test fun scheduledStartPublishesTransitionWithoutAWindowEvent() = runBlocking {
         val wall = clock.now().wall
-        repository.interval(target, "Test app", wall + 1000, wall + 5000, false)
+        // Keep the active interval open long enough to observe it on a cold/loaded device.
+        repository.interval(target, "Test app", wall + 1000, wall + 60000, false)
         coordinator.refresh()
         val initial = coordinator.state.value.sampledAt!!.wall
         await {
