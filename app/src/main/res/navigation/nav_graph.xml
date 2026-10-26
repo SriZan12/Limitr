@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/nav_graph" app:startDestination="@id/fragmentHome">
     <fragment android:id="@+id/fragmentHome" android:name="com.khadka.limitr.ui.home.main_fragment.fragment.FragmentHome" android:label="LIMITR" />
-    <fragment android:id="@+id/fragmentEditProfile" android:name="com.khadka.limitr.ui.profile.fragment.FragmentEditProfile" android:label="Local profile" />
 </navigation>
