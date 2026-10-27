@@ -10,15 +10,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.khadka.limitr.repository.MainFragmentRepository
-import kotlinx.coroutines.flow.first
 
 @HiltViewModel
 class SessionViewModel @Inject constructor(
     private val repository: SessionRepository,
     val coordinator: SessionCoordinator,
     val clock: SessionClock,
-    private val rewards: MainFragmentRepository
+    private val unblocker: CryptoUnblocker
 ) : ViewModel() {
     private val mutableBusy = MutableStateFlow(false)
     val busy = mutableBusy.asStateFlow()
@@ -26,10 +24,10 @@ class SessionViewModel @Inject constructor(
     private val mutableUnblocked = MutableStateFlow(false)
     val unblocked = mutableUnblocked.asStateFlow()
     fun unblockWithCrypto(session: BlockingSession) = act {
-        if (rewards.getCrypto().first() < 2) error.value = "Not enough Crypto. Unblocking requires 2 Crypto."
-        else if (cancel(session)) {
-            rewards.spendCrypto()
-            mutableUnblocked.value = true
+        when (unblocker.unblock(session)) {
+            UnblockResult.INSUFFICIENT_CRYPTO -> error.value = "Not enough Crypto. Unblocking requires 2 Crypto."
+            UnblockResult.UNBLOCKED -> mutableUnblocked.value = true
+            UnblockResult.STALE -> Unit
         }
     }
     fun act(operation: suspend SessionRepository.() -> Unit) {

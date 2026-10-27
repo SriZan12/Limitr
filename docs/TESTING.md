@@ -1,4 +1,6 @@
-> Latest follow-up removes Help Instructions and closes details after successful Crypto unblock; see [validation and manual checks](FOLLOWUP_HELP_UNBLOCK.md).
+> Latest QA fixes concurrent/interrupted Crypto unblocks and editor restoration. See [27 October results, limits and manual checks](QA_2026_10_27.md). The dated records below describe earlier builds.
+
+> The preceding follow-up removed Help Instructions and closes details after successful Crypto unblock; see [validation and manual checks](FOLLOWUP_HELP_UNBLOCK.md).
 
 > Current behavior: session controls and start/end alerts were removed after the historical runs below. Timers, intervals, history and 2-Crypto unblock remain. See [removal validation](FOLLOWUP_REMOVE_SESSIONS.md).
 

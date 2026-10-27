@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.khadka.limitr.blocking.CryptoUnblocker
 import com.khadka.limitr.blocking.SessionClock
 import com.khadka.limitr.blocking.SessionCoordinator
 import com.khadka.limitr.blocking.SessionRepository
@@ -47,7 +48,7 @@ class SessionCoordinatorTest {
             override suspend fun updateData(transform: suspend (Preferences) -> Preferences) = transform(emptyPreferences())
         })
         try {
-            val model = SessionViewModel(repository, SessionCoordinator(context, repository, clock), clock, rewards)
+            val model = SessionViewModel(repository, SessionCoordinator(context, repository, clock), clock, CryptoUnblocker(repository, rewards))
             model.act { throw CancellationException("ViewModel cleared") }
             assertNull(model.error.value)
             assertFalse(model.busy.value)

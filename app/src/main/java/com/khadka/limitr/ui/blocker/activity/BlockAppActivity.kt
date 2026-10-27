@@ -5,12 +5,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.NumberPicker
+import android.widget.EditText
 import android.widget.TextView
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.core.view.allViews
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -37,6 +39,9 @@ class BlockAppActivity : AppCompatActivity() {
     private lateinit var label: String
     private var essential = false
     private var dialog: android.app.Dialog? = null
+    private var editor: String? = null
+    private var intervalStart: LocalTime? = null
+    private var intervalBounds: LongArray? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +65,7 @@ class BlockAppActivity : AppCompatActivity() {
             val session = current() ?: return@setOnClickListener
             if (!Permissions.isNotificationServiceEnable(this)) {
                 binding.blockNotification.isChecked = false
+                editor = null
                 dialog = AlertDialog.Builder(this).setTitle("Hide selected app notifications?")
                     .setMessage("LIMITR uses notification access to dismiss notifications only from apps you have blocked and selected for notification hiding. It does not save or transmit notification contents. Ongoing and essential system notifications are left available.")
                     .setNegativeButton("Not now", null).setPositiveButton("Agree and open settings") { _, _ ->
@@ -78,6 +84,7 @@ class BlockAppActivity : AppCompatActivity() {
                 launch { while (isActive) { render(); delay(1000) } }
             }
         }
+        restoreEditor(savedInstanceState)
     }
     override fun onResume() { super.onResume(); lifecycleScope.launch { model.coordinator.refresh() } }
     private fun current() = model.coordinator.state.value.sessions.firstOrNull { it.packageName == target }
@@ -125,6 +132,7 @@ class BlockAppActivity : AppCompatActivity() {
     }
     private fun unblockDialog() {
         if (current() == null) return
+        editor = null
         val view = layoutInflater.inflate(R.layout.unblock_app_layout, null)
         dialog?.dismiss()
         dialog = AlertDialog.Builder(this).setView(view).create()
@@ -133,11 +141,18 @@ class BlockAppActivity : AppCompatActivity() {
         dialog?.show()
         render()
     }
-    private fun timerDialog() {
+    private fun timerDialog(parts: IntArray? = null) {
+        dialog?.dismiss()
+        editor = "timer"
         val view = layoutInflater.inflate(R.layout.select_time_layout, null)
         val hours = view.findViewById<NumberPicker>(R.id.hour_picker).apply { minValue = 0; maxValue = 23 }
         val minutes = view.findViewById<NumberPicker>(R.id.minute_picker).apply { minValue = 0; maxValue = 59 }
         val seconds = view.findViewById<NumberPicker>(R.id.second_picker).apply { minValue = 0; maxValue = 59 }
+        if (parts?.size == 3) {
+            hours.value = parts[0].coerceIn(0, 23)
+            minutes.value = parts[1].coerceIn(0, 59)
+            seconds.value = parts[2].coerceIn(0, 59)
+        }
         dialog = AlertDialog.Builder(this).setView(view).create()
         view.findViewById<android.view.View>(R.id.cancel).setOnClickListener { dialog?.dismiss() }
         view.findViewById<android.view.View>(R.id.buttonStartTime).setOnClickListener {
@@ -153,20 +168,66 @@ class BlockAppActivity : AppCompatActivity() {
         dialog?.show()
     }
     private fun intervalDialog() {
-        pickTime("Start time") { start -> pickTime("End time") { end ->
-            val (from, until) = ScheduleEvaluator.interval(model.clock.now().wall, start, end, ZoneId.systemDefault())
-            val format = java.text.DateFormat.getDateTimeInstance()
-            dialog = AlertDialog.Builder(this).setTitle("Save one-time interval?")
-                .setMessage("${format.format(java.util.Date(from))} – ${format.format(java.util.Date(until))}\nThe chosen instants stay fixed if the time zone changes.")
-                .setNegativeButton(R.string.cancel, null).setPositiveButton("Save") { _, _ ->
-                    model.act { interval(target, label, from, until, current()?.blockNotifications ?: false) }
-                }.show()
-        } }
+        intervalStart = null
+        pickTime("Start time", "interval_start") { start -> intervalEndDialog(start) }
     }
-    private fun pickTime(title: String, selected: (LocalTime) -> Unit) {
+    private fun intervalEndDialog(start: LocalTime) {
+        intervalStart = start
+        pickTime("End time", "interval_end") { end ->
+            val (from, until) = ScheduleEvaluator.interval(model.clock.now().wall, start, end, ZoneId.systemDefault())
+            confirmInterval(from, until)
+        }
+    }
+    private fun confirmInterval(from: Long, until: Long) {
+        dialog?.dismiss()
+        editor = "interval_confirm"
+        intervalBounds = longArrayOf(from, until)
+        val format = java.text.DateFormat.getDateTimeInstance()
+        dialog = AlertDialog.Builder(this).setTitle("Save one-time interval?")
+            .setMessage("${format.format(java.util.Date(from))} – ${format.format(java.util.Date(until))}\nThe chosen instants stay fixed if the time zone changes.")
+            .setNegativeButton(R.string.cancel, null).setPositiveButton("Save") { _, _ ->
+                model.act { interval(target, label, from, until, current()?.blockNotifications ?: false) }
+            }.show()
+    }
+    private fun pickTime(title: String, kind: String, selected: (LocalTime) -> Unit) {
+        dialog?.dismiss()
+        editor = kind
         val now = LocalTime.now()
         dialog = TimePickerDialog(this, { _, hour, minute -> selected(LocalTime.of(hour, minute)) }, now.hour, now.minute,
             android.text.format.DateFormat.is24HourFormat(this)).apply { setTitle(title); show() }
+    }
+    override fun onSaveInstanceState(outState: Bundle) {
+        dialog?.takeIf { it.isShowing && editor != null }?.let { shown ->
+            outState.putString("blocking_editor", editor)
+            if (editor == "timer") {
+                val parts = listOf(R.id.hour_picker, R.id.minute_picker, R.id.second_picker).map { id ->
+                    val picker = shown.findViewById<NumberPicker>(id)
+                    // Read the visible draft; value can still hold the previous
+                    // committed number while the keyboard input has focus.
+                    picker.allViews.filterIsInstance<EditText>().firstOrNull()?.text?.toString()
+                        ?.toIntOrNull()?.coerceIn(picker.minValue, picker.maxValue) ?: picker.value
+                }
+                outState.putIntArray("timer_parts", parts.toIntArray())
+            } else {
+                outState.putBundle("time_picker", shown.onSaveInstanceState())
+                intervalStart?.let { outState.putIntArray("interval_start", intArrayOf(it.hour, it.minute)) }
+                outState.putLongArray("interval_bounds", intervalBounds)
+            }
+        }
+        super.onSaveInstanceState(outState)
+    }
+    private fun restoreEditor(saved: Bundle?) {
+        when (saved?.getString("blocking_editor")) {
+            "timer" -> timerDialog(saved.getIntArray("timer_parts"))
+            "interval_start" -> intervalDialog()
+            "interval_end" -> saved.getIntArray("interval_start")?.takeIf { it.size == 2 }?.let {
+                intervalEndDialog(LocalTime.of(it[0].coerceIn(0, 23), it[1].coerceIn(0, 59)))
+            }
+            "interval_confirm" -> saved.getLongArray("interval_bounds")?.takeIf { it.size == 2 && it[1] > it[0] }?.let {
+                confirmInterval(it[0], it[1])
+            }
+        }
+        saved?.getBundle("time_picker")?.let { (dialog as? TimePickerDialog)?.onRestoreInstanceState(it) }
     }
     override fun onDestroy() { dialog?.dismiss(); super.onDestroy() }
 }

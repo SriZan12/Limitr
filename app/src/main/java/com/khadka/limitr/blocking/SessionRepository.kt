@@ -36,6 +36,13 @@ class SessionRepository @Inject constructor(private val database: LimitrDatabase
     suspend fun cancel(session: BlockingSession): Boolean =
         database.sessions().cancel(session.packageName, session.revision) > 0
 
+    /** Undo a failed debit without extending a deadline, adding history or replacing a newer timer. */
+    suspend fun restoreIfAbsent(session: BlockingSession) {
+        if (ScheduleEvaluator.evaluate(session, clock.now()).phase != Phase.EXPIRED) {
+            database.sessions().restoreIfAbsent(session)
+        }
+    }
+
     suspend fun notifications(session: BlockingSession, enabled: Boolean) {
         database.sessions().notifications(session.packageName, session.revision, enabled)
     }
