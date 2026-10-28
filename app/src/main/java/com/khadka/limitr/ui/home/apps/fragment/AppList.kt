@@ -1,6 +1,5 @@
 package com.khadka.limitr.ui.home.apps.fragment
 
-import android.app.usage.UsageStatsManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -15,7 +14,8 @@ import com.khadka.limitr.ui.blocker.activity.BlockAppActivity
 import com.khadka.limitr.ui.home.apps.adapter.AppListAdapter
 import com.khadka.limitr.ui.home.model.App
 import com.khadka.limitr.utils.OnAppClickListener
-import com.khadka.limitr.utils.Permissions
+import com.khadka.limitr.usage.AppUsageReader
+import com.khadka.limitr.usage.AppUsageRanking
 import kotlinx.coroutines.*
 
 class AppList : Fragment(R.layout.applist_layout) {
@@ -32,24 +32,17 @@ class AppList : Fragment(R.layout.applist_layout) {
             val rows = withContext(Dispatchers.IO) {
                 val pm = context.packageManager
                 val essential = EssentialApps.packages(context)
-                val usage = if (Permissions.isUsageStateManagerEnabled(context)) {
-                    val now = System.currentTimeMillis()
-                    try { context.getSystemService(UsageStatsManager::class.java).queryAndAggregateUsageStats(now - 86_400_000, now).orEmpty() }
-                    catch (_: SecurityException) { emptyMap() }
-                } else emptyMap()
-                val total = usage.values.sumOf { it.totalTimeInForeground }.coerceAtLeast(1)
+                val usage = AppUsageReader.last24Hours(context)
                 val installed = pm.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0)
-                ArrayList<App?>(installed.distinctBy { it.activityInfo.packageName }.filter { it.activityInfo.packageName !in essential }.mapNotNull { info ->
+                val apps = installed.distinctBy { it.activityInfo.packageName }.filter { it.activityInfo.packageName !in essential }.mapNotNull { info ->
                     ensureActive()
                     val pkg = info.activityInfo.packageName
                     try {
                         val app = pm.getApplicationInfo(pkg, 0)
-                        val millis = usage[pkg]?.totalTimeInForeground ?: 0
-                        App(app.loadIcon(pm), app.loadLabel(pm).toString(), pkg,
-                            (millis * 100 / total).toInt().coerceIn(0, 100),
-                            if (usage.isEmpty()) "—" else "${millis / 3_600_000} h ${millis / 60_000 % 60} m")
+                        App(app.loadIcon(pm), app.loadLabel(pm).toString(), pkg)
                     } catch (_: PackageManager.NameNotFoundException) { null }
-                }.sortedBy { it.appName.orEmpty().lowercase() })
+                }
+                ArrayList<App?>(AppUsageRanking.rows(apps, usage))
             }
             val ui = binding ?: return@launch
             ui.appLoadStatus.isVisible = rows.isEmpty()
@@ -63,5 +56,6 @@ class AppList : Fragment(R.layout.applist_layout) {
             }
         }
     }
+    override fun onPause() { job?.cancel(); super.onPause() }
     override fun onDestroyView() { job?.cancel(); binding?.appListRecycler?.adapter = null; binding = null; super.onDestroyView() }
 }

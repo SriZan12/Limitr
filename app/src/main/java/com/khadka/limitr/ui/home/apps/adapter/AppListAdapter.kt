@@ -17,6 +17,8 @@ import com.khadka.limitr.R
 import com.khadka.limitr.databinding.ItemAppBinding
 import com.khadka.limitr.utils.OnAppClickListener
 import com.khadka.limitr.ui.home.model.App
+import com.khadka.limitr.usage.AppUsageRanking
+import kotlin.math.roundToInt
 import com.khadka.limitr.utils.ViewUtils.animateProgressBar
 import com.khadka.limitr.utils.ViewUtils.setFadeInAnimation
 import javax.inject.Inject
@@ -74,13 +76,18 @@ class AppListAdapter @Inject constructor() :
                 appNameTv.text = appInfo?.appName
                 iconImg.setImageDrawable(appInfo?.appIcon)
                 usageDurationTv.text = appInfo?.usageDuration
-                usageDurationTv.contentDescription = if (appInfo?.usageDuration == "—") context.getString(R.string.usage_unavailable) else null
-                usagePercTv.text = if (appInfo?.usageDuration == "—") "—" else appInfo?.usagePercentage.toString() + "%"
+                val unavailable = appInfo?.usageDuration == "—"
+                usageDurationTv.contentDescription = if (unavailable) context.getString(R.string.usage_unavailable)
+                    else context.getString(R.string.usage_duration_last_24_hours, appInfo?.usageDuration.orEmpty())
+                usagePercTv.text = if (unavailable || appInfo == null) "—" else AppUsageRanking.percentageLabel(appInfo.usagePercentage)
 
 //                slideInAnimation(view = itemView, position = position)
 
                 if (appInfo != null) {
-                    animateProgressBar(progressBar, appInfo.usagePercentage)
+                    progressBar.max = 10_000
+                    animateProgressBar(progressBar, (appInfo.usagePercentage * 100).roundToInt().coerceIn(0, 10_000))
+                    progressBar.contentDescription = if (unavailable) context.getString(R.string.usage_unavailable)
+                        else context.getString(R.string.usage_share_last_24_hours, usagePercTv.text)
                     setUsageColor(appInfo.usagePercentage, progressBar)
                 }
 
@@ -95,11 +102,11 @@ class AppListAdapter @Inject constructor() :
 
         }
 
-        private fun setUsageColor(usagePercentage: Int, progressBar: ProgressBar) {
+        private fun setUsageColor(usagePercentage: Double, progressBar: ProgressBar) {
             if (usagePercentage < 50) {
                 progressBar.progressTintList =
                     ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Normal))
-            } else if (usagePercentage in 50..79) {
+            } else if (usagePercentage < 80) {
                 progressBar.progressTintList =
                     ColorStateList.valueOf(ContextCompat.getColor(context, R.color.Warning))
             } else {

@@ -26,6 +26,7 @@ Release APK/AAB builds require the existing private upload key through gitignore
 - [Blocking, timing, migration and offline-data contracts](docs/ARCHITECTURE.md)
 - [Build/test results, known gaps and manual test matrix](docs/TESTING.md)
 - [Latest app QA and Crypto/editor fixes](docs/QA_2026_10_27.md)
+- [All Apps usage ranking over the last 24 hours](docs/FOLLOWUP_USAGE_ORDER.md)
 - [Required owner actions before production rollout](docs/RELEASE.md)
 - [Removal of session controls/alerts, with timers and intervals retained](docs/FOLLOWUP_REMOVE_SESSIONS.md)
 - [Help removal and closing details after unblock](docs/FOLLOWUP_HELP_UNBLOCK.md)

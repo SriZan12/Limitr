@@ -1,0 +1,4 @@
+<resources>
+    <string name="usage_duration_last_24_hours">%1$s in the last 24 hours</string>
+    <string name="usage_share_last_24_hours">%1$s of foreground usage among listed apps in the last 24 hours</string>
+</resources>
