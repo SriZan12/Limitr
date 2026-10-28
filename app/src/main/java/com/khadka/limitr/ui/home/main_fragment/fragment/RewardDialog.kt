@@ -34,7 +34,7 @@ class RewardDialog : LimitrDialogFragment(R.layout.claim_rewards) {
                     if (lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) dismiss()
                 } catch (_: java.io.IOException) {
                     claim.isEnabled = true
-                    ViewUtils.showToast(requireContext(), getString(R.string.reward_storage_error))
+                    ViewUtils.showToast(requireContext(), getString(R.string.reward_storage_error), view)
                 }
             }
         }

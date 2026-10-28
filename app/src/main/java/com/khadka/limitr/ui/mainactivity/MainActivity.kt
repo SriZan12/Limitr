@@ -9,11 +9,15 @@ import com.khadka.limitr.utils.Insets
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import dagger.hilt.android.AndroidEntryPoint
+import com.khadka.limitr.repository.AppListRepository
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+    @Inject lateinit var apps: AppListRepository
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        apps.preload()
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.root.setBackgroundColor(ContextCompat.getColor(this, R.color.Ui_Color))

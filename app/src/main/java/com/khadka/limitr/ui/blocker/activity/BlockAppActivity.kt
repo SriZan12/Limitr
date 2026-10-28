@@ -97,7 +97,7 @@ class BlockAppActivity : AppCompatActivity() {
                 explainNotificationAccess(enableAfterGrant = true)
             } else model.setNotificationHiding(target, enabled)
         }
-        binding.notificationHidingStatus.setOnClickListener {
+        binding.notificationAccessAction.setOnClickListener {
             if (!Permissions.isNotificationServiceEnable(this)) explainNotificationAccess(enableAfterGrant = true)
             else openNotificationAccess(enableAfterGrant = false)
         }
@@ -201,12 +201,13 @@ class BlockAppActivity : AppCompatActivity() {
             active -> R.string.notification_hiding_active
             else -> R.string.notification_hiding_ready
         }
-        binding.notificationHidingStatus.text = if (hideNotifications)
-            getString(R.string.notification_hiding_details, getString(status), getString(R.string.notification_hiding_exceptions))
-            else getString(status)
-        binding.notificationHidingStatus.isClickable = hideNotifications && (!access || !connected) && !model.busy.value
-        binding.notificationHidingStatus.isFocusable = binding.notificationHidingStatus.isClickable
-        binding.blockingAlertStatus.setText(if (alerts.enabled()) R.string.blocking_alerts_on else R.string.blocking_alerts_off)
+        binding.notificationHidingStatus.setText(status)
+        binding.notificationHidingExceptions.isVisible = hideNotifications
+        binding.notificationAccessAction.isVisible = !essential && (!access || (hideNotifications && !connected))
+        binding.notificationAccessAction.isEnabled = !model.busy.value
+        binding.notificationAccessAction.setText(if (access) R.string.notification_access_reconnect else R.string.notification_access_setup)
+        binding.blockingAlertStatus.isVisible = !alerts.enabled()
+        binding.blockingAlertStatus.setText(R.string.blocking_alerts_off)
         val now = model.clock.now()
         val evaluation = session?.let { ScheduleEvaluator.evaluate(it, now) }
         binding.timerText.isVisible = session != null
@@ -264,7 +265,7 @@ class BlockAppActivity : AppCompatActivity() {
             minutes.clearFocus()
             seconds.clearFocus()
             val duration = (hours.value * 3600L + minutes.value * 60L + seconds.value) * 1000
-            if (duration == 0L) { ViewUtils.showToast(this, "Choose a duration greater than zero."); return@setOnClickListener }
+            if (duration == 0L) { ViewUtils.showToast(this, "Choose a duration greater than zero.", view); return@setOnClickListener }
             model.saveTimer(target, label, duration, wantsNotificationHiding())
             dialog?.dismiss()
         }
@@ -297,7 +298,11 @@ class BlockAppActivity : AppCompatActivity() {
         editor = kind
         val now = LocalTime.now()
         dialog = TimePickerDialog(this, { _, hour, minute -> selected(LocalTime.of(hour, minute)) }, now.hour, now.minute,
-            android.text.format.DateFormat.is24HourFormat(this)).apply { setTitle(title); show() }
+            android.text.format.DateFormat.is24HourFormat(this)).apply {
+                setTitle(title)
+                show()
+                window?.decorView?.let(AcmeTypography::applyTree)
+            }
     }
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("pending_notification_enable", pendingNotificationEnable)

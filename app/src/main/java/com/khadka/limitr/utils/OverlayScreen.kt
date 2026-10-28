@@ -25,6 +25,7 @@ class OverlayScreen {
         if (revision == session.revision && view != null) return true
         removeOverlayView()
         val candidate = LayoutInflater.from(service).inflate(R.layout.overlay, null)
+        AcmeTypography.applyTree(candidate) // Service windows do not use AppCompat's inflater.
         candidate.findViewById<TextView>(R.id.appBlock).text = service.getString(R.string.app_is_blocked, session.appName)
         candidate.findViewById<ImageView>(R.id.appIcon).setImageDrawable(ViewUtils.getAppIconByPackageName(service, session.packageName))
         candidate.findViewById<Button>(R.id.exit).setOnClickListener { onHome() }

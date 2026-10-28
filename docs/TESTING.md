@@ -1,4 +1,6 @@
-> Latest follow-up restores blocking start/end alerts and fixes persistent per-app notification hiding and setup. See [notification validation and manual checks](FOLLOWUP_NOTIFICATIONS.md).
+> Latest follow-up bundles Acme globally, groups notification controls and preloads All Apps with skeleton loading. See [typography/loading validation and manual checks](FOLLOWUP_TYPOGRAPHY_LOADING.md).
+
+> The preceding follow-up restores blocking start/end alerts and fixes persistent per-app notification hiding and setup. See [notification validation and manual checks](FOLLOWUP_NOTIFICATIONS.md).
 
 > The preceding follow-up ranks All Apps by foreground use over the last 24 hours and updates the existing indicators. See [28 October validation and manual checks](FOLLOWUP_USAGE_ORDER.md).
 
@@ -6,7 +8,7 @@
 
 > The preceding follow-up removed Help Instructions and closes details after successful Crypto unblock; see [validation and manual checks](FOLLOWUP_HELP_UNBLOCK.md).
 
-> Current behavior: session controls and start/end alerts were removed after the historical runs below. Timers, intervals, history and 2-Crypto unblock remain. See [removal validation](FOLLOWUP_REMOVE_SESSIONS.md).
+> Earlier session cleanup removed session controls and alerts. The later notification follow-up restores blocking start/end alerts; timers, intervals, history and 2-Crypto unblock remain. See [removal validation](FOLLOWUP_REMOVE_SESSIONS.md).
 
 # Validation and manual test matrix
 

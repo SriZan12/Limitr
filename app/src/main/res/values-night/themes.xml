@@ -1,6 +1,11 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.Limitr" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:fontFamily">@font/acme</item>
+        <item name="fontFamily">@font/acme</item>
+        <item name="viewInflaterClass">com.khadka.limitr.utils.AcmeViewInflater</item>
+        <item name="alertDialogTheme">@style/AcmeAlertDialogTheme</item>
+        <item name="tabStyle">@style/AcmeTabStyle</item>
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/purple_200</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
@@ -24,10 +29,15 @@
     <style name="MyTimePickerStyle" parent="@android:style/Widget.Material.Light.TimePicker">
         <item name="android:textColor">@color/white</item>
         <item name="android:headerBackground">@color/Ui_Color</item>
+        <!-- The platform clock face hardcodes sans-serif; spinner text uses our inflater. -->
+        <item name="android:timePickerMode">spinner</item>
     </style>
 
     <style name="MyTimePickerDialogTheme" parent="Theme.AppCompat.Light.Dialog">
         <item name="colorAccent">@color/Ui_Color</item>
-        <item name="android:datePickerStyle">@style/MyTimePickerStyle</item>
+        <item name="android:timePickerStyle">@style/MyTimePickerStyle</item>
+        <item name="android:fontFamily">@font/acme</item>
+        <item name="fontFamily">@font/acme</item>
+        <item name="viewInflaterClass">com.khadka.limitr.utils.AcmeViewInflater</item>
     </style>
 </resources>
