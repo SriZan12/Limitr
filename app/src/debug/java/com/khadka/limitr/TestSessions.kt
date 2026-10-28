@@ -15,5 +15,7 @@ interface TestSessions {
     fun repository(): SessionRepository
     fun coordinator(): SessionCoordinator
     fun clock(): SessionClock
+    fun notifications(): com.khadka.limitr.services.notifications.NotificationPreferences
+    fun alerts(): com.khadka.limitr.services.notifications.BlockingAlerts
     fun rewards(): MainFragmentRepository
 }

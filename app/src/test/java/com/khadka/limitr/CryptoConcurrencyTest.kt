@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.preferencesOf
 import androidx.room.Room
 import androidx.lifecycle.ViewModelStore
 import androidx.test.core.app.ApplicationProvider
+import com.khadka.limitr.services.notifications.NotificationPreferences
 import com.khadka.limitr.blocking.CryptoUnblocker
 import com.khadka.limitr.blocking.SessionClock
 import com.khadka.limitr.blocking.SessionCoordinator
@@ -63,7 +64,7 @@ class CryptoConcurrencyTest {
         try {
             repository.timer("qa.first", "First", 60000, true)
             val original = repository.all().single()
-            val model = SessionViewModel(repository, coordinator, clock, unblocker)
+            val model = SessionViewModel(repository, coordinator, clock, unblocker, NotificationPreferences(store))
             models.put("qa", model)
             model.unblockWithCrypto(original)
             if (!failWrite) {
@@ -112,8 +113,8 @@ class CryptoConcurrencyTest {
             repository.timer("qa.first", "First", 60000, false)
             repository.timer("qa.second", "Second", 60000, false)
             val saved = repository.all()
-            val first = SessionViewModel(repository, coordinator, clock, unblocker)
-            val second = SessionViewModel(repository, coordinator, clock, unblocker)
+            val first = SessionViewModel(repository, coordinator, clock, unblocker, NotificationPreferences(store))
+            val second = SessionViewModel(repository, coordinator, clock, unblocker, NotificationPreferences(store))
             first.unblockWithCrypto(saved.single { it.packageName == "qa.first" })
             withTimeout(5000) { writeStarted.await() }
             // A second details screen requests an unblock while the first debit is still writing.

@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.khadka.limitr.services.notifications.NotificationPreferences
 import com.khadka.limitr.blocking.CryptoUnblocker
 import com.khadka.limitr.blocking.SessionClock
 import com.khadka.limitr.blocking.SessionCoordinator
@@ -43,12 +44,13 @@ class SessionCoordinatorTest {
         val database = Room.inMemoryDatabaseBuilder(context, LimitrDatabase::class.java).build()
         val clock = SessionClock(context)
         val repository = SessionRepository(database, clock, context.getSharedPreferences("test", Context.MODE_PRIVATE))
-        val rewards = MainFragmentRepository(object : DataStore<Preferences> {
+        val store = object : DataStore<Preferences> {
             override val data = flowOf(emptyPreferences())
             override suspend fun updateData(transform: suspend (Preferences) -> Preferences) = transform(emptyPreferences())
-        })
+        }
+        val rewards = MainFragmentRepository(store)
         try {
-            val model = SessionViewModel(repository, SessionCoordinator(context, repository, clock), clock, CryptoUnblocker(repository, rewards))
+            val model = SessionViewModel(repository, SessionCoordinator(context, repository, clock), clock, CryptoUnblocker(repository, rewards), NotificationPreferences(store))
             model.act { throw CancellationException("ViewModel cleared") }
             assertNull(model.error.value)
             assertFalse(model.busy.value)

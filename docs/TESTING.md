@@ -1,4 +1,6 @@
-> Latest follow-up ranks All Apps by foreground use over the last 24 hours and updates the existing indicators. See [28 October validation and manual checks](FOLLOWUP_USAGE_ORDER.md).
+> Latest follow-up restores blocking start/end alerts and fixes persistent per-app notification hiding and setup. See [notification validation and manual checks](FOLLOWUP_NOTIFICATIONS.md).
+
+> The preceding follow-up ranks All Apps by foreground use over the last 24 hours and updates the existing indicators. See [28 October validation and manual checks](FOLLOWUP_USAGE_ORDER.md).
 
 > Earlier QA fixes concurrent/interrupted Crypto unblocks and editor restoration. See [27 October results, limits and manual checks](QA_2026_10_27.md). The dated records below describe earlier builds.
 

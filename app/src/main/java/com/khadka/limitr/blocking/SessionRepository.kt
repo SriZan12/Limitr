@@ -7,6 +7,8 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
+data class ReconciledSessions(val sessions: List<BlockingSession>, val expired: List<BlockingSession>)
+
 @Singleton
 class SessionRepository @Inject constructor(private val database: LimitrDatabase, private val clock: SessionClock, private val preferences: SharedPreferences) {
     val changes = database.sessions().observe()
@@ -48,7 +50,10 @@ class SessionRepository @Inject constructor(private val database: LimitrDatabase
     }
 
     /** Rebase only once after reboot/legacy migration, preventing subsequent clock changes extending a timer. */
-    suspend fun reconcile(now: TimeSnapshot): List<BlockingSession> = database.withTransaction {
+    suspend fun reconcile(now: TimeSnapshot): List<BlockingSession> = reconcileWithExpired(now).sessions
+
+    suspend fun reconcileWithExpired(now: TimeSnapshot): ReconciledSessions = database.withTransaction {
+        val expired = mutableListOf<BlockingSession>()
         database.sessions().all().forEach { original ->
             val session = if (original.revision.startsWith("legacy:")) {
                 original.copy(revision = "imported:" + original.revision.removePrefix("legacy:"),
@@ -56,12 +61,14 @@ class SessionRepository @Inject constructor(private val database: LimitrDatabase
                     .also { database.sessions().save(it) }
             } else original
             val value = ScheduleEvaluator.evaluate(session, now)
-            if (value.phase == Phase.EXPIRED) database.sessions().cancel(session.packageName, session.revision)
+            if (value.phase == Phase.EXPIRED) {
+                if (database.sessions().cancel(session.packageName, session.revision) > 0) expired.add(session)
+            }
             else if (session.kind == "timer" && (session.bootId != now.bootId || session.startElapsed == null || session.startElapsed > now.elapsed)) {
                 database.sessions().save(session.copy(startElapsed = now.elapsed,
                     duration = value.remaining, startWall = now.wall, endWall = now.wall + value.remaining, bootId = now.bootId))
             }
         }
-        database.sessions().all()
+        ReconciledSessions(database.sessions().all(), expired)
     }
 }

@@ -6,11 +6,14 @@ import android.content.Context
 import android.content.Intent
 import android.database.sqlite.SQLiteException
 import android.os.SystemClock
+import com.khadka.limitr.services.notifications.BlockingAlerts
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,7 +31,8 @@ data class SessionState(val sessions: List<BlockingSession> = emptyList(), val l
 class SessionCoordinator @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: SessionRepository,
-    private val clock: SessionClock
+    private val clock: SessionClock,
+    private val alerts: BlockingAlerts = BlockingAlerts(context)
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val mutableState = MutableStateFlow(SessionState())
@@ -64,12 +68,20 @@ class SessionCoordinator @Inject constructor(
     suspend fun refresh() = mutex.withLock {
         try {
             val now = clock.now()
-            val sessions = repository.reconcile(now)
-            mutableState.value = SessionState(sessions, loaded = true, sampledAt = now)
-            alarms.cancel(pending)
-            ScheduleEvaluator.nextBoundary(sessions, now)?.let { delay ->
-                // Inexact wakeup is a recovery hint, never the source of session correctness.
-                alarms.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + delay, pending)
+            val reconciled = repository.reconcileWithExpired(now)
+            val sessions = reconciled.sessions
+            // Publishing cancels the collectLatest job that may be calling this refresh.
+            // Finish the committed expiry's notification before releasing the serialization lock.
+            withContext(NonCancellable) {
+                mutableState.value = SessionState(sessions, loaded = true, sampledAt = now)
+                alarms.cancel(pending)
+                ScheduleEvaluator.nextBoundary(sessions, now)?.let { delay ->
+                    // Inexact wakeup is a recovery hint, never the source of session correctness.
+                    alarms.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + delay, pending)
+                }
+                try { alerts.reconcile(sessions, reconciled.expired, now) }
+                catch (cancelled: CancellationException) { throw cancelled }
+                catch (failure: RuntimeException) { Timber.w("Blocking alert unavailable: %s", failure.javaClass.simpleName) }
             }
         } catch (cancelled: CancellationException) { throw cancelled }
           catch (error: SQLiteException) { storageFailure(error) }

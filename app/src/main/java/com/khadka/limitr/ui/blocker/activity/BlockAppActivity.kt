@@ -1,6 +1,17 @@
 package com.khadka.limitr.ui.blocker.activity
 
 import android.app.TimePickerDialog
+import android.Manifest
+import android.content.ActivityNotFoundException
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.net.toUri
+import com.khadka.limitr.services.notifications.BlockingAlerts
+import com.khadka.limitr.services.notifications.NotificationAccess
+import javax.inject.Inject
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
@@ -42,6 +53,20 @@ class BlockAppActivity : AppCompatActivity() {
     private var editor: String? = null
     private var intervalStart: LocalTime? = null
     private var intervalBounds: LongArray? = null
+    @Inject lateinit var alerts: BlockingAlerts
+    private var pendingNotificationEnable = false
+    private val notificationAccessSettings = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (pendingNotificationEnable) {
+            pendingNotificationEnable = false
+            if (Permissions.isNotificationServiceEnable(this)) model.setNotificationHiding(target, true)
+            else ViewUtils.showToast(this, getString(R.string.notification_access_denied))
+        }
+        NotificationAccess.reconnectIfAllowed(this)
+        render()
+    }
+    private val alertPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        lifecycleScope.launch { model.coordinator.refresh(); render() }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +80,9 @@ class BlockAppActivity : AppCompatActivity() {
         }
         label = ViewUtils.getAppNameByPackageName(this, target)
         essential = target in EssentialApps.packages(this)
+        pendingNotificationEnable = savedInstanceState?.getBoolean("pending_notification_enable") ?: false
+        alerts.createChannel()
+        model.observeNotificationChoice(target)
         binding.appName.text = label
         binding.appIcon.setImageDrawable(ViewUtils.getAppIconByPackageName(this, target))
         binding.setTime.setOnClickListener { timerDialog() }
@@ -62,31 +90,88 @@ class BlockAppActivity : AppCompatActivity() {
         binding.unBlockApp.setOnClickListener { unblockDialog() }
         binding.showHistory.setOnClickListener { startActivity(Intent(this, ActivityHistory::class.java)) }
         binding.blockNotification.setOnClickListener {
-            val session = current() ?: return@setOnClickListener
-            if (!Permissions.isNotificationServiceEnable(this)) {
-                binding.blockNotification.isChecked = false
-                editor = null
-                dialog = AlertDialog.Builder(this).setTitle("Hide selected app notifications?")
-                    .setMessage("LIMITR uses notification access to dismiss notifications only from apps you have blocked and selected for notification hiding. It does not save or transmit notification contents. Ongoing and essential system notifications are left available.")
-                    .setNegativeButton("Not now", null).setPositiveButton("Agree and open settings") { _, _ ->
-                        startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-                    }.show()
-            } else model.act { notifications(session, binding.blockNotification.isChecked) }
+            // Capture the user's choice before busy/state emissions render the previously saved value.
+            val enabled = binding.blockNotification.isChecked
+            if (enabled && !Permissions.isNotificationServiceEnable(this)) {
+                render()
+                explainNotificationAccess(enableAfterGrant = true)
+            } else model.setNotificationHiding(target, enabled)
         }
+        binding.notificationHidingStatus.setOnClickListener {
+            if (!Permissions.isNotificationServiceEnable(this)) explainNotificationAccess(enableAfterGrant = true)
+            else openNotificationAccess(enableAfterGrant = false)
+        }
+        binding.blockingAlertStatus.setOnClickListener { requestBlockingAlerts() }
         binding.enforcementStatus.setOnClickListener { PermissionOnboarding.show(this) }
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { model.coordinator.state.collect { render() } }
                 launch { model.busy.collect { render() } }
+                launch { model.notificationChoices.collect { render() } }
+                launch { NotificationAccess.connected.collect { render() } }
                 launch { model.error.collect { render() } }
                 launch { model.unblocked.collect { render() } }
                 launch { EnforcementStatus.state.collect { render() } }
                 launch { while (isActive) { render(); delay(1000) } }
             }
         }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                model.alertSetup.collect { requested ->
+                    if (requested) {
+                        model.consumeAlertSetup()
+                        if (Build.VERSION.SDK_INT >= 33 && !alerts.permissionPrompted &&
+                            ContextCompat.checkSelfPermission(this@BlockAppActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                            requestBlockingAlerts()
+                        }
+                    }
+                }
+            }
+        }
         restoreEditor(savedInstanceState)
     }
-    override fun onResume() { super.onResume(); lifecycleScope.launch { model.coordinator.refresh() } }
+    override fun onResume() {
+        super.onResume()
+        NotificationAccess.reconnectIfAllowed(this)
+        render()
+        lifecycleScope.launch { model.coordinator.refresh() }
+    }
+    private fun wantsNotificationHiding() = model.notificationChoices.value?.get(target) ?: current()?.blockNotifications ?: false
+
+    private fun explainNotificationAccess(enableAfterGrant: Boolean) {
+        dialog?.dismiss()
+        editor = null
+        dialog = AlertDialog.Builder(this).setTitle(R.string.notification_access_title)
+            .setMessage(R.string.notification_access_message)
+            .setNegativeButton(R.string.notification_access_not_now, null)
+            .setPositiveButton(R.string.notification_access_agree) { _, _ -> openNotificationAccess(enableAfterGrant) }.show()
+    }
+    private fun openNotificationAccess(enableAfterGrant: Boolean) {
+        pendingNotificationEnable = enableAfterGrant
+        try { notificationAccessSettings.launch(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
+        catch (_: ActivityNotFoundException) {
+            pendingNotificationEnable = false
+            ViewUtils.showToast(this, getString(R.string.notification_settings_unavailable))
+        }
+    }
+    private fun requestBlockingAlerts() {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
+            (!alerts.permissionPrompted || shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS))) {
+            alerts.permissionPrompted = true
+            alertPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            val settings = when {
+                Build.VERSION.SDK_INT >= 26 && !NotificationManagerCompat.from(this).areNotificationsEnabled() ->
+                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                Build.VERSION.SDK_INT >= 26 -> Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, packageName).putExtra(Settings.EXTRA_CHANNEL_ID, BlockingAlerts.CHANNEL)
+                else -> Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:$packageName".toUri())
+            }
+            try { startActivity(settings) }
+            catch (_: ActivityNotFoundException) { ViewUtils.showToast(this, getString(R.string.notification_settings_unavailable)) }
+        }
+    }
     private fun current() = model.coordinator.state.value.sessions.firstOrNull { it.packageName == target }
     private fun render() {
         if (!::binding.isInitialized) return
@@ -102,8 +187,26 @@ class BlockAppActivity : AppCompatActivity() {
         binding.setTime.isEnabled = canEdit
         binding.setInterval.isEnabled = canEdit
         binding.unBlockApp.isEnabled = session != null && !model.busy.value
-        binding.blockNotification.isEnabled = session != null && !model.busy.value
-        binding.blockNotification.isChecked = session?.blockNotifications == true
+        binding.blockNotification.isEnabled = canEdit && model.notificationChoices.value != null
+        val hideNotifications = wantsNotificationHiding()
+        binding.blockNotification.isChecked = hideNotifications
+        val access = Permissions.isNotificationServiceEnable(this)
+        val connected = NotificationAccess.connected.value
+        val active = session?.let { ScheduleEvaluator.evaluate(it, model.clock.now()).phase == Phase.ACTIVE } == true
+        val status = when {
+            model.notificationChoices.value == null -> R.string.notification_hiding_loading
+            !hideNotifications -> R.string.notification_hiding_off
+            !access -> R.string.notification_hiding_access
+            !connected -> R.string.notification_hiding_disconnected
+            active -> R.string.notification_hiding_active
+            else -> R.string.notification_hiding_ready
+        }
+        binding.notificationHidingStatus.text = if (hideNotifications)
+            getString(R.string.notification_hiding_details, getString(status), getString(R.string.notification_hiding_exceptions))
+            else getString(status)
+        binding.notificationHidingStatus.isClickable = hideNotifications && (!access || !connected) && !model.busy.value
+        binding.notificationHidingStatus.isFocusable = binding.notificationHidingStatus.isClickable
+        binding.blockingAlertStatus.setText(if (alerts.enabled()) R.string.blocking_alerts_on else R.string.blocking_alerts_off)
         val now = model.clock.now()
         val evaluation = session?.let { ScheduleEvaluator.evaluate(it, now) }
         binding.timerText.isVisible = session != null
@@ -162,7 +265,7 @@ class BlockAppActivity : AppCompatActivity() {
             seconds.clearFocus()
             val duration = (hours.value * 3600L + minutes.value * 60L + seconds.value) * 1000
             if (duration == 0L) { ViewUtils.showToast(this, "Choose a duration greater than zero."); return@setOnClickListener }
-            model.act { timer(target, label, duration, current()?.blockNotifications ?: false) }
+            model.saveTimer(target, label, duration, wantsNotificationHiding())
             dialog?.dismiss()
         }
         dialog?.show()
@@ -186,7 +289,7 @@ class BlockAppActivity : AppCompatActivity() {
         dialog = AlertDialog.Builder(this).setTitle("Save one-time interval?")
             .setMessage("${format.format(java.util.Date(from))} – ${format.format(java.util.Date(until))}\nThe chosen instants stay fixed if the time zone changes.")
             .setNegativeButton(R.string.cancel, null).setPositiveButton("Save") { _, _ ->
-                model.act { interval(target, label, from, until, current()?.blockNotifications ?: false) }
+                model.saveInterval(target, label, from, until, wantsNotificationHiding())
             }.show()
     }
     private fun pickTime(title: String, kind: String, selected: (LocalTime) -> Unit) {
@@ -197,6 +300,7 @@ class BlockAppActivity : AppCompatActivity() {
             android.text.format.DateFormat.is24HourFormat(this)).apply { setTitle(title); show() }
     }
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("pending_notification_enable", pendingNotificationEnable)
         dialog?.takeIf { it.isShowing && editor != null }?.let { shown ->
             outState.putString("blocking_editor", editor)
             if (editor == "timer") {
