@@ -41,6 +41,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import com.khadka.limitr.utils.Permissions.isAccessibilityEnabled
 import com.khadka.limitr.ui.history.ActivityHistory
+import com.khadka.limitr.play.*
 
 @AndroidEntryPoint
 class BlockAppActivity : AppCompatActivity() {
@@ -54,6 +55,10 @@ class BlockAppActivity : AppCompatActivity() {
     private var intervalStart: LocalTime? = null
     private var intervalBounds: LongArray? = null
     @Inject lateinit var alerts: BlockingAlerts
+    @Inject lateinit var updates: PlayUpdateRepository
+    @Inject lateinit var reviews: PlayReviewRepository
+    @Inject lateinit var playGuard: PlayUiGuard
+    private var playHost: PlayEngagementHost? = null
     private var pendingNotificationEnable = false
     private val notificationAccessSettings = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (pendingNotificationEnable) {
@@ -129,6 +134,14 @@ class BlockAppActivity : AppCompatActivity() {
             }
         }
         restoreEditor(savedInstanceState)
+        playHost = attachPlayEngagement(binding.root, updates, reviews, playGuard, allowNewPrompts = false) {
+            dialog?.isShowing != true && !model.busy.value &&
+                supportFragmentManager.fragments.none { it is androidx.fragment.app.DialogFragment }
+        }
+    }
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        playHost?.refreshReadiness()
     }
     override fun onResume() {
         super.onResume()

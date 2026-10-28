@@ -130,3 +130,12 @@ Physical devices, API 23/API 36 runtime, tablets/foldables, every locale/font co
 Final `assembleDebug lintDebug assembleRelease bundleRelease assembleDebugAndroidTest` passed in **5m 16s**. Final lint: **zero errors, 200 warnings**. Installed the final APKs with `adb -s emulator-5554 install -r`; `adb -s emulator-5554 shell am instrument -w com.khadka.Limitr.test/androidx.test.runner.AndroidJUnitRunner` passed **all 5 tests in 15.454s**. The final bell/history image scaling and Help popup were visually checked. Cancellation also remained effective after an explicit app force-stop and relaunch. Release outputs remain unsigned; APK metadata still reports the published ID, minSdk 23 and target/compile SDK 36, and 16 KB zipalign verification passed.
 
 One test interval reappeared after terminating/restarting the virtual device with `emu kill`. Repeated cancellation survived both app force-stop/relaunch and a clean `adb reboot`; a copied test database/WAL contained zero saved sessions after that clean reboot. Abrupt virtual-device shutdown durability is not established by this review; this observation is not attributed to a confirmed application defect.
+
+
+## Play updates and reviews, 28 October 2026
+
+The final `testDebugUnitTest assembleDebug lintDebug lintRelease assembleRelease bundleRelease assembleDebugAndroidTest` gate passed in **9m 6s**, using the documented JDK/cache/worker/JVM options. **78 unit tests passed**; debug/release lint each reported **0 errors, 64 existing warnings**. SDK fake and host tests cover update selection, recovery, listener cleanup, restart/retry, review eligibility/atomic cooldowns, cancellation and silent review failure.
+
+In-place emulator upgrades passed **18/18 API 36 tests (84.368s)** and **12/12 supported API 23 tests (43.832s)**; six newer-API tests were excluded on API 23. Both crash buffers were empty. Signed R8 APK/AAB packaging, signatures, bundletool and 16 KB alignment checks passed. No real Play update/review UI, production-signed data upgrade, key reset or publication was verified; Play internal-track checks remain manual. Referrals were explicitly deferred.
+
+See [implementation, exact commands, SDK fake limitations and owner checklist](FOLLOWUP_PLAY_ENGAGEMENT.md). User-owned version/signing-file, IDE, Home layout and SessionClock edits remain separate.

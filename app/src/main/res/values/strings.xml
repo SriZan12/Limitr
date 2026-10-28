@@ -1,4 +1,7 @@
 <resources>
+    <string name="play_update_downloaded">An update is ready. Restart to install it.</string>
+    <string name="play_update_restart">Restart to install</string>
+    <string name="play_update_install_failed">Could not install the update. Tap to try again.</string>
     <string name="app_name">Limitr</string>
     <string name="NotificationBlock">This app needs permission to Listen the Notifications to block the Notifications.</string>
     <string name="set_timer">Set Timer</string>

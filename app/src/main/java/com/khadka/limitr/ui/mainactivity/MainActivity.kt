@@ -11,10 +11,16 @@ import androidx.core.view.WindowCompat
 import dagger.hilt.android.AndroidEntryPoint
 import com.khadka.limitr.repository.AppListRepository
 import javax.inject.Inject
+import com.khadka.limitr.play.*
+import com.khadka.limitr.ui.home.main_fragment.fragment.FragmentHome
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     @Inject lateinit var apps: AppListRepository
+    @Inject lateinit var updates: PlayUpdateRepository
+    @Inject lateinit var reviews: PlayReviewRepository
+    @Inject lateinit var playGuard: PlayUiGuard
+    private var playHost: PlayEngagementHost? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         apps.preload()
@@ -27,7 +33,16 @@ class MainActivity : AppCompatActivity() {
         }
         Insets.apply(binding.root)
         binding.mainToolbar.visibility = android.view.View.GONE
+        playHost = attachPlayEngagement(binding.root, updates, reviews, playGuard) {
+            val navHost = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
+            (navHost?.childFragmentManager?.primaryNavigationFragment as? FragmentHome)?.isReadyForPlayPrompt() == true
+        }
     }
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        playHost?.refreshReadiness()
+    }
+    fun onPlayPromptReadinessChanged() { playHost?.refreshReadiness() }
     override fun onSupportNavigateUp(): Boolean =
         (supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment).navController.navigateUp() || super.onSupportNavigateUp()
 }

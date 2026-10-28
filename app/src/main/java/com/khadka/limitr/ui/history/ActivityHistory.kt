@@ -16,10 +16,15 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.khadka.limitr.play.*
 
 @AndroidEntryPoint
 class ActivityHistory : AppCompatActivity() {
     @Inject lateinit var dao: LimitrDao
+    @Inject lateinit var updates: PlayUpdateRepository
+    @Inject lateinit var reviews: PlayReviewRepository
+    @Inject lateinit var playGuard: PlayUiGuard
+    private var playHost: PlayEngagementHost? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityHistoryBinding.inflate(layoutInflater)
@@ -34,6 +39,7 @@ class ActivityHistory : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         val adapter = HistoryAdapter()
         binding.rvHistory.adapter = adapter
+        playHost = attachPlayEngagement(binding.root, updates, reviews, playGuard, allowNewPrompts = false) { true }
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 try {
@@ -50,5 +56,9 @@ class ActivityHistory : AppCompatActivity() {
                   catch (_: IllegalStateException) { binding.historyStatus.isVisible = true; binding.historyStatus.text = "History storage unavailable. Data has been kept." }
             }
         }
+    }
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        playHost?.refreshReadiness()
     }
 }

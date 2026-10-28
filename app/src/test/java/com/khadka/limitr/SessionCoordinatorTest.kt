@@ -50,7 +50,7 @@ class SessionCoordinatorTest {
         }
         val rewards = MainFragmentRepository(store)
         try {
-            val model = SessionViewModel(repository, SessionCoordinator(context, repository, clock), clock, CryptoUnblocker(repository, rewards), NotificationPreferences(store))
+            val model = SessionViewModel(repository, SessionCoordinator(context, repository, clock), clock, CryptoUnblocker(repository, rewards), NotificationPreferences(store), com.khadka.limitr.play.RecordBlockingSuccess(com.khadka.limitr.play.PlayPromptRepository(store)))
             model.act { throw CancellationException("ViewModel cleared") }
             assertNull(model.error.value)
             assertFalse(model.busy.value)

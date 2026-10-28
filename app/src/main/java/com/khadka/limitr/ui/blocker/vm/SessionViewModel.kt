@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
+import com.khadka.limitr.play.RecordBlockingSuccess
 
 @HiltViewModel
 class SessionViewModel @Inject constructor(
@@ -20,7 +21,8 @@ class SessionViewModel @Inject constructor(
     val coordinator: SessionCoordinator,
     val clock: SessionClock,
     private val unblocker: CryptoUnblocker,
-    private val notificationPreferences: NotificationPreferences
+    private val notificationPreferences: NotificationPreferences,
+    private val recordBlockingSuccess: RecordBlockingSuccess
 ) : ViewModel() {
     private val mutableBusy = MutableStateFlow(false)
     val busy = mutableBusy.asStateFlow()
@@ -54,9 +56,9 @@ class SessionViewModel @Inject constructor(
 
     fun setNotificationHiding(packageName: String, enabled: Boolean) = act { notificationPreferences.set(packageName, enabled) }
     fun saveTimer(packageName: String, label: String, duration: Long, hideNotifications: Boolean) =
-        act(afterSuccess = { mutableAlertSetup.value = true }) { timer(packageName, label, duration, hideNotifications) }
+        act(afterSuccess = { mutableAlertSetup.value = true; recordBlockingSuccess() }) { timer(packageName, label, duration, hideNotifications) }
     fun saveInterval(packageName: String, label: String, start: Long, end: Long, hideNotifications: Boolean) =
-        act(afterSuccess = { mutableAlertSetup.value = true }) { interval(packageName, label, start, end, hideNotifications) }
+        act(afterSuccess = { mutableAlertSetup.value = true; recordBlockingSuccess() }) { interval(packageName, label, start, end, hideNotifications) }
     fun consumeAlertSetup() { mutableAlertSetup.value = false }
     fun unblockWithCrypto(session: BlockingSession) = act {
         when (unblocker.unblock(session)) {
@@ -65,7 +67,7 @@ class SessionViewModel @Inject constructor(
             UnblockResult.STALE -> Unit
         }
     }
-    fun act(afterSuccess: (() -> Unit)? = null, operation: suspend SessionRepository.() -> Unit) {
+    fun act(afterSuccess: (suspend () -> Unit)? = null, operation: suspend SessionRepository.() -> Unit) {
         if (mutableBusy.value) return
         mutableBusy.value = true
         error.value = null

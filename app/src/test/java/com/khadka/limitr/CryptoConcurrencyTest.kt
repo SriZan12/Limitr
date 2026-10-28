@@ -64,7 +64,7 @@ class CryptoConcurrencyTest {
         try {
             repository.timer("qa.first", "First", 60000, true)
             val original = repository.all().single()
-            val model = SessionViewModel(repository, coordinator, clock, unblocker, NotificationPreferences(store))
+            val model = SessionViewModel(repository, coordinator, clock, unblocker, NotificationPreferences(store), com.khadka.limitr.play.RecordBlockingSuccess(com.khadka.limitr.play.PlayPromptRepository(store)))
             models.put("qa", model)
             model.unblockWithCrypto(original)
             if (!failWrite) {
@@ -113,8 +113,8 @@ class CryptoConcurrencyTest {
             repository.timer("qa.first", "First", 60000, false)
             repository.timer("qa.second", "Second", 60000, false)
             val saved = repository.all()
-            val first = SessionViewModel(repository, coordinator, clock, unblocker, NotificationPreferences(store))
-            val second = SessionViewModel(repository, coordinator, clock, unblocker, NotificationPreferences(store))
+            val first = SessionViewModel(repository, coordinator, clock, unblocker, NotificationPreferences(store), com.khadka.limitr.play.RecordBlockingSuccess(com.khadka.limitr.play.PlayPromptRepository(store)))
+            val second = SessionViewModel(repository, coordinator, clock, unblocker, NotificationPreferences(store), com.khadka.limitr.play.RecordBlockingSuccess(com.khadka.limitr.play.PlayPromptRepository(store)))
             first.unblockWithCrypto(saved.single { it.packageName == "qa.first" })
             withTimeout(5000) { writeStarted.await() }
             // A second details screen requests an unblock while the first debit is still writing.

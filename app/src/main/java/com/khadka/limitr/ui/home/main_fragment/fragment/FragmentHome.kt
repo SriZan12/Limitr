@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
+import androidx.fragment.app.DialogFragment
+import com.khadka.limitr.ui.mainactivity.MainActivity
 
 @AndroidEntryPoint
 class FragmentHome : Fragment(R.layout.fragment_home) {
@@ -37,6 +39,12 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
     private var rewardJob: Job? = null
     private var startupStage = "start"
     private var rewardCheckedDate = ""
+    private var menuShowing = false
+
+    fun isReadyForPlayPrompt(): Boolean = binding != null && startupStage == "done" &&
+        lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && rewardJob?.isActive != true &&
+        !menuShowing && dialog?.isShowing != true && !childFragmentManager.isStateSaved &&
+        childFragmentManager.fragments.none { it is DialogFragment }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +65,10 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
         }.also { it.attach() }
         menu = PopupMenu(requireContext(), ui.options).apply {
             inflate(R.menu.home_menu)
+            setOnDismissListener {
+                menuShowing = false
+                (activity as? MainActivity)?.onPlayPromptReadinessChanged()
+            }
             setOnMenuItemClickListener {
                 when (it.itemId) {
                     R.id.action_permissions -> showPermissions()
@@ -69,7 +81,7 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
                 true
             }
         }
-        ui.options.setOnClickListener { menu?.show() }
+        ui.options.setOnClickListener { menuShowing = true; menu?.show() }
         ui.enforcementStatus.setOnClickListener { showPermissions() }
         childFragmentManager.setFragmentResultListener(PermissionOnboarding.RESULT, viewLifecycleOwner) { _, result ->
             renderStatus()
@@ -125,6 +137,7 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
             "disclosure" -> PermissionOnboarding.show(childFragmentManager)
             "permissions" -> showPermissions()
             "reward" -> showReward()
+            "done" -> (activity as? MainActivity)?.onPlayPromptReadinessChanged()
         }
     }
     private fun showPermissions() {
@@ -146,13 +159,15 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
                 startupStage = "done"
                 rewardCheckedDate = LocalDate.now().toString()
                 ViewUtils.showToast(requireContext(), getString(R.string.reward_storage_error))
+            } finally {
+                (activity as? MainActivity)?.onPlayPromptReadinessChanged()
             }
         }
     }
     private fun showPrivacy() {
         dialog?.dismiss()
         dialog = AlertDialog.Builder(requireContext()).setTitle(R.string.privacy_control)
-            .setMessage("LIMITR works offline without sign-in. Schedules, app selections and Crypto rewards stay on this device. Android backup may copy local schedules and settings using your system backup preferences. Accessibility reads app package names only; no screen contents or event history are saved. Usage statistics and notification access are optional. Notification contents are not stored.\n\nYou can disable accessibility at any time. Essential system apps stay accessible. Battery restrictions, force-stop, split screen, picture-in-picture and service disconnection may interrupt blocking.\n\nThis version no longer connects to Firebase. Existing remote accounts or profile data have not been deleted. See the store listing’s privacy policy for the owner’s contact and data deletion process.")
+            .setMessage("LIMITR's blocking features work offline without sign-in. Schedules, app selections and Crypto rewards stay on this device. Android backup may copy local schedules and settings using your system backup preferences. Accessibility reads app package names only; no screen contents or event history are saved. Usage statistics and notification access are optional. Notification contents are not stored.\n\nGoogle Play handles optional app updates and review prompts. Review eligibility and prompt cooldowns are saved locally; LIMITR does not receive your rating or review.\n\nYou can disable accessibility at any time. Essential system apps stay accessible. Battery restrictions, force-stop, split screen, picture-in-picture and service disconnection may interrupt blocking.\n\nThis version no longer connects to Firebase. Existing remote accounts or profile data have not been deleted. See the store listing’s privacy policy for the owner’s contact and data deletion process.")
             .setPositiveButton(R.string.ok, null).show()
     }
     override fun onDestroyView() {

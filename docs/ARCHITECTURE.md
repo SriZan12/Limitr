@@ -34,4 +34,6 @@ DataStore filename `Data_Store` and keys `Crypto` / `last_logged_date`, and shar
 
 ## Authentication removal
 
+Optional Play updates/reviews use application-context SDK repositories, pure eligibility use cases, a lifecycle-aware ViewModel and Activity-owned UI. Atomic `play_*` preferences in the existing DataStore retain local cooldowns and three successful-use dates; they do not affect Crypto or Room. Home starts eligible prompts, while details/History also recover interrupted/downloaded updates. No custom backend or sign-in is introduced. See [Play integration and testing](FOLLOWUP_PLAY_ENGAGEMENT.md).
+
 Firebase/Google sign-in, analytics, database/storage dependencies, plugin and config files are removed. The published application ID (`com.khadka.Limitr`) and component namespace (`com.khadka.limitr`) are restored from master. Local schedules/rewards never had account-specific ownership in the existing code and remain device-local. Existing local profile preferences are retained; the home profile icon is removed. Cloud-only name/photo are not fetched. No remote account/project/security rules were changed or deleted. Owner must maintain a remote-data deletion/support process and update the published privacy policy. Backup includes local databases/settings, excluding auth credentials, accessibility consent and device-clock identity.
