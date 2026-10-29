@@ -1,0 +1,26 @@
+<resources>
+    <string name="blocking_alert_channel">Blocking alerts</string>
+    <string name="blocking_started_title">Blocking started for %1$s</string>
+    <string name="blocking_started_message">Your blocking period has started. Tap to view its timer.</string>
+    <string name="blocking_started_unavailable">This period has started. Enable LIMITR accessibility to block app launches.</string>
+    <string name="blocking_ended_title">%1$s blocking ended</string>
+    <string name="blocking_ended_message">The blocking period is over. You can use the app again.</string>
+    <string name="notification_hiding_title">Hide this app’s notifications</string>
+    <string name="notification_hiding_loading">Loading saved choice…</string>
+    <string name="notification_hiding_off">Notifications are allowed</string>
+    <string name="notification_hiding_ready">Ready · Hiding starts when this app is blocked</string>
+    <string name="notification_hiding_active">Active · Notifications are hidden while blocked</string>
+    <string name="notification_hiding_access">Action needed · Notification access is missing</string>
+    <string name="notification_hiding_disconnected">Action needed · Reconnect notification access</string>
+    <string name="notification_hiding_exceptions">Ongoing and essential system notifications stay available.</string>
+    <string name="notification_hiding_subtitle">Only while this app is blocked</string>
+    <string name="notification_access_setup">Set up notification access</string>
+    <string name="notification_access_reconnect">Reconnect notification access</string>
+    <string name="notification_access_title">Allow notification hiding?</string>
+    <string name="notification_access_message">LIMITR uses notification access to dismiss notifications only from apps you have blocked and selected here. It does not save or transmit notification contents. Ongoing and essential system notifications stay available. Android may briefly display or sound a notification before it can be dismissed.\n\nSelect LIMITR on the next screen and allow notification access.</string>
+    <string name="notification_access_agree">Agree and open settings</string>
+    <string name="notification_access_not_now">Not now</string>
+    <string name="notification_access_denied">Notification access was not enabled. Notifications will stay available.</string>
+    <string name="notification_settings_unavailable">Notification settings could not be opened on this device.</string>
+    <string name="blocking_alerts_off">Enable blocking alerts</string>
+</resources>

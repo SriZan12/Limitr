@@ -1,0 +1,5 @@
+<resources>
+    <string name="apps_loading">Loading apps</string>
+    <string name="apps_empty">No launchable apps available.</string>
+    <string name="apps_load_failed">Couldn’t refresh apps. Tap to retry.</string>
+</resources>

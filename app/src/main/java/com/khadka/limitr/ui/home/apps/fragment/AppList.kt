@@ -1,67 +1,65 @@
 package com.khadka.limitr.ui.home.apps.fragment
 
-import android.app.usage.UsageStatsManager
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.khadka.limitr.R
-import com.khadka.limitr.blocking.EssentialApps
 import com.khadka.limitr.databinding.ApplistLayoutBinding
+import com.khadka.limitr.repository.AppListRepository
+import com.khadka.limitr.repository.AppListState
 import com.khadka.limitr.ui.blocker.activity.BlockAppActivity
 import com.khadka.limitr.ui.home.apps.adapter.AppListAdapter
-import com.khadka.limitr.ui.home.model.App
-import com.khadka.limitr.utils.OnAppClickListener
-import com.khadka.limitr.utils.Permissions
-import kotlinx.coroutines.*
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class AppList : Fragment(R.layout.applist_layout) {
+    @Inject lateinit var apps: AppListRepository
     private var binding: ApplistLayoutBinding? = null
-    private var job: Job? = null
-    override fun onViewCreated(view: View, state: Bundle?) { binding = ApplistLayoutBinding.bind(view) }
-    override fun onResume() {
-        super.onResume()
-        job?.cancel()
-        val context = requireContext().applicationContext
-        job = viewLifecycleOwner.lifecycleScope.launch {
-            binding?.appLoadStatus?.text = "Loading installed apps…"
-            binding?.appLoadStatus?.isVisible = true
-            val rows = withContext(Dispatchers.IO) {
-                val pm = context.packageManager
-                val essential = EssentialApps.packages(context)
-                val usage = if (Permissions.isUsageStateManagerEnabled(context)) {
-                    val now = System.currentTimeMillis()
-                    try { context.getSystemService(UsageStatsManager::class.java).queryAndAggregateUsageStats(now - 86_400_000, now) }
-                    catch (_: SecurityException) { emptyMap() }
-                } else emptyMap()
-                val total = usage.values.sumOf { it.totalTimeInForeground }.coerceAtLeast(1)
-                val installed = pm.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0)
-                ArrayList<App?>(installed.distinctBy { it.activityInfo.packageName }.filter { it.activityInfo.packageName !in essential }.mapNotNull { info ->
-                    ensureActive()
-                    val pkg = info.activityInfo.packageName
-                    try {
-                        val app = pm.getApplicationInfo(pkg, 0)
-                        val millis = usage[pkg]?.totalTimeInForeground ?: 0
-                        App(app.loadIcon(pm), app.loadLabel(pm).toString(), pkg,
-                            (millis * 100 / total).toInt().coerceIn(0, 100),
-                            if (usage.isEmpty()) "—" else "${millis / 3_600_000} h ${millis / 60_000 % 60} m")
-                    } catch (_: PackageManager.NameNotFoundException) { null }
-                }.sortedBy { it.appName.orEmpty().lowercase() })
-            }
-            val ui = binding ?: return@launch
-            ui.appLoadStatus.isVisible = rows.isEmpty()
-            ui.appLoadStatus.text = "No launchable apps available."
-            ui.appListRecycler.adapter = AppListAdapter().apply {
-                setAppLists(rows, context, object : OnAppClickListener {
-                    override fun onClick(appPackageName: String) {
-                        startActivity(Intent(requireContext(), BlockAppActivity::class.java).putExtra("packageName", appPackageName))
-                    }
-                })
-            }
+    private var adapter: AppListAdapter? = null
+
+    override fun onViewCreated(view: View, state: Bundle?) {
+        binding = ApplistLayoutBinding.bind(view)
+        adapter = AppListAdapter { pkg ->
+            startActivity(Intent(requireContext(), BlockAppActivity::class.java).putExtra("packageName", pkg))
+        }
+        binding?.appListRecycler?.adapter = adapter
+        binding?.appListRecycler?.itemAnimator = null // Usage refreshes should not flash or animate every row.
+        binding?.appLoadStatus?.setOnClickListener { apps.refresh() }
+        render(apps.state.value)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) { apps.state.collect(::render) }
         }
     }
-    override fun onDestroyView() { job?.cancel(); binding?.appListRecycler?.adapter = null; binding = null; super.onDestroyView() }
+
+    private fun render(state: AppListState) {
+        val ui = binding ?: return
+        ui.appListSkeleton.isVisible = state.rows == null && !state.failed
+        ui.appListRecycler.isVisible = state.rows != null
+        ui.appLoadStatus.isVisible = state.failed || state.rows?.isEmpty() == true
+        ui.appLoadStatus.setText(if (state.failed) R.string.apps_load_failed else R.string.apps_empty)
+        ui.appLoadStatus.isClickable = state.failed
+        ui.appLoadStatus.isFocusable = state.failed
+        state.rows?.let { adapter?.submitList(it) }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        apps.refresh()
+        render(apps.state.value)
+        binding?.appListSkeleton?.setActive(true)
+    }
+    override fun onPause() { binding?.appListSkeleton?.setActive(false); super.onPause() }
+    override fun onDestroyView() {
+        binding?.appListRecycler?.adapter = null
+        adapter = null
+        binding = null
+        super.onDestroyView()
+    }
 }

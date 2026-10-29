@@ -1,4 +1,30 @@
+> Latest release QA: 80 unit tests, 18 API 36 tests and 12 supported API 23 tests pass; debug/release lint has zero errors and 64 existing warnings. Signed R8 runtime, retained-data release update, signature, bundle and alignment checks pass. See [29 October fixes, evidence and remaining Play checks](QA_2026_10_29.md).
+
+> Play updates/reviews and SDK fake coverage are described in [Play engagement validation](FOLLOWUP_PLAY_ENGAGEMENT.md).
+
+> The preceding follow-up bundles Acme globally, groups notification controls and preloads All Apps with skeleton loading. See [typography/loading validation and manual checks](FOLLOWUP_TYPOGRAPHY_LOADING.md).
+
+> The preceding follow-up restores blocking start/end alerts and fixes persistent per-app notification hiding and setup. See [notification validation and manual checks](FOLLOWUP_NOTIFICATIONS.md).
+
+> The preceding follow-up ranks All Apps by foreground use over the last 24 hours and updates the existing indicators. See [28 October validation and manual checks](FOLLOWUP_USAGE_ORDER.md).
+
+> Earlier QA fixes concurrent/interrupted Crypto unblocks and editor restoration. See [27 October results, limits and manual checks](QA_2026_10_27.md). The dated records below describe earlier builds.
+
+> The preceding follow-up removed Help Instructions and closes details after successful Crypto unblock; see [validation and manual checks](FOLLOWUP_HELP_UNBLOCK.md).
+
+> Earlier session cleanup removed session controls and alerts. The later notification follow-up restores blocking start/end alerts; timers, intervals, history and 2-Crypto unblock remain. See [removal validation](FOLLOWUP_REMOVE_SESSIONS.md).
+
 # Validation and manual test matrix
+
+## Historical five-phase validation, 26 October 2026
+
+Each phase passed its build/lint/unit-test gate before the next branch began. Detailed commands, results, failures corrected before passing, and limits are in [Phase 1](PHASE_1_API_36.md), [Phase 2](PHASE_2_OFFLINE.md), [Phase 3](PHASE_3_ACCESSIBILITY.md), [Phase 4](PHASE_4_AUDIT.md) and [Phase 5](PHASE_5_RELEASE.md).
+
+The final build passes debug/release lint (0 errors, 112 warnings), all 25 unit tests, signed R8 APK/AAB packaging and bundle/signature/alignment checks. All seven device tests pass on API 36. The optimized release passed a fresh-install Home/disclosure/Settings grant/reward/Chrome blocking/countdown/expiry/history/help-video smoke. Signing used a disposable local validation key, not a production key. A debug in-place Room 13→14 upgrade preserved existing history; actual production signing-lineage upgrades, physical OEM/16 KB devices and long-duration testing remain outstanding.
+
+The baseline and dated records below describe the earlier modernization before `dev` commit `e2097ee`; their unsigned-release/API 35 results are historical, not the current phase results.
+
+## Historical baseline and environment
 
 No production crash reports, signed previous release, physical phone, manufacturer-specific device or Play Console access was available. Source findings are not production crash reproductions. No long-duration stability guarantee is made.
 
@@ -9,7 +35,7 @@ Validation uses Gradle 8.13, AGP 8.11.1, Kotlin 2.2.21, SDK 36 and installed JDK
 ## Automated coverage
 
 - ScheduleEvaluatorTest: monotonic timers, exact end, reboot fallback/cap, interval endpoints, independent overlap, replacement/cancellation snapshots, malformed windows, overnight/next-day intervals, spring/autumn DST and equal local times.
-- DatabaseMigrationTest: source-derived versions 3/4/6/7/8/9/10/12 and extra-column version 9; real Room 13 validation, legacy archive/history preservation, unknown-version refusal without deletion and reopen without repeated import. These are reconstructed fixtures; shipped historical schema exports are missing.
+- DatabaseMigrationTest: source-derived versions 3/4/6/7/8/9/10/12 and extra-column version 9; real Room 14 validation, legacy archive/history preservation, unknown-version refusal without deletion and reopen without repeated import. These are reconstructed fixtures; shipped historical schema exports are missing. HistoryMigrationTest also validates the exported 13→14 schema on device, preserving nonempty tables/null fields and checking the new index.
 - SessionRepositoryTest: Room transactions, replacement/stale cancellation, duplicate labels, expiry deletion, legacy rebase and conditional option edits.
 - PermissionStateTest: null settings, consent, enabled versus connected state, storage errors and revocation.
 - RewardFlowTest: displaying first/daily reward offers never credits a balance; concurrent and repeated claims credit once; an existing balance is preserved and today's reward is not offered again.
@@ -28,7 +54,7 @@ Validation uses Gradle 8.13, AGP 8.11.1, Kotlin 2.2.21, SDK 36 and installed JDK
 | Permissions | Decline disclosure, deny/revoke/restore all optional permissions, accessibility interruption/disconnection. Saved sessions must not claim operational enforcement when unavailable. Only selected non-ongoing notifications are dismissed. |
 | Recovery/power | Reboot/update/restore, stale alarms, Doze, battery saver and OEM restrictions; measure memory/CPU/wakeups. Force-stop prevents self-recovery until launch. API 23 force-stop plus reboot needs particular attention. |
 | XML UI | Rotation, tablet/foldable resizing, 200% fonts, keyboard, cutouts, gesture/three-button navigation, predictive back, split-screen/PiP exposure. |
-| Offline/profile | No sign-in/network gate; balances retained; reward taps award once; local photo access revocation; owner handles old remote-account deletion. |
+| Offline | No sign-in/network gate; balances retained; reward taps award once; owner handles old remote-account deletion. |
 | Soak | Repeated multi-hour sessions across OEMs, memory/CPU sampling and redacted Logcat/Android vitals; not established by short automated tests. |
 
 ## Commands
@@ -37,7 +63,7 @@ Validation uses Gradle 8.13, AGP 8.11.1, Kotlin 2.2.21, SDK 36 and installed JDK
 
 With a booted isolated device: `gradlew.bat -g .work/gradle --max-workers=2 connectedDebugAndroidTest`. Run after build checks if host memory is constrained.
 
-`python tools/check_native_alignment.py app/build/outputs/apk/release/app-release-unsigned.apk` and the same command for app/build/outputs/bundle/release/app-release.aab.
+`python tools/check_native_alignment.py app/build/outputs/apk/release/app-release.apk` and the same command for app/build/outputs/bundle/release/app-release.aab. Release packaging now requires the local signing configuration in [RELEASE.md](RELEASE.md).
 
 SDK tools: `zipalign -c -P 16 -v 4 <release-apk>` and `aapt dump badging <release-apk>`.
 
@@ -55,7 +81,7 @@ An isolated API 35 Google Play x86_64 emulator was created with 2 GB RAM. No per
 
 An initial `connectedDebugAndroidTest` attempt had no connected device after the emulator was stopped for host-memory recovery. A later direct `adb shell am instrument -w com.khadka.Limitr.test/androidx.test.runner.AndroidJUnitRunner` passed the original four tests in 17.685 s. An intermediate test setup failure (`@After` returning nullable Unit instead of JVM void) was fixed before this passing run.
 
-## Final executed build results
+## Historical executed build results, 12 October 2026
 
 The following completed successfully in **7m 34s** on the final application/test sources, including the keyboard and status-bar fixes:
 
@@ -108,3 +134,12 @@ Physical devices, API 23/API 36 runtime, tablets/foldables, every locale/font co
 Final `assembleDebug lintDebug assembleRelease bundleRelease assembleDebugAndroidTest` passed in **5m 16s**. Final lint: **zero errors, 200 warnings**. Installed the final APKs with `adb -s emulator-5554 install -r`; `adb -s emulator-5554 shell am instrument -w com.khadka.Limitr.test/androidx.test.runner.AndroidJUnitRunner` passed **all 5 tests in 15.454s**. The final bell/history image scaling and Help popup were visually checked. Cancellation also remained effective after an explicit app force-stop and relaunch. Release outputs remain unsigned; APK metadata still reports the published ID, minSdk 23 and target/compile SDK 36, and 16 KB zipalign verification passed.
 
 One test interval reappeared after terminating/restarting the virtual device with `emu kill`. Repeated cancellation survived both app force-stop/relaunch and a clean `adb reboot`; a copied test database/WAL contained zero saved sessions after that clean reboot. Abrupt virtual-device shutdown durability is not established by this review; this observation is not attributed to a confirmed application defect.
+
+
+## Play updates and reviews, 28 October 2026
+
+The final `testDebugUnitTest assembleDebug lintDebug lintRelease assembleRelease bundleRelease assembleDebugAndroidTest` gate passed in **9m 6s**, using the documented JDK/cache/worker/JVM options. **78 unit tests passed**; debug/release lint each reported **0 errors, 64 existing warnings**. SDK fake and host tests cover update selection, recovery, listener cleanup, restart/retry, review eligibility/atomic cooldowns, cancellation and silent review failure.
+
+In-place emulator upgrades passed **18/18 API 36 tests (84.368s)** and **12/12 supported API 23 tests (43.832s)**; six newer-API tests were excluded on API 23. Both crash buffers were empty. Signed R8 APK/AAB packaging, signatures, bundletool and 16 KB alignment checks passed. No real Play update/review UI, production-signed data upgrade, key reset or publication was verified; Play internal-track checks remain manual. Referrals were explicitly deferred.
+
+See [implementation, exact commands, SDK fake limitations and owner checklist](FOLLOWUP_PLAY_ENGAGEMENT.md). User-owned version/signing-file, IDE, Home layout and SessionClock edits remain separate.

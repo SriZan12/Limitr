@@ -16,13 +16,13 @@ object SessionText {
         val format = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
         return when (state.phase) {
             Phase.SCHEDULED -> "Scheduled: ${format.format(Date(session.startWall))} – ${format.format(Date(session.endWall))}"
-            Phase.ACTIVE -> "Active session • ${DateAndTime.formatTimeInNumbers(state.remaining)} remaining"
-            Phase.EXPIRED -> "Session ended"
+            Phase.ACTIVE -> "Blocked • ${DateAndTime.formatTimeInNumbers(state.remaining)} remaining"
+            Phase.EXPIRED -> "Blocking ended"
         }
     }
     fun availability(context: Context, state: SessionState): String = when {
         state.error -> "Storage unavailable. Your data has been kept. Blocking is paused."
-        !state.loaded -> "Loading saved sessions…"
+        !state.loaded -> "Loading saved timers and intervals…"
         !EnforcementStatus.consent(context) -> "Review accessibility disclosure to enable blocking."
         !context.isAccessibilityEnabled() -> "Blocking unavailable: enable LIMITR in Accessibility settings. Saved schedules are kept."
         EnforcementStatus.state.value == Enforcement.WINDOW_UNAVAILABLE -> "Blocking window unavailable. Reconnect LIMITR in Accessibility settings."

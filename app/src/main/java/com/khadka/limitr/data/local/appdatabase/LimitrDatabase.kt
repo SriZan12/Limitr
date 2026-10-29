@@ -11,7 +11,7 @@ import com.khadka.limitr.blocking.SessionDao
 
 @Database(
     entities = [LimitrEntities::class, AppHistoryEntities::class, BlockingSession::class],
-    version = 13,
+    version = 14,
     exportSchema = true
 )
 @TypeConverters(TimeConverter::class)

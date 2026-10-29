@@ -5,6 +5,17 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 /** Schemas established from Git, not invented historical Room exports. Unknown versions fail closed. */
 object DatabaseMigrations {
+    val MIGRATION_13_14 = object : Migration(13, 14) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Every old name is unique, so adding package identity cannot collide or drop rows.
+            // Room runs the copy/swap/index creation in its migration transaction.
+            db.execSQL("CREATE TABLE HistoryTable_new (appName TEXT NOT NULL, noOfTimesBlocked INTEGER, appPackage TEXT NOT NULL, blockedDate INTEGER, starTime INTEGER, endTime INTEGER, PRIMARY KEY(appName, appPackage))")
+            db.execSQL("INSERT INTO HistoryTable_new SELECT appName, noOfTimesBlocked, appPackage, blockedDate, starTime, endTime FROM HistoryTable")
+            db.execSQL("DROP TABLE HistoryTable")
+            db.execSQL("ALTER TABLE HistoryTable_new RENAME TO HistoryTable")
+            db.execSQL("CREATE INDEX index_HistoryTable_blockedDate ON HistoryTable(blockedDate)")
+        }
+    }
     val supportedVersions = listOf(3, 4, 6, 7, 8, 9, 10, 12)
     val ALL: Array<Migration> = supportedVersions.map { version ->
         object : Migration(version, 13) {
@@ -43,5 +54,5 @@ object DatabaseMigrations {
                 db.execSQL("INSERT INTO LimitrTable SELECT appName, blockedTime, remainingTime, appPackage, starTime, endTime, notificationStatus FROM LegacyLimitrTable")
             }
         }
-    }.toTypedArray()
+    }.plus(MIGRATION_13_14).toTypedArray()
 }

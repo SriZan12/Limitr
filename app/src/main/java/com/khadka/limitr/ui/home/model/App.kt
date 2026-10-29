@@ -6,7 +6,7 @@ data class App(
     var appIcon: Drawable? = null,
     var appName: String? = null,
     var appPackageName: String? = null,
-    var usagePercentage: Int = 0,
+    var usagePercentage: Double = 0.0,
     var usageDuration: String? = null
 
 ) {

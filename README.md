@@ -1,6 +1,6 @@
 # LIMITR
 
-Android app blocker built with Kotlin, XML, Room and an opt-in accessibility service. Select a launchable app and save an immediate duration timer or a one-time calendar interval. Local sessions, history and rewards work offline; this version removes Firebase and Google sign-in.
+Android app blocker built with Kotlin, XML, Room and an opt-in accessibility service. Select a launchable app and save an immediate duration timer or a one-time calendar interval. Timers, intervals, history and rewards work offline; this version removes Firebase and Google sign-in.
 
 - Published application ID: `com.khadka.Limitr`
 - Minimum Android: API 23; compile/target SDK: API 36
@@ -18,15 +18,24 @@ Install Android SDK 36 and set its path in your untracked `local.properties` or 
 
 On macOS/Linux use `./gradlew`. See [executed validation and the device matrix](docs/TESTING.md) for this workspace's Gradle-cache override, constrained-memory options and observed results.
 
-Release APK/AAB outputs are unsigned until configured with the existing private upload key. Never replace the signing lineage or clear app data to work around an upgrade failure.
+Release APK/AAB builds require the existing private upload key through gitignored `keystore.properties` or environment variables; missing credentials fail the release task. R8 and resource shrinking are enabled. Version 1.3.0 uses versionCode 12. See [exact signing/build commands](docs/RELEASE.md). Never replace the signing lineage or clear app data to work around an upgrade failure.
 
 ## Design and release notes
 
 - [Prioritized audit and official compatibility/policy references](docs/MODERNIZATION.md)
 - [Blocking, timing, migration and offline-data contracts](docs/ARCHITECTURE.md)
 - [Build/test results, known gaps and manual test matrix](docs/TESTING.md)
+- [Final release QA, fixes and remaining Play checks](docs/QA_2026_10_29.md)
+- [Earlier Crypto/editor QA](docs/QA_2026_10_27.md)
+- [All Apps usage ranking over the last 24 hours](docs/FOLLOWUP_USAGE_ORDER.md)
+- [Blocking alerts, notification hiding and switch setup](docs/FOLLOWUP_NOTIFICATIONS.md)
+- [Acme typography, notification layout and preloaded All Apps](docs/FOLLOWUP_TYPOGRAPHY_LOADING.md)
+- [Google Play updates, review eligibility and testing](docs/FOLLOWUP_PLAY_ENGAGEMENT.md)
 - [Required owner actions before production rollout](docs/RELEASE.md)
+- [Removal of session controls/alerts, with timers and intervals retained](docs/FOLLOWUP_REMOVE_SESSIONS.md)
+- [Help removal and closing details after unblock](docs/FOLLOWUP_HELP_UNBLOCK.md)
+- Phase records: [API 36](docs/PHASE_1_API_36.md), [offline cleanup](docs/PHASE_2_OFFLINE.md), [accessibility evaluation](docs/PHASE_3_ACCESSIBILITY.md), [audit and migrations](docs/PHASE_4_AUDIT.md), [signed R8 validation](docs/PHASE_5_RELEASE.md)
 
-Accessibility detects package-window changes and displays a voluntary blocking overlay. It does not suspend other packages. Android can interrupt enforcement; force-stop, multi-window and manufacturer restrictions limit guarantees. The UI distinguishes saved sessions from service availability. System settings, emergency interactions and service-disabling controls remain accessible.
+Accessibility detects package-window changes and displays a voluntary blocking overlay. It does not suspend other packages. Android can interrupt enforcement; force-stop, multi-window and manufacturer restrictions limit guarantees. The UI distinguishes saved timers and intervals from service availability. System settings, emergency interactions and service-disabling controls remain accessible.
 
-Known historical Room schemas migrate without destructive fallback. Actual signed release upgrades, missing historical schemas, API 36 runtime and OEM/long-duration validation remain release gates. Building this repository does not publish an update or clear a Play Console warning.
+Known historical Room schemas migrate without destructive fallback. API 36 emulator accessibility and Room migration tests pass; actual production-signed upgrades, missing historical schemas and physical OEM/long-duration validation remain release gates. Building this repository does not publish an update or clear a Play Console warning.

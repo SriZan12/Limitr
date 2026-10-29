@@ -3,7 +3,7 @@ package com.khadka.limitr.ui.home.main_fragment.fragment
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.PopupMenu
+import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
+import androidx.fragment.app.DialogFragment
+import com.khadka.limitr.ui.mainactivity.MainActivity
 
 @AndroidEntryPoint
 class FragmentHome : Fragment(R.layout.fragment_home) {
@@ -37,6 +39,12 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
     private var rewardJob: Job? = null
     private var startupStage = "start"
     private var rewardCheckedDate = ""
+    private var menuShowing = false
+
+    fun isReadyForPlayPrompt(): Boolean = binding != null && startupStage == "done" &&
+        lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && rewardJob?.isActive != true &&
+        !menuShowing && dialog?.isShowing != true && !childFragmentManager.isStateSaved &&
+        childFragmentManager.fragments.none { it is DialogFragment }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,20 +65,23 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
         }.also { it.attach() }
         menu = PopupMenu(requireContext(), ui.options).apply {
             inflate(R.menu.home_menu)
+            setOnDismissListener {
+                menuShowing = false
+                (activity as? MainActivity)?.onPlayPromptReadinessChanged()
+            }
             setOnMenuItemClickListener {
                 when (it.itemId) {
                     R.id.action_permissions -> showPermissions()
                     R.id.action_accessibility_disclosure -> PermissionOnboarding.show(childFragmentManager)
                     R.id.action_reward -> showReward(fromMenu = true)
                     R.id.action_history -> startActivity(Intent(requireContext(), com.khadka.limitr.ui.history.ActivityHistory::class.java))
-                    R.id.action_help -> showHelp()
                     R.id.action_privacy -> showPrivacy()
                     else -> return@setOnMenuItemClickListener false
                 }
                 true
             }
         }
-        ui.options.setOnClickListener { menu?.show() }
+        ui.options.setOnClickListener { menuShowing = true; menu?.show() }
         ui.enforcementStatus.setOnClickListener { showPermissions() }
         childFragmentManager.setFragmentResultListener(PermissionOnboarding.RESULT, viewLifecycleOwner) { _, result ->
             renderStatus()
@@ -82,7 +93,6 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
             startupStage = "reward"
             continueStartup()
         }
-        childFragmentManager.setFragmentResultListener(PermissionSetupDialog.HELP, viewLifecycleOwner) { _, _ -> showHelp() }
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { coordinator.state.collect { renderStatus() } }
@@ -127,6 +137,7 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
             "disclosure" -> PermissionOnboarding.show(childFragmentManager)
             "permissions" -> showPermissions()
             "reward" -> showReward()
+            "done" -> (activity as? MainActivity)?.onPlayPromptReadinessChanged()
         }
     }
     private fun showPermissions() {
@@ -148,26 +159,15 @@ class FragmentHome : Fragment(R.layout.fragment_home) {
                 startupStage = "done"
                 rewardCheckedDate = LocalDate.now().toString()
                 ViewUtils.showToast(requireContext(), getString(R.string.reward_storage_error))
+            } finally {
+                (activity as? MainActivity)?.onPlayPromptReadinessChanged()
             }
         }
-    }
-    private fun showHelp() {
-        fun video(number: Int) = startActivity(Intent(requireContext(), com.khadka.limitr.ui.home.activity.VideoActivity::class.java).putExtra("video", number))
-        dialog?.dismiss()
-        val content = layoutInflater.inflate(R.layout.help_dialog, null)
-        content.findViewById<View>(R.id.watch_video_1).setOnClickListener { video(1) }
-        content.findViewById<View>(R.id.watch_video_2).setOnClickListener { video(2) }
-        content.findViewById<View>(R.id.grantAccessiblePerm).setOnClickListener {
-            dialog?.dismiss()
-            if (EnforcementStatus.consent(requireContext())) startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
-            else PermissionOnboarding.show(childFragmentManager, openSettings = true)
-        }
-        dialog = AlertDialog.Builder(requireContext()).setView(content).setPositiveButton(R.string.ok, null).show()
     }
     private fun showPrivacy() {
         dialog?.dismiss()
         dialog = AlertDialog.Builder(requireContext()).setTitle(R.string.privacy_control)
-            .setMessage("LIMITR works offline without sign-in. Schedules, app selections and Crypto rewards stay on this device. Android backup may copy local schedules and settings using your system backup preferences. Accessibility reads app package names only; no screen contents or event history are saved. Usage statistics and notification access are optional. Notification contents are not stored.\n\nDisable accessibility or stop a session at any time. Essential system apps stay accessible. Battery restrictions, force-stop, split screen, picture-in-picture and service disconnection may interrupt blocking.\n\nThis version no longer connects to Firebase. Existing remote accounts or profile data have not been deleted. See the store listing’s privacy policy for the owner’s contact and data deletion process.")
+            .setMessage("LIMITR's blocking features work offline without sign-in. Schedules, app selections and Crypto rewards stay on this device. Android backup may copy local schedules and settings using your system backup preferences. Accessibility reads app package names only; no screen contents or event history are saved. Usage statistics and notification access are optional. Notification contents are not stored.\n\nGoogle Play handles optional app updates and review prompts. Review eligibility and prompt cooldowns are saved locally; LIMITR does not receive your rating or review.\n\nYou can disable accessibility at any time. Essential system apps stay accessible. Battery restrictions, force-stop, split screen, picture-in-picture and service disconnection may interrupt blocking.\n\nThis version no longer connects to Firebase. Existing remote accounts or profile data have not been deleted. See the store listing’s privacy policy for the owner’s contact and data deletion process.")
             .setPositiveButton(R.string.ok, null).show()
     }
     override fun onDestroyView() {

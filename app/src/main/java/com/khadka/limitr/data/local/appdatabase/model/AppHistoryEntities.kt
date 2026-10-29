@@ -1,11 +1,11 @@
 package com.khadka.limitr.data.local.appdatabase.model
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.Index
 
-@Entity(tableName = "HistoryTable")
+@Entity(tableName = "HistoryTable", primaryKeys = ["appName", "appPackage"], indices = [Index("blockedDate")])
 data class AppHistoryEntities(
-    @PrimaryKey val appName: String = "",
+    val appName: String = "",
     val noOfTimesBlocked: Int? = 0,
     val appPackage: String = "",
     val blockedDate: Long? = null,

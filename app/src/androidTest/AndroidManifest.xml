@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <application>
+        <!-- Separate test-APK package gives the real service an external launch to detect. -->
+        <activity android:name="com.khadka.limitr.LaunchFixtureActivity" android:exported="true" />
+        <activity android:name="com.khadka.limitr.NextLaunchFixtureActivity" android:exported="true" />
+        <receiver android:name="com.khadka.limitr.NotificationFixtureReceiver" android:exported="true" />
+    </application>
+</manifest>

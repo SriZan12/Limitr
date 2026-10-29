@@ -7,6 +7,8 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
+data class ReconciledSessions(val sessions: List<BlockingSession>, val expired: List<BlockingSession>)
+
 @Singleton
 class SessionRepository @Inject constructor(private val database: LimitrDatabase, private val clock: SessionClock, private val preferences: SharedPreferences) {
     val changes = database.sessions().observe()
@@ -29,19 +31,29 @@ class SessionRepository @Inject constructor(private val database: LimitrDatabase
         database.sessions().save(session)
         database.openHelper.writableDatabase.execSQL("""
             INSERT OR REPLACE INTO HistoryTable (appName, noOfTimesBlocked, appPackage, blockedDate, starTime, endTime)
-            VALUES (?, COALESCE((SELECT noOfTimesBlocked FROM HistoryTable WHERE appName = ?), 0) + 1, ?, ?, ?, ?)
-        """.trimIndent(), arrayOf<Any>(session.appName, session.appName, session.packageName, clock.now().wall, session.startWall, session.endWall))
+            VALUES (?, COALESCE((SELECT noOfTimesBlocked FROM HistoryTable WHERE appName = ? AND appPackage = ?), 0) + 1, ?, ?, ?, ?)
+        """.trimIndent(), arrayOf<Any>(session.appName, session.appName, session.packageName, session.packageName, clock.now().wall, session.startWall, session.endWall))
     }
 
     suspend fun cancel(session: BlockingSession): Boolean =
         database.sessions().cancel(session.packageName, session.revision) > 0
+
+    /** Undo a failed debit without extending a deadline, adding history or replacing a newer timer. */
+    suspend fun restoreIfAbsent(session: BlockingSession) {
+        if (ScheduleEvaluator.evaluate(session, clock.now()).phase != Phase.EXPIRED) {
+            database.sessions().restoreIfAbsent(session)
+        }
+    }
 
     suspend fun notifications(session: BlockingSession, enabled: Boolean) {
         database.sessions().notifications(session.packageName, session.revision, enabled)
     }
 
     /** Rebase only once after reboot/legacy migration, preventing subsequent clock changes extending a timer. */
-    suspend fun reconcile(now: TimeSnapshot): List<BlockingSession> = database.withTransaction {
+    suspend fun reconcile(now: TimeSnapshot): List<BlockingSession> = reconcileWithExpired(now).sessions
+
+    suspend fun reconcileWithExpired(now: TimeSnapshot): ReconciledSessions = database.withTransaction {
+        val expired = mutableListOf<BlockingSession>()
         database.sessions().all().forEach { original ->
             val session = if (original.revision.startsWith("legacy:")) {
                 original.copy(revision = "imported:" + original.revision.removePrefix("legacy:"),
@@ -49,12 +61,14 @@ class SessionRepository @Inject constructor(private val database: LimitrDatabase
                     .also { database.sessions().save(it) }
             } else original
             val value = ScheduleEvaluator.evaluate(session, now)
-            if (value.phase == Phase.EXPIRED) database.sessions().cancel(session.packageName, session.revision)
+            if (value.phase == Phase.EXPIRED) {
+                if (database.sessions().cancel(session.packageName, session.revision) > 0) expired.add(session)
+            }
             else if (session.kind == "timer" && (session.bootId != now.bootId || session.startElapsed == null || session.startElapsed > now.elapsed)) {
                 database.sessions().save(session.copy(startElapsed = now.elapsed,
                     duration = value.remaining, startWall = now.wall, endWall = now.wall + value.remaining, bootId = now.bootId))
             }
         }
-        database.sessions().all()
+        ReconciledSessions(database.sessions().all(), expired)
     }
 }

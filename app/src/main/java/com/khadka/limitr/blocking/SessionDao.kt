@@ -1,12 +1,16 @@
 package com.khadka.limitr.blocking
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SessionDao {
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun restoreIfAbsent(session: BlockingSession)
     @Query("SELECT * FROM BlockingSession ORDER BY appName")
     fun observe(): Flow<List<BlockingSession>>
 

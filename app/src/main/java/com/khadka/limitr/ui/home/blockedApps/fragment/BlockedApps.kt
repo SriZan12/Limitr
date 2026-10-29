@@ -35,7 +35,7 @@ class BlockedApps : Fragment(R.layout.blocked_app_list_layout) {
                 launch { coordinator.state.collect { value ->
                     adapter.submit(value.sessions)
                     ui.noApps.isVisible = value.sessions.isEmpty()
-                    ui.noApps.text = if (value.error) "Saved sessions unavailable. Data has been kept." else if (!value.loaded) "Loading…" else getString(R.string.no_apps_are_blocked)
+                    ui.noApps.text = if (value.error) "Saved timers and intervals unavailable. Data has been kept." else if (!value.loaded) "Loading…" else getString(R.string.no_apps_are_blocked)
                 } }
                 launch { while (isActive) { adapter.tick(); delay(1000) } }
             }

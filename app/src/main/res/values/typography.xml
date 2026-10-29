@@ -1,0 +1,14 @@
+<resources>
+    <style name="AcmeAlertDialogTheme" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="android:fontFamily">@font/acme</item>
+        <item name="fontFamily">@font/acme</item>
+        <item name="viewInflaterClass">com.khadka.limitr.utils.AcmeViewInflater</item>
+    </style>
+    <style name="AcmeTabText" parent="TextAppearance.Design.Tab">
+        <item name="android:fontFamily">@font/acme</item>
+        <item name="fontFamily">@font/acme</item>
+    </style>
+    <style name="AcmeTabStyle" parent="Widget.Design.TabLayout">
+        <item name="tabTextAppearance">@style/AcmeTabText</item>
+    </style>
+</resources>
