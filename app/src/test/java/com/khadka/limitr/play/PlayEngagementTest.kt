@@ -20,6 +20,7 @@ import com.google.android.play.core.review.testing.FakeReviewManager
 import com.google.android.play.core.review.ReviewManager
 import com.google.android.play.core.review.ReviewInfo
 import com.google.android.gms.tasks.Tasks
+import com.google.android.gms.tasks.TaskCompletionSource
 import com.khadka.limitr.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -269,5 +270,66 @@ class PlayEngagementTest {
             model.onForeground(); model.setReady(true); settle()
             assertEquals(1, requests)
         } finally { controller.pause().stop().destroy(); settle() }
+    }
+
+    @Test fun lateReviewResponseMustNotLaunchAfterLeavingAndReturningHome() = runTest(dispatcher) {
+        val now = System.currentTimeMillis()
+        prompts.recordUse(now - 8 * DAY_MILLIS)
+        for (day in 2 downTo 0) prompts.recordBlockingSuccess(now - day * DAY_MILLIS)
+        val controller = Robolectric.buildActivity(AppCompatActivity::class.java)
+        controller.get().setTheme(R.style.Theme_Limitr)
+        controller.setup().visible().windowFocusChanged(true)
+        val activity = controller.get()
+        val root = FrameLayout(activity)
+        activity.setContentView(root)
+        val delegate = FakeReviewManager(activity)
+        val response = TaskCompletionSource<ReviewInfo>()
+        var launches = 0
+        val delayed = object : ReviewManager by delegate {
+            override fun requestReviewFlow() = response.task
+            override fun launchReviewFlow(activity: Activity, info: ReviewInfo) =
+                delegate.launchReviewFlow(activity, info).also { launches++ }
+        }
+        val model = model()
+        PlayEngagementHost(activity, root, model, updates, PlayReviewRepository(delayed), launcher, true) { true }
+        try {
+            settle(); advanceTimeBy(350); settle()
+            assertTrue(model.state.value.reviewRunning)
+            controller.pause().stop()
+            controller.start().resume().visible().windowFocusChanged(true)
+            advanceTimeBy(350); settle()
+            response.setResult(delegate.requestReviewFlow().result)
+            settle()
+            assertEquals("A stale Play response must not surprise the user on a later visit", 0, launches)
+            assertFalse(model.state.value.reviewRunning)
+        } finally { controller.pause().stop().destroy(); settle() }
+    }
+
+    @Test fun pausingForAnAlreadyLaunchedReviewDoesNotEndItsFlowEarly() = runTest(dispatcher) {
+        val now = System.currentTimeMillis()
+        prompts.recordUse(now - 8 * DAY_MILLIS)
+        for (day in 2 downTo 0) prompts.recordBlockingSuccess(now - day * DAY_MILLIS)
+        val controller = Robolectric.buildActivity(AppCompatActivity::class.java)
+        controller.get().setTheme(R.style.Theme_Limitr)
+        controller.setup().visible().windowFocusChanged(true)
+        val activity = controller.get()
+        val root = FrameLayout(activity)
+        activity.setContentView(root)
+        val completion = TaskCompletionSource<Void>()
+        var launches = 0
+        val manager = object : ReviewManager by FakeReviewManager(activity) {
+            override fun launchReviewFlow(activity: Activity, info: ReviewInfo) =
+                completion.task.also { launches++ }
+        }
+        val model = model()
+        PlayEngagementHost(activity, root, model, updates, PlayReviewRepository(manager), launcher, true) { true }
+        try {
+            settle(); advanceTimeBy(350); settle()
+            assertEquals(1, launches)
+            controller.pause().stop(); settle()
+            assertTrue("Only Play completion may finish an already launched review", model.state.value.reviewRunning)
+            completion.setResult(null); settle()
+            assertFalse(model.state.value.reviewRunning)
+        } finally { controller.destroy(); settle() }
     }
 }

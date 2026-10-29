@@ -6,11 +6,7 @@ Repository readiness is not Play approval. This work does not upload or publish 
 
 Use the existing upload key registered for this app. Keep it outside Git and keep credentials on your machine or in your CI secret store. No keystore needs to be sent to a reviewer.
 
-```powershell
-Copy-Item .\keystore.properties.example .\keystore.properties
-```
-
-Edit the copied file locally with `storeFile`, `storePassword`, `keyAlias`, and `keyPassword`. Use forward slashes for Windows paths. The properties file and common keystore extensions are gitignored. Alternatively set these environment variables in your shell/CI secret configuration; nonempty environment values take precedence over the file:
+Create the gitignored root `keystore.properties` locally with `storeFile`, `storePassword`, `keyAlias`, and `keyPassword`. Use forward slashes for Windows paths. The properties file and common keystore extensions are gitignored. Alternatively set these environment variables in your shell/CI secret configuration; nonempty environment values take precedence over the file:
 
 | Property | Environment variable |
 |---|---|
@@ -48,13 +44,18 @@ References: [Android signing](https://developer.android.com/studio/publish/app-s
 
 ## Before rollout
 
-1. Confirm in Play Console that `com.khadka.Limitr` is the published listing and that proposed versionCode **11**, versionName **1.2.0**, exceeds every uploaded code (the branch previously used 10). The development `com.example.limitr` installation is a different Android sandbox; it cannot automatically transfer into the published app ID.
+1. Confirm in Play Console that `com.khadka.Limitr` is the published listing and that proposed versionCode **12**, versionName **1.3.0**, exceeds every uploaded code (the branch previously used 11). The development `com.example.limitr` installation is a different Android sandbox; it cannot automatically transfer into the published app ID.
 2. Obtain shipped database samples and the signed previous APK from the release owner. Back up test devices; perform an in-place signed upgrade using the same signing lineage. Check timers, intervals, old history, Crypto, notification preferences and local settings. Never clear app data to make an upgrade pass. Do not roll out while any known shipped schema lacks a tested migration. Unknown schemas deliberately retain data and pause enforcement.
 3. Run `gradlew.bat assembleDebug testDebugUnitTest lintDebug`, then `gradlew.bat connectedDebugAndroidTest` with a booted test device and `gradlew.bat assembleRelease bundleRelease`. JDK 17+ and Android SDK 36 are required. This workspace used `-g .work/gradle` because the user's global Gradle registry was unwritable. Run emulator testing separately if host memory is constrained.
-4. Inspect the release APK with SDK `aapt dump badging`: expected application ID `com.khadka.Limitr`, minSdk 23, targetSdk 36, versionCode 11. Run `python tools/check_native_alignment.py <apk-or-aab>` and `zipalign -c -P 16 -v 4 <apk>`. DataStore introduces a native library even though application code is Kotlin/XML. Static alignment checks do not replace execution on a 16 KB device.
+4. Inspect the release APK with SDK `aapt dump badging`: expected application ID `com.khadka.Limitr`, minSdk 23, targetSdk 36, versionCode 12. Run `python tools/check_native_alignment.py <apk-or-aab>` and `zipalign -c -P 16 -v 4 <apk>`. DataStore introduces a native library even though application code is Kotlin/XML. Static alignment checks do not replace execution on a 16 KB device.
 5. Build the signed release AAB with the configuration above. Verify the APK with `apksigner verify --verbose <apk>`, the AAB with `jarsigner -verify <aab>` and `java -jar bundletool.jar validate --bundle=<aab>`. Verify certificate lineage against the previous release. Check bundle-generated APKs in Play internal testing.
 6. Complete accessibility declaration/review in Play Console with `isAccessibilityTool=false`. Record an updated video demonstrating the disclosure, affirmative consent, manual settings grant, selected-app blocking, expiry/cancellation and disabling the service. Explain package-window events only, no screen contents, and voluntary consumer blocking. Remove requests/declarations for broad package visibility, exact alarms, overlay and storage access if they no longer apply. Notification access and usage access are optional features with separate disclosures.
 7. Update the store listing, privacy policy and Data Safety answers to match offline operation and Firebase removal. Keep an owner-accessible process for deletion of historic Firebase accounts/profile data; removing the SDK does not delete that remote data. Verify no Firebase SDK/provider or obsolete permissions are in the final merged manifest. Review the backup/restore disclosures and re-consent on restored installations.
 8. Execute the manual matrix in TESTING.md, especially minimum API 23, API 36, production upgrade, service revocation/restoration, alarm delays/Doze, reboot, force-stop, split screen/PiP, font scaling and larger displays. The app cannot guarantee continuous service execution or prevent bypasses.
-9. Upload only after owner approval to an internal track, review pre-launch reports, then staged production rollout. The user-reported November 1, 2026 Console deadline must be checked in that listing; the general API 36 submission requirement began August 31, 2026. Publication and Google's confirmation, not the PR, determine compliance.
+9. Upload only after owner approval to an internal track, review pre-launch reports, then staged production rollout. Confirm the listing-specific submission deadline in Play Console. Publication and Google's confirmation, not the PR, determine compliance.
 10. Monitor Play Android vitals (crashes/ANRs), reviews and permission-onboarding reports after each rollout stage. No new remote crash-reporting service was introduced. Collect opt-in redacted diagnostics; do not request screen contents, account tokens or detailed usage histories. Pause rollout for migration failures, blocking-window failures or unexplained data changes.
+
+
+## Final candidate, 29 October 2026
+
+The owner confirmed that Play accepted the replacement upload key and selected versionCode 12 / versionName 1.3.0. QA verifies the local signing certificate and artifact; Console acceptance and the unused version code still belong to the Play upload check. Use `app/build/outputs/bundle/release/app-release.aab` from the final QA build; `app/release/app-release.aab` is a separate older local file. See [final QA results](QA_2026_10_29.md) before uploading to the internal track.

@@ -15,7 +15,7 @@
     <string name="unblock_app">Unblock App</string>
     <string name="remaining_time">Remaining Time</string>
     <string name="no_apps_are_blocked">No Apps are Blocked!</string>
-    <string name="daily_Login_Reward">Daily Login Reward</string>
+    <string name="daily_Login_Reward">Daily Reward</string>
     <string name="block_notification">Block Notification</string>
     <string name="set_interval">Set Interval</string>
     <string name="all_apps">All Apps</string>
@@ -30,7 +30,7 @@
     <string name="exit">EXIT</string>
     <string name="icon_image">Icon Image</string>
     <string name="cancel">Cancel</string>
-    <string name="first_login_reward">First Login Reward</string>
+    <string name="first_login_reward">Welcome Reward</string>
     <string name="grant_permission">Grant Permission</string>
     <string name="history">Blocking history</string>
     <string name="crypto_balance">%1$d Crypto</string>

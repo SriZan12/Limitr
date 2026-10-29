@@ -1,6 +1,8 @@
 package com.khadka.limitr.services.blockerServices
 
 import android.accessibilityservice.AccessibilityService
+import android.app.Activity
+import android.app.Application
 import android.app.KeyguardManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -8,6 +10,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.PowerManager
+import android.os.Bundle
 import android.view.accessibility.AccessibilityEvent
 import androidx.core.content.ContextCompat
 import com.khadka.limitr.blocking.*
@@ -34,6 +37,24 @@ class AppLaunchDetector : AccessibilityService() {
     private var homePackage: String? = null
     private var essential = emptySet<String>()
     private var connected = false
+    // Overlay events and our Activities share a package name. Activity callbacks distinguish a
+    // real return to LIMITR without requesting access to other apps' window contents.
+    private val ownActivities = object : Application.ActivityLifecycleCallbacks {
+        override fun onActivityResumed(activity: Activity) {
+            foreground = packageName
+            foregroundWindow = null
+            foregroundClass = null
+            blockedTarget = null
+            renderJob?.cancel()
+            overlay.removeOverlayView()
+        }
+        override fun onActivityCreated(activity: Activity, state: Bundle?) = Unit
+        override fun onActivityStarted(activity: Activity) = Unit
+        override fun onActivityPaused(activity: Activity) = Unit
+        override fun onActivityStopped(activity: Activity) = Unit
+        override fun onActivitySaveInstanceState(activity: Activity, state: Bundle) = Unit
+        override fun onActivityDestroyed(activity: Activity) = Unit
+    }
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_SCREEN_OFF) {
@@ -49,6 +70,7 @@ class AppLaunchDetector : AccessibilityService() {
         super.onServiceConnected()
         if (connected) return
         connected = true
+        application.registerActivityLifecycleCallbacks(ownActivities)
         essential = EssentialApps.packages(this)
         ContextCompat.registerReceiver(this, screenReceiver,
             IntentFilter().apply { addAction(Intent.ACTION_SCREEN_OFF); addAction(Intent.ACTION_USER_PRESENT)
@@ -151,7 +173,11 @@ class AppLaunchDetector : AccessibilityService() {
     override fun onUnbind(intent: Intent?): Boolean { disconnect(); return super.onUnbind(intent) }
     override fun onDestroy() { disconnect(); scope.cancel(); super.onDestroy() }
     private fun disconnect() {
-        if (connected) { unregisterReceiver(screenReceiver); connected = false }
+        if (connected) {
+            unregisterReceiver(screenReceiver)
+            application.unregisterActivityLifecycleCallbacks(ownActivities)
+            connected = false
+        }
         stateJob?.cancel()
         renderJob?.cancel()
         overlay.removeOverlayView()

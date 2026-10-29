@@ -120,6 +120,11 @@ class AccessibilityCompatibilityTest {
             } finally { screenshot.recycle() }
             val initial = overlays().single()
             await("Overlay countdown did not advance") { overlays().singleOrNull()?.let { it != initial } == true }
+            context.startActivity(Intent(context, com.khadka.limitr.ui.mainactivity.MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            await("Opening LIMITR must dismiss its own blocking overlay") { overlays().isEmpty() }
+            launchFixture()
+            await("Returning to the blocked app must still enforce its timer") { overlays().size == 1 && homeIsResumed() }
             launchFixture(NextLaunchFixtureActivity::class.java.name)
             await("The second Activity was not launched") { activities().contains(NextLaunchFixtureActivity::class.java.name) }
             await("A second window from the blocked package must also return Home") { overlays().size == 1 && homeIsResumed() }

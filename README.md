@@ -18,14 +18,15 @@ Install Android SDK 36 and set its path in your untracked `local.properties` or 
 
 On macOS/Linux use `./gradlew`. See [executed validation and the device matrix](docs/TESTING.md) for this workspace's Gradle-cache override, constrained-memory options and observed results.
 
-Release APK/AAB builds require the existing private upload key through gitignored `keystore.properties` or environment variables; missing credentials fail the release task. R8 and resource shrinking are enabled. Version 1.2.0 uses versionCode 11. See [exact signing/build commands](docs/RELEASE.md). Never replace the signing lineage or clear app data to work around an upgrade failure.
+Release APK/AAB builds require the existing private upload key through gitignored `keystore.properties` or environment variables; missing credentials fail the release task. R8 and resource shrinking are enabled. Version 1.3.0 uses versionCode 12. See [exact signing/build commands](docs/RELEASE.md). Never replace the signing lineage or clear app data to work around an upgrade failure.
 
 ## Design and release notes
 
 - [Prioritized audit and official compatibility/policy references](docs/MODERNIZATION.md)
 - [Blocking, timing, migration and offline-data contracts](docs/ARCHITECTURE.md)
 - [Build/test results, known gaps and manual test matrix](docs/TESTING.md)
-- [Latest app QA and Crypto/editor fixes](docs/QA_2026_10_27.md)
+- [Final release QA, fixes and remaining Play checks](docs/QA_2026_10_29.md)
+- [Earlier Crypto/editor QA](docs/QA_2026_10_27.md)
 - [All Apps usage ranking over the last 24 hours](docs/FOLLOWUP_USAGE_ORDER.md)
 - [Blocking alerts, notification hiding and switch setup](docs/FOLLOWUP_NOTIFICATIONS.md)
 - [Acme typography, notification layout and preloaded All Apps](docs/FOLLOWUP_TYPOGRAPHY_LOADING.md)

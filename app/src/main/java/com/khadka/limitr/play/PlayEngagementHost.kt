@@ -34,6 +34,8 @@ class PlayEngagementHost(
     private var snackbar: Snackbar? = null
     private var snackbarFailed = false
     private var restartDismissed = false
+    private var reviewJob: Job? = null
+    private var reviewLaunched = false
 
     init {
         activity.lifecycle.addObserver(this)
@@ -51,6 +53,8 @@ class PlayEngagementHost(
     override fun onPause(owner: LifecycleOwner) {
         readinessJob?.cancel()
         model.setReady(false)
+        // A late response belongs to the visit that requested it. Once launched, Play owns the UI.
+        if (!reviewLaunched) reviewJob?.cancel()
         dismissSnackbar()
     }
 
@@ -82,13 +86,16 @@ class PlayEngagementHost(
                         if (!updates.launch(prompt.info, prompt.flow, launcher)) model.updateResult(false)
                     } catch (_: Exception) { model.updateResult(false) }
                 }
-                PlayPrompt.Review -> activity.lifecycleScope.launch {
+                PlayPrompt.Review -> reviewJob = activity.lifecycleScope.launch {
                     try {
                         val info = reviews.request() // Short-lived token: acquire only at the eligible moment.
-                        if (isReady()) reviews.launch(activity, info)
+                        if (isReady()) {
+                            reviewLaunched = true
+                            reviews.launch(activity, info)
+                        }
                     } catch (cancelled: CancellationException) { throw cancelled }
                     catch (_: Exception) { /* Play may show nothing; keep the normal app flow. */ }
-                    finally { model.reviewFinished() }
+                    finally { reviewLaunched = false; model.reviewFinished() }
                 }
             }
             return

@@ -1,4 +1,8 @@
-> Latest follow-up bundles Acme globally, groups notification controls and preloads All Apps with skeleton loading. See [typography/loading validation and manual checks](FOLLOWUP_TYPOGRAPHY_LOADING.md).
+> Latest release QA: 80 unit tests, 18 API 36 tests and 12 supported API 23 tests pass; debug/release lint has zero errors and 64 existing warnings. Signed R8 runtime, retained-data release update, signature, bundle and alignment checks pass. See [29 October fixes, evidence and remaining Play checks](QA_2026_10_29.md).
+
+> Play updates/reviews and SDK fake coverage are described in [Play engagement validation](FOLLOWUP_PLAY_ENGAGEMENT.md).
+
+> The preceding follow-up bundles Acme globally, groups notification controls and preloads All Apps with skeleton loading. See [typography/loading validation and manual checks](FOLLOWUP_TYPOGRAPHY_LOADING.md).
 
 > The preceding follow-up restores blocking start/end alerts and fixes persistent per-app notification hiding and setup. See [notification validation and manual checks](FOLLOWUP_NOTIFICATIONS.md).
 
@@ -12,7 +16,7 @@
 
 # Validation and manual test matrix
 
-## Current five-phase validation, 26 October 2026
+## Historical five-phase validation, 26 October 2026
 
 Each phase passed its build/lint/unit-test gate before the next branch began. Detailed commands, results, failures corrected before passing, and limits are in [Phase 1](PHASE_1_API_36.md), [Phase 2](PHASE_2_OFFLINE.md), [Phase 3](PHASE_3_ACCESSIBILITY.md), [Phase 4](PHASE_4_AUDIT.md) and [Phase 5](PHASE_5_RELEASE.md).
 
